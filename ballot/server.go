@@ -6,8 +6,10 @@ import (
 	"ballot/ballot/models"
 	"encoding/json"
 	"fmt"
+	"github.com/desertbit/glue"
 	"github.com/gomodule/redigo/redis"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"html/template"
 	"log"
 	"math/rand"
@@ -15,31 +17,68 @@ import (
 	"strings"
 )
 
-// var redisClient *redis.Client
+type Server interface {}
 
-var redisConn redis.Conn
-const redisUrl = "redis://localhost:6379"
+type server struct {
+	redisConn redis.Conn
+	redisUrl string
+	templates *template.Template
+}
+
+func NewServer(glueServer *glue.Server) Server {
+	redisConn, err := redis.DialURL(redisUrl)
+	if err != nil {
+		log.Fatal("Error getting index view ", err)
+	}
+
+	server := server{
+		redisUrl: redisUrl,
+		redisConn: redisConn,
+		templates: template.Must(template.ParseGlob("ui/templates/*")),
+	}
+
+	http.Handle("/glue/ws", glueServer)
+
+	/* Serve static files
+	 */
+	fs := http.FileServer(http.Dir("ui/dist/js"))
+	http.Handle("/ui/js/",http.StripPrefix("/ui/js/", fs))
 
 
-var templates = template.Must(template.ParseGlob("ui/templates/*"))
+	/* Handlers
+	 */
+	r := mux.NewRouter()
+	r.HandleFunc("/", server.indexHttpHandler).Methods("GET")
+	r.HandleFunc("/api/session", server.createSessionHttpHandler).Methods("POST")
+	r.HandleFunc("/api/user", server.createUserHttpHandler).Methods("POST")
+	r.HandleFunc("/api/vote/start", server.startVoteHttpHandler).Methods("PUT")
+	r.HandleFunc("/api/vote/cast", server.castVoteHttpHandler).Methods("PUT")
+	http.Handle("/", r)
 
-func indexHttpHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Starting server")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+
+	return server
+}
+
+
+func (s server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Serving Index")
 
 	nocache := rand.Intn(1000000)
-	err := templates.ExecuteTemplate(w, "index.html", nocache)
+	err := s.templates.ExecuteTemplate(w, "index.html", nocache)
 	if err != nil {
 		log.Fatal("Error getting index view ", err)
 	}
 }
 
-func createSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (s server) createSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
 	sessionUUID, _ := uuid.NewRandom()
 	sessionId := sessionUUID.String()
 	session := models.Session{SessionId: sessionId}
 
 	key := fmt.Sprintf("session:%s:voting", sessionId)
-	_, err := redisConn.Do("SET", key, models.NotVoting)
+	_, err := s.redisConn.Do("SET", key, models.NotVoting)
 	log.Printf("Session %s saved", sessionId)
 
 	if err != nil {
@@ -54,7 +93,7 @@ func createSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
 	logerr(fmt.Fprintf(w, "%s", data))
 }
 
-func startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
+func (s server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	jsonData, err := jsonutil.GetRequestJson(r)
 	if err != nil {
 		log.Print(err)
@@ -71,7 +110,7 @@ func startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	log.Printf("Starting vote for session ID [%s]", sessionId)
 
 	key := fmt.Sprintf("session:%s:voting", sessionId)
-	_, err = redisConn.Do("SET", key, 1)
+	_, err = s.redisConn.Do("SET", key, 1)
 	log.Printf("Session %s voting", sessionId)
 
 	type WsSession struct {
@@ -97,7 +136,7 @@ func startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	logerr(fmt.Fprintf(w, "%s", data))
 }
 
-func castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
+func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	jsonData, err := jsonutil.GetRequestJson(r)
 	if err != nil {
 		log.Print(err)
@@ -115,7 +154,7 @@ func castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 
 	// cannot vote on session that is inactive
 	sessionKey := fmt.Sprintf("session:%s:voting", sessionId)
-	sessionState, err := redis.Int(redisConn.Do("GET", sessionKey))
+	sessionState, err := redis.Int(s.redisConn.Do("GET", sessionKey))
 
 	if sessionState == models.NotVoting {
 		http.Error(w, "Not voting yet for session " + sessionId, http.StatusBadRequest)
@@ -147,7 +186,7 @@ func castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	log.Printf("Voting for user ID [%s] with estimate [%d]", userId, estimate)
 
 	userKey := fmt.Sprintf("user:%s", userId)
-	_, err = redisConn.Do(
+	_, err = s.redisConn.Do(
 		"HSET", userKey,
 		"estimate", estimate)
 	log.Printf("User %s voted with %d", userId, estimate)
@@ -187,7 +226,7 @@ func castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	logerr(fmt.Fprintf(w, "%s", data))
 }
 
-func createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (s server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	jsonData, err := jsonutil.GetRequestJson(r)
 	if err != nil {
 		log.Print(err)
@@ -241,7 +280,7 @@ func createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println(user)
 
 	userKey := fmt.Sprintf("user:%s", userId)
-	_, err = redisConn.Do(
+	_, err = s.redisConn.Do(
 		"HSET", userKey,
 		"name", user.Name,
 		"id", user.UserId,
@@ -249,7 +288,7 @@ func createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("User %s saved", user.Name)
 
 	sessionUserKey := fmt.Sprintf("session:%s:users", sessionId)
-	_, err = redisConn.Do("SADD", sessionUserKey, userId)
+	_, err = s.redisConn.Do("SADD", sessionUserKey, userId)
 	log.Printf("Added user %s to session %s", userId, sessionId)
 
 	type WsUser struct {
