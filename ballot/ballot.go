@@ -2,6 +2,7 @@ package main
 
 import (
 	"ballot/ballot/hub"
+	"ballot/ballot/server"
 	"github.com/desertbit/glue"
 	"log"
 )
@@ -28,5 +29,5 @@ func main() {
 
 	glueSrv.OnNewSocket(hub.HandleSocket)
 
-	NewServer(glueSrv)
+	server.NewServer(glueSrv)
 }

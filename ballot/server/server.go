@@ -1,8 +1,9 @@
-package main
+package server
 
 import (
 	"ballot/ballot/hub"
 	"ballot/ballot/jsonutil"
+	"ballot/ballot/logutil"
 	"ballot/ballot/models"
 	"encoding/json"
 	"fmt"
@@ -16,6 +17,9 @@ import (
 	"net/http"
 	"strings"
 )
+
+// FIXME: env  var
+const redisUrl = "redis://localhost:6379"
 
 type Server interface {}
 
@@ -90,7 +94,7 @@ func (s server) createSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 	var data, _  = json.Marshal(session)
 	log.Printf("API session with %+v", session)
 	w.Header().Set("Content-Type", "application/json")
-	logerr(fmt.Fprintf(w, "%s", data))
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (s server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
@@ -133,7 +137,7 @@ func (s server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	logerr(fmt.Fprintf(w, "%s", data))
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
@@ -223,7 +227,7 @@ func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	data, _  = json.Marshal(vote)
 	w.Header().Set("Content-Type", "application/json")
 	log.Println(string(data))
-	logerr(fmt.Fprintf(w, "%s", data))
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (s server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
@@ -316,5 +320,5 @@ func (s server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 
 	var httpResp, _  = json.Marshal(user)
 	w.Header().Set("Content-Type", "application/json")
-	logerr(fmt.Fprintf(w, "%s", httpResp))
+	logutil.Logger(fmt.Fprintf(w, "%s", httpResp))
 }
