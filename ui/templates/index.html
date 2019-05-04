@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+    <title>Ballot</title>
+</head>
+
+<body>
+<div id="app">
+    <p>
+        <a href="/">Home</a>
+    </p>
+    <p>
+        <router-link to="/new">New Voting Space</router-link>
+    </p>
+
+    <router-view></router-view>
+</div>
+
+</body>
+
+<script src="/ui/js/glue.js"></script>
+<script src="/ui/js/app.js?{{.}}"></script>
+
+</html>
