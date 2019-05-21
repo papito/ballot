@@ -1,6 +1,7 @@
 package server
 
 import (
+	"ballot/ballot/db"
 	"ballot/ballot/hub"
 	"ballot/ballot/jsonutil"
 	"ballot/ballot/logutil"
@@ -8,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/desertbit/glue"
-	"github.com/gomodule/redigo/redis"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"html/template"
@@ -18,39 +18,29 @@ import (
 	"strings"
 )
 
-// FIXME: env  var
-const redisUrl = "redis://localhost:6379"
-
 type Server interface {}
 
 type server struct {
-	redisConn redis.Conn
-	redisUrl string
 	templates *template.Template
+	store *db.Store
 }
 
 func NewServer(glueServer *glue.Server) Server {
-	redisConn, err := redis.DialURL(redisUrl)
-	if err != nil {
-		log.Fatal("Error getting index view ", err)
-	}
 
 	server := server{
-		redisUrl: redisUrl,
-		redisConn: redisConn,
 		templates: template.Must(template.ParseGlob("ui/templates/*")),
+		store: &db.Store{},
 	}
+	server.store.Connect()
 
 	http.Handle("/glue/ws", glueServer)
 
-	/* Serve static files
-	 */
+	// Serve static files
 	fs := http.FileServer(http.Dir("ui/dist/js"))
 	http.Handle("/ui/js/",http.StripPrefix("/ui/js/", fs))
 
 
-	/* Handlers
-	 */
+	// Handlers
 	r := mux.NewRouter()
 	r.HandleFunc("/", server.indexHttpHandler).Methods("GET")
 	r.HandleFunc("/api/session", server.createSessionHttpHandler).Methods("POST")
@@ -82,12 +72,10 @@ func (s server) createSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 	session := models.Session{SessionId: sessionId}
 
 	key := fmt.Sprintf("session:%s:voting", sessionId)
-	_, err := s.redisConn.Do("SET", key, models.NotVoting)
-	log.Printf("Session %s saved", sessionId)
+	err := s.store.SetKey(key, models.NotVoting)
 
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error saving session", http.StatusInternalServerError)
+		http.Error(w, "Error saving data", http.StatusInternalServerError)
 		return
 	}
 
@@ -114,8 +102,12 @@ func (s server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	log.Printf("Starting vote for session ID [%s]", sessionId)
 
 	key := fmt.Sprintf("session:%s:voting", sessionId)
-	_, err = s.redisConn.Do("SET", key, 1)
-	log.Printf("Session %s voting", sessionId)
+	err = s.store.SetKey(key, models.Voting)
+
+	if err != nil {
+		http.Error(w, "Error saving data", http.StatusInternalServerError)
+		return
+	}
 
 	type WsSession struct {
 		Event string `json:"event"`
@@ -158,7 +150,8 @@ func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 
 	// cannot vote on session that is inactive
 	sessionKey := fmt.Sprintf("session:%s:voting", sessionId)
-	sessionState, err := redis.Int(s.redisConn.Do("GET", sessionKey))
+
+	sessionState, err := s.store.GetInt(sessionKey)
 
 	if sessionState == models.NotVoting {
 		http.Error(w, "Not voting yet for session " + sessionId, http.StatusBadRequest)
@@ -190,10 +183,11 @@ func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	log.Printf("Voting for user ID [%s] with estimate [%d]", userId, estimate)
 
 	userKey := fmt.Sprintf("user:%s", userId)
-	_, err = s.redisConn.Do(
-		"HSET", userKey,
-		"estimate", estimate)
-	log.Printf("User %s voted with %d", userId, estimate)
+	err = s.store.SetHashKey(userKey, "estimate", estimate)
+	if err != nil {
+		http.Error(w, "Error saving data", http.StatusInternalServerError)
+		return
+	}
 
 	type WsUserVote struct {
 		Event string `json:"event"`
@@ -262,7 +256,6 @@ func (s server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 			Error: "This field cannot be empty"}
 
 		data, err := json.Marshal(valErr)
-		log.Println(string(data))
 
 		if err != nil {
 			http.Error(w, "Error creating response", http.StatusInternalServerError)
@@ -284,16 +277,24 @@ func (s server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println(user)
 
 	userKey := fmt.Sprintf("user:%s", userId)
-	_, err = s.redisConn.Do(
-		"HSET", userKey,
+	err = s.store.SetHashKey(
+		userKey,
 		"name", user.Name,
 		"id", user.UserId,
-		"estimate", user.Estimate)
-	log.Printf("User %s saved", user.Name)
+		"estimate", user.Estimate,)
+
+	if err != nil {
+		http.Error(w, "Error saving data", http.StatusInternalServerError)
+		return
+	}
 
 	sessionUserKey := fmt.Sprintf("session:%s:users", sessionId)
-	_, err = s.redisConn.Do("SADD", sessionUserKey, userId)
-	log.Printf("Added user %s to session %s", userId, sessionId)
+	err = s.store.AddToSet(sessionUserKey, userId)
+
+	if err != nil {
+		http.Error(w, "Error saving data", http.StatusInternalServerError)
+		return
+	}
 
 	type WsUser struct {
 		models.User
