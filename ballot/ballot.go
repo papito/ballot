@@ -1,33 +1,17 @@
 package main
 
 import (
-	"ballot/ballot/hub"
 	"ballot/ballot/server"
-	"github.com/desertbit/glue"
 	"log"
+	"net/http"
 )
 
 // FIXME: env  var
-const redisUrl = "redis://localhost:6379"
 
 func main() {
-	var err error
-	/* Initiate the hub that connects sessions and sockets
-	 */
-	log.Println("Creating hub")
-	err = hub.InitHub(redisUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
+	srv := server.NewServer()
+	defer srv.Release()
 
-	/* Create the Glue server
-	 */
-	glueSrv := glue.NewServer(glue.Options{
-		HTTPSocketType: glue.HTTPSocketTypeNone,
-	})
-	defer glueSrv.Release()
-
-	glueSrv.OnNewSocket(hub.HandleSocket)
-
-	server.NewServer(glueSrv)
+	log.Println("Starting server")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

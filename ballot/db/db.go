@@ -5,16 +5,13 @@ import (
 	"log"
 )
 
-// FIXME: env  var
-const redisUrl = "redis://localhost:6379"
-
 
 type Store struct {
 	redisConn redis.Conn
 	redisUrl string
 }
 
-func (p *Store) Connect()  {
+func (p *Store) Connect(redisUrl string)  {
 	var err error
 	p.redisConn, err = redis.DialURL(redisUrl)
 	if err != nil {

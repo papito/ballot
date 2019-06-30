@@ -8,41 +8,48 @@ import (
 	"github.com/desertbit/glue"
 	"github.com/gomodule/redigo/redis"
 	"log"
+	"net/http"
 	"strconv"
 	"sync"
 )
 
-/* Borrowed from https://github.com/hjr265/tonesa/blob/master/hub/hub.go */
+/* Modeled after https://github.com/hjr265/tonesa/blob/master/hub/hub.go */
 
-var (
-	socketsMap  = map[*glue.Socket]map[string]bool{}
-	sessionsMap = map[string]map[*glue.Socket]bool{}
+
+type Hub struct {
+	socketsMap  map[*glue.Socket]map[string]bool
+	sessionsMap map[string]map[*glue.Socket]bool
 
 	pubConn redis.Conn
 	subConn redis.PubSubConn
-	l       sync.RWMutex
-)
+	rwMutex sync.RWMutex
+	glueSrv *glue.Server
+}
 
-func InitHub(url string) error {
+func (p *Hub) Connect(url string) error {
 	c, err := redis.DialURL(url)
 	if err != nil {
 		return err
 	}
-	pubConn = c
+
+	p.pubConn = c
 
 	c, err = redis.DialURL(url)
 	if err != nil {
 		return err
 	}
-	subConn = redis.PubSubConn{c}
+	p.subConn = redis.PubSubConn{c}
+
+	p.socketsMap = map[*glue.Socket]map[string]bool{}
+	p.sessionsMap = map[string]map[*glue.Socket]bool{}
 
 	go func() {
 		for {
-			switch v := subConn.Receive().(type) {
+			switch v := p.subConn.Receive().(type) {
 			case redis.Message:
 				log.Printf(
 					"Subscribe connection received [%s] on channel [%s]", v.Data, v.Channel)
-				EmitLocal(v.Channel, string(v.Data))
+				p.EmitLocal(v.Channel, string(v.Data))
 
 			case error:
 				panic(v)
@@ -50,86 +57,104 @@ func InitHub(url string) error {
 		}
 	}()
 
+	/* Create the Glue server
+	 */
+	p.glueSrv = glue.NewServer(glue.Options{
+		HTTPSocketType: glue.HTTPSocketTypeNone,
+	})
+
+	p.glueSrv.OnNewSocket(p.handleSocket)
+
 	return nil
 }
 
-func Subscribe(sock *glue.Socket, session string) error {
+func (p* Hub) HandleWebSockets(url string) {
+	http.Handle(url, p.glueSrv)
+}
+
+func (p* Hub) Release() {
+	log.Print("Releasing Hub resources...")
+	p.glueSrv.Release()
+	log.Print("Done")
+}
+
+func (p* Hub) Subscribe(sock *glue.Socket, session string) error {
 	log.Printf("Subscribing socket %p to session %s", sock, session)
-	l.Lock()
-	defer l.Unlock()
+	p.rwMutex.Lock()
+	defer p.rwMutex.Unlock()
 
-	_, ok := socketsMap[sock]
+	_, ok := p.socketsMap[sock]
 	if !ok {
-		socketsMap[sock] = map[string]bool{}
+		p.socketsMap[sock] = map[string]bool{}
 	}
-	socketsMap[sock][session] = true
+	p.socketsMap[sock][session] = true
 
-	_, ok = sessionsMap[session]
+	_, ok = p.sessionsMap[session]
 
 	if !ok {
-		sessionsMap[session] = map[*glue.Socket]bool{}
-		err := subConn.Subscribe(session)
+		p.sessionsMap[session] = map[*glue.Socket]bool{}
+		err := p.subConn.Subscribe(session)
 		if err != nil {
 			return err
 		}
 	}
-	sessionsMap[session][sock] = true
+	p.sessionsMap[session][sock] = true
 
 	return nil
 }
 
-func UnsubscribeAll(sock *glue.Socket) error {
+func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 	log.Printf("Unsubscribing all from socket %p", sock)
-	l.Lock()
-	defer l.Unlock()
+	p.rwMutex.Lock()
+	defer p.rwMutex.Unlock()
 
-	for session := range socketsMap[sock] {
-		delete(sessionsMap[session], sock)
-		if len(sessionsMap[session]) == 0 {
-			delete(sessionsMap, session)
-			err := subConn.Unsubscribe(session)
+	for session := range p.socketsMap[sock] {
+		delete(p.sessionsMap[session], sock)
+		if len(p.sessionsMap[session]) == 0 {
+			delete(p.sessionsMap, session)
+			err := p.subConn.Unsubscribe(session)
 			if err != nil {
 				return err
 			}
 		}
 	}
-	delete(socketsMap, sock)
+	delete(p.socketsMap, sock)
 
 	return nil
 }
 
-func Emit(session string, data string) error {
+func (p *Hub) Emit(session string, data string) error {
 	log.Printf("EMIT. Session %s - %s", session, data)
-	_, err := pubConn.Do("PUBLISH", session, data)
+	_, err := p.pubConn.Do("PUBLISH", session, data)
 	return err
 }
 
 
-func EmitLocal(session string, data string) {
+func (p *Hub) EmitLocal(session string, data string) {
 	log.Printf("EMIT LOCAL. Session %s - %s", session, data)
-	l.RLock()
-	defer l.RUnlock()
+	p.rwMutex.RLock()
+	defer p.rwMutex.RUnlock()
 
 	// write to socketsMap interested in this session
-	for socket := range sessionsMap[session] {
+	for socket := range p.sessionsMap[session] {
 		socket.Write(data)
 	}
 }
 
-func EmitSocket(sock *glue.Socket,data string) {
+func (p *Hub) emitSocket(sock *glue.Socket,data string) {
 	log.Printf("EMIT SOCKET. Socket %s - %s", sock.ID(), data)
-	l.RLock()
-	defer l.RUnlock()
+	p.rwMutex.RLock()
+	defer p.rwMutex.RUnlock()
 
 	sock.Write(data)
 }
 
-func HandleSocket(sock *glue.Socket) {
+func (p *Hub) handleSocket(sock *glue.Socket) {
 	log.Printf("Handling socket %p", sock)
 
 	sock.OnClose(func() {
 		log.Printf("Socket %p closed", sock)
-		err := UnsubscribeAll(sock)
+		err := p.unsubscribeAll(sock)
 		if err != nil {
 			log.Print(err)
 		}
@@ -154,14 +179,14 @@ func HandleSocket(sock *glue.Socket) {
 		 */
 		case "WATCH":
 			log.Printf("WS. Watching session %s", sessionId)
-			err := Subscribe(sock, sessionId)
+			err := p.Subscribe(sock, sessionId)
 			if err != nil {
 				log.Print(err)
 			}
 
 			// spit out all the current users
 			key := fmt.Sprintf("session:%s:users", sessionId)
-			userIds, err := redis.Strings(pubConn.Do("SMEMBERS", key))
+			userIds, err := redis.Strings(p.pubConn.Do("SMEMBERS", key))
 			if err != nil {
 				log.Print(err)
 				return
@@ -172,10 +197,10 @@ func HandleSocket(sock *glue.Socket) {
 			// OPTIMIZE: batch this
 			for _, userId := range userIds {
 				key = fmt.Sprintf("user:%s", userId)
-				_ = pubConn.Send("HGETALL", key)
+				_ = p.pubConn.Send("HGETALL", key)
 			}
 
-			res, err := redis.Values(pubConn.Do(""))
+			res, err := redis.Values(p.pubConn.Do(""))
 
 			if err != nil {
 				fmt.Println("ERROR ", err)
@@ -208,7 +233,7 @@ func HandleSocket(sock *glue.Socket) {
 
 			// get session state - voting, not voting
 			key = fmt.Sprintf("session:%s:voting", sessionId)
-			isVoting, err := redis.Int(pubConn.Do("GET", key))
+			isVoting, err := redis.Int(p.pubConn.Do("GET", key))
 
 			sessionState := models.NotVoting
 			if isVoting == 1 {
@@ -232,22 +257,22 @@ func HandleSocket(sock *glue.Socket) {
 				log.Println(err)
 			}
 
-			EmitSocket(sock, string(data))
+			p.emitSocket(sock, string(data))
 
 		case "START":
-			err := Emit(sessionId, "{}")
+			err := p.Emit(sessionId, "{}")
 			if err != nil {
 				log.Print(err)
 			}
 
 		case "RESTART":
-			err := Emit(sessionId, "{}")
+			err := p.Emit(sessionId, "{}")
 			if err != nil {
 				log.Print(err)
 			}
 
 		case "VOTE":
-			err := Emit(sessionId, "{}")
+			err := p.Emit(sessionId, "{}")
 			if err != nil {
 				log.Print(err)
 			}

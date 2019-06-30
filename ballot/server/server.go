@@ -8,7 +8,6 @@ import (
 	"ballot/ballot/models"
 	"encoding/json"
 	"fmt"
-	"github.com/desertbit/glue"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"html/template"
@@ -18,27 +17,38 @@ import (
 	"strings"
 )
 
-type Server interface {}
+const redisUrl = "redis://localhost:6379"
+
+type Server interface {
+	Release()
+}
 
 type server struct {
 	templates *template.Template
 	store *db.Store
+	hub *hub.Hub
 }
 
-func NewServer(glueServer *glue.Server) Server {
-
+func NewServer() Server {
 	server := server{
 		templates: template.Must(template.ParseGlob("ui/templates/*")),
 		store: &db.Store{},
+		hub: &hub.Hub{},
 	}
-	server.store.Connect()
+	server.store.Connect(redisUrl)
 
-	http.Handle("/glue/ws", glueServer)
+	var err error
+	/* Initiate the hub that connects sessions and sockets
+	 */
+	log.Println("Creating hub")
+	err = server.hub.Connect(redisUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Serve static files
 	fs := http.FileServer(http.Dir("ui/dist/js"))
 	http.Handle("/ui/js/",http.StripPrefix("/ui/js/", fs))
-
 
 	// Handlers
 	r := mux.NewRouter()
@@ -49,30 +59,34 @@ func NewServer(glueServer *glue.Server) Server {
 	r.HandleFunc("/api/vote/cast", server.castVoteHttpHandler).Methods("PUT")
 	http.Handle("/", r)
 
-	log.Println("Starting server")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	server.hub.HandleWebSockets("/glue/ws")
 
 	return server
 }
 
+func (p server) Release() {
+	log.Print("Releasing server resources")
+	p.hub.Release()
+	log.Print("Done")
+}
 
-func (s server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Serving Index")
 
 	nocache := rand.Intn(1000000)
-	err := s.templates.ExecuteTemplate(w, "index.html", nocache)
+	err := p.templates.ExecuteTemplate(w, "index.html", nocache)
 	if err != nil {
 		log.Fatal("Error getting index view ", err)
 	}
 }
 
-func (s server) createSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (p server) createSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
 	sessionUUID, _ := uuid.NewRandom()
 	sessionId := sessionUUID.String()
 	session := models.Session{SessionId: sessionId}
 
 	key := fmt.Sprintf("session:%s:voting", sessionId)
-	err := s.store.SetKey(key, models.NotVoting)
+	err := p.store.SetKey(key, models.NotVoting)
 
 	if err != nil {
 		http.Error(w, "Error saving data", http.StatusInternalServerError)
@@ -85,7 +99,7 @@ func (s server) createSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
-func (s server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
+func (p server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	jsonData, err := jsonutil.GetRequestJson(r)
 	if err != nil {
 		log.Print(err)
@@ -102,7 +116,7 @@ func (s server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	log.Printf("Starting vote for session ID [%s]", sessionId)
 
 	key := fmt.Sprintf("session:%s:voting", sessionId)
-	err = s.store.SetKey(key, models.Voting)
+	err = p.store.SetKey(key, models.Voting)
 
 	if err != nil {
 		http.Error(w, "Error saving data", http.StatusInternalServerError)
@@ -122,7 +136,7 @@ func (s server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 		log.Println(err)
 	}
 
-	err = hub.Emit(sessionId, string(data))
+	err = p.hub.Emit(sessionId, string(data))
 
 	if err != nil {
 		log.Print(err)
@@ -132,7 +146,7 @@ func (s server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
-func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
+func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	jsonData, err := jsonutil.GetRequestJson(r)
 	if err != nil {
 		log.Print(err)
@@ -151,7 +165,7 @@ func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	// cannot vote on session that is inactive
 	sessionKey := fmt.Sprintf("session:%s:voting", sessionId)
 
-	sessionState, err := s.store.GetInt(sessionKey)
+	sessionState, err := p.store.GetInt(sessionKey)
 
 	if sessionState == models.NotVoting {
 		http.Error(w, "Not voting yet for session " + sessionId, http.StatusBadRequest)
@@ -183,7 +197,7 @@ func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	log.Printf("Voting for user ID [%s] with estimate [%d]", userId, estimate)
 
 	userKey := fmt.Sprintf("user:%s", userId)
-	err = s.store.SetHashKey(userKey, "estimate", estimate)
+	err = p.store.SetHashKey(userKey, "estimate", estimate)
 	if err != nil {
 		http.Error(w, "Error saving data", http.StatusInternalServerError)
 		return
@@ -206,7 +220,7 @@ func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 		log.Println(err)
 	}
 
-	err = hub.Emit(sessionId, string(data))
+	err = p.hub.Emit(sessionId, string(data))
 
 	if err != nil {
 		log.Print(err)
@@ -224,7 +238,7 @@ func (s server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
-func (s server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (p server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	jsonData, err := jsonutil.GetRequestJson(r)
 	if err != nil {
 		log.Print(err)
@@ -277,7 +291,7 @@ func (s server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println(user)
 
 	userKey := fmt.Sprintf("user:%s", userId)
-	err = s.store.SetHashKey(
+	err = p.store.SetHashKey(
 		userKey,
 		"name", user.Name,
 		"id", user.UserId,
@@ -289,7 +303,7 @@ func (s server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionUserKey := fmt.Sprintf("session:%s:users", sessionId)
-	err = s.store.AddToSet(sessionUserKey, userId)
+	err = p.store.AddToSet(sessionUserKey, userId)
 
 	if err != nil {
 		http.Error(w, "Error saving data", http.StatusInternalServerError)
@@ -313,7 +327,7 @@ func (s server) createUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	err = hub.Emit(sessionId, string(wsResp))
+	err = p.hub.Emit(sessionId, string(wsResp))
 
 	if err != nil {
 		log.Println(err)
