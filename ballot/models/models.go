@@ -22,6 +22,10 @@ type ValidationError struct {
 	Error string `json:"error"`
 }
 
+type Health struct {
+	Status string `json:"status"`
+}
+
 const (
 	NotVoting = iota
 	Voting

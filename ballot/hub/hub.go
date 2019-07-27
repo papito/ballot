@@ -75,7 +75,7 @@ func (p* Hub) HandleWebSockets(url string) {
 func (p* Hub) Release() {
 	log.Print("Releasing Hub resources...")
 	p.glueSrv.Release()
-	log.Print("Done")
+	log.Print("Hub done")
 }
 
 func (p* Hub) Subscribe(sock *glue.Socket, session string) error {

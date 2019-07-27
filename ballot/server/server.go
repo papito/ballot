@@ -21,6 +21,7 @@ const redisUrl = "redis://localhost:6379"
 
 type Server interface {
 	Release()
+	HealthHttpHandler(w http.ResponseWriter, r *http.Request)
 }
 
 type server struct {
@@ -31,7 +32,7 @@ type server struct {
 
 func NewServer() Server {
 	server := server{
-		templates: template.Must(template.ParseGlob("ui/templates/*")),
+		templates: template.Must(template.ParseGlob("../ui/templates/*")),
 		store: &db.Store{},
 		hub: &hub.Hub{},
 	}
@@ -47,12 +48,13 @@ func NewServer() Server {
 	}
 
 	// Serve static files
-	fs := http.FileServer(http.Dir("ui/dist/js"))
-	http.Handle("/ui/js/",http.StripPrefix("/ui/js/", fs))
+	fs := http.FileServer(http.Dir("../ui/dist/js"))
+	http.Handle("../ui/js/",http.StripPrefix("../ui/js/", fs))
 
 	// Handlers
 	r := mux.NewRouter()
 	r.HandleFunc("/", server.indexHttpHandler).Methods("GET")
+	r.HandleFunc("/health", server.HealthHttpHandler).Methods("GET")
 	r.HandleFunc("/api/session", server.createSessionHttpHandler).Methods("POST")
 	r.HandleFunc("/api/user", server.createUserHttpHandler).Methods("POST")
 	r.HandleFunc("/api/vote/start", server.startVoteHttpHandler).Methods("PUT")
@@ -67,7 +69,20 @@ func NewServer() Server {
 func (p server) Release() {
 	log.Print("Releasing server resources")
 	p.hub.Release()
-	log.Print("Done")
+	log.Print("Server done")
+}
+
+func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	type Health struct {
+		Status string `json:"status"`
+	}
+
+	var health = Health{Status:"OK"}
+	var data, _ = json.Marshal(health)
+
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
