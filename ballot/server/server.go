@@ -1,6 +1,7 @@
 package server
 
 import (
+	"ballot/ballot/config"
 	"ballot/ballot/db"
 	"ballot/ballot/hub"
 	"ballot/ballot/jsonutil"
@@ -17,8 +18,6 @@ import (
 	"strings"
 )
 
-const redisUrl = "redis://localhost:6379"
-
 type Server interface {
 	Release()
 	HealthHttpHandler(w http.ResponseWriter, r *http.Request)
@@ -30,19 +29,21 @@ type server struct {
 	hub *hub.Hub
 }
 
-func NewServer() Server {
+func NewServer(config config.Config) Server {
+	log.Println("Creating server")
+	log.Printf("Environment is %s", config.Environment)
 	server := server{
 		templates: template.Must(template.ParseGlob("../ui/templates/*")),
 		store: &db.Store{},
 		hub: &hub.Hub{},
 	}
-	server.store.Connect(redisUrl)
+	server.store.Connect(config.RedisUrl)
 
 	var err error
 	/* Initiate the hub that connects sessions and sockets
 	 */
 	log.Println("Creating hub")
-	err = server.hub.Connect(redisUrl)
+	err = server.hub.Connect(config.RedisUrl)
 	if err != nil {
 		log.Fatal(err)
 	}

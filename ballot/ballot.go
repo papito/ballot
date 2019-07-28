@@ -1,17 +1,24 @@
 package main
 
 import (
+	"ballot/ballot/config"
 	"ballot/ballot/server"
 	"log"
 	"net/http"
+	"os"
 )
 
-// FIXME: env  var
-
 func main() {
-	srv := server.NewServer()
+	envConfig := config.LoadConfig()
+	srv := server.NewServer(envConfig)
 	defer srv.Release()
 
-	log.Println("Starting server")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	serverPort := ":" + os.Getenv("HTTP_PORT")
+
+	if serverPort == ":" {
+		panic("Specify HTTP_PORT environment variable")
+	}
+
+	log.Printf("Starting server on port %s", serverPort)
+	log.Fatal(http.ListenAndServe(serverPort, nil))
 }
