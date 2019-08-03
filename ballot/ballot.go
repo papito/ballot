@@ -1,8 +1,8 @@
 package main
 
 import (
-	"ballot/ballot/config"
-	"ballot/ballot/server"
+	"github.com/papito/ballot/ballot/config"
+	"github.com/papito/ballot/ballot/server"
 	"log"
 	"net/http"
 	"os"
@@ -16,6 +16,7 @@ func main() {
 	serverPort := ":" + os.Getenv("HTTP_PORT")
 
 	if serverPort == ":" {
+
 		panic("Specify HTTP_PORT environment variable")
 	}
 

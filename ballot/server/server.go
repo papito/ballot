@@ -1,16 +1,16 @@
 package server
 
 import (
-	"ballot/ballot/config"
-	"ballot/ballot/db"
-	"ballot/ballot/hub"
-	"ballot/ballot/jsonutil"
-	"ballot/ballot/logutil"
-	"ballot/ballot/models"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/papito/ballot/ballot/config"
+	"github.com/papito/ballot/ballot/db"
+	"github.com/papito/ballot/ballot/hub"
+	"github.com/papito/ballot/ballot/jsonutil"
+	"github.com/papito/ballot/ballot/logutil"
+	"github.com/papito/ballot/ballot/models"
 	"html/template"
 	"log"
 	"math/rand"
@@ -37,6 +37,7 @@ func NewServer(config config.Config) Server {
 		store: &db.Store{},
 		hub: &hub.Hub{},
 	}
+
 	server.store.Connect(config.RedisUrl)
 
 	var err error

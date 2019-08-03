@@ -1,12 +1,12 @@
 package hub
 
 import (
-	"ballot/ballot/jsonutil"
-	"ballot/ballot/models"
 	"encoding/json"
 	"fmt"
 	"github.com/desertbit/glue"
 	"github.com/gomodule/redigo/redis"
+	"github.com/papito/ballot/ballot/jsonutil"
+	"github.com/papito/ballot/ballot/models"
 	"log"
 	"net/http"
 	"strconv"
