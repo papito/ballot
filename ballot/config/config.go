@@ -29,12 +29,12 @@ func LoadConfig() Config {
 
 	config.HttpPort = ":" + os.Getenv("HTTP_PORT")
 	if config.HttpPort == ":" {
-		panic("Specify HTTP_PORT environment variable")
+		config.HttpPort = ":3000"
 	}
 
 	config.RedisUrl = os.Getenv("REDIS_URL")
-	if config.RedisUrl == ":" {
-		panic("Specify REDIS_URL environment variable")
+	if config.RedisUrl == "" {
+		config.RedisUrl = "redis://localhost:6379"
 	}
 
 	return config
