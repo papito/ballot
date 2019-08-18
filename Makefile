@@ -1,4 +1,5 @@
 .ONESHELL:
+
 SHELL=/bin/sh
 CONTAINER_NAME=test_redis
 
@@ -28,7 +29,7 @@ down:
 test:
 	$(call up_if_down)
 	$(call compile)
-	go test
+	REDIS_URL=redis://localhost:6380 go test -v
 
 status:
 	@docker-compose ps

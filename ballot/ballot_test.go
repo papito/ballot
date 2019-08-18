@@ -22,16 +22,6 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	err = os.Setenv("HTTP_PORT", "8080")
-	if err != nil {
-		panic(err)
-	}
-
-	err = os.Setenv("REDIS_URL", "redis://localhost:6379")
-	if err != nil {
-		panic(err)
-	}
-
 	envConfig = config.LoadConfig()
 
 	srv = server.NewServer(envConfig)
