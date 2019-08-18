@@ -1,6 +1,9 @@
 package config
 
-import "os"
+import (
+	"log"
+	"os"
+)
 
 const (
 	TEST = "test"
@@ -26,16 +29,20 @@ func LoadConfig() Config {
 			panic(err)
 		}
 	}
+	log.Printf("ENV: %s", config.Environment)
+
 
 	config.HttpPort = ":" + os.Getenv("HTTP_PORT")
 	if config.HttpPort == ":" {
 		config.HttpPort = ":3000"
 	}
+	log.Printf("HTTP port %s", config.HttpPort)
 
 	config.RedisUrl = os.Getenv("REDIS_URL")
 	if config.RedisUrl == "" {
 		config.RedisUrl = "redis://localhost:6379"
 	}
+	log.Printf("Redis URL %s", config.RedisUrl)
 
 	return config
 }

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"ballot/ballot/config"
-	"ballot/ballot/models"
-	"ballot/ballot/server"
 	"encoding/json"
 	"fmt"
+	"github.com/papito/ballot/ballot/config"
+	"github.com/papito/ballot/ballot/models"
+	"github.com/papito/ballot/ballot/server"
 	"net/http"
 	"net/http/httptest"
 	"os"
