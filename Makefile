@@ -4,7 +4,7 @@ SHELL=/bin/sh
 CONTAINER_NAME=test_redis
 
 define up_if_down
-	@if [ ! `docker ps -q -f name=$(CONTAINER_NAME)` ]; then docker-compose up -d; else echo "---"; fi
+	@if [ ! `docker ps -q -f name=$(CONTAINER_NAME)` ]; then docker-compose up -d; fi
 endef
 
 define compile
@@ -18,7 +18,7 @@ compile:
 run:
 	$(call up_if_down)
 	$(call compile)
-	ENV=development ../bin/ballot
+	@ENV=development ../bin/ballot
 
 up:
 	$(call up_if_down)
@@ -29,7 +29,7 @@ down:
 test:
 	$(call up_if_down)
 	$(call compile)
-	REDIS_URL=redis://localhost:6380 go test -v
+	@REDIS_URL=redis://localhost:6380 go test -v
 
 status:
 	@docker-compose ps

@@ -6,6 +6,8 @@ import (
 	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/models"
 	"github.com/papito/ballot/ballot/server"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -22,6 +24,8 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
+	log.SetOutput(ioutil.Discard)
+	
 	envConfig = config.LoadConfig()
 
 	srv = server.NewServer(envConfig)
