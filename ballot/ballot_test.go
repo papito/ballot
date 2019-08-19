@@ -6,6 +6,7 @@ import (
 	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/models"
 	"github.com/papito/ballot/ballot/server"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -46,20 +47,13 @@ func TestHealth(t *testing.T) {
 	handler := http.HandlerFunc(srv.HealthHttpHandler)
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+	assert.Equal(t, rr.Code, http.StatusOK)
 
 	var health = models.Health{Status:"OK"}
 	var data, _ = json.Marshal(health)
 
 	expected := fmt.Sprintf("%s", data)
-
-	if rr.Body.String() != expected {
-		t.Errorf("Handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
+	assert.Equal(t, rr.Body.String(), expected)
 }
 
 func TestCreateSession(t *testing.T) {
@@ -72,11 +66,7 @@ func TestCreateSession(t *testing.T) {
 	handler := http.HandlerFunc(srv.CreateSessionHttpHandler)
 	handler.ServeHTTP(rr, req)
 
-	// TODO: utility function
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+	assert.Equal(t, rr.Code, http.StatusOK)
 
 	var session models.Session
 	err = json.Unmarshal([]byte(rr.Body.String()), &session)
@@ -85,10 +75,6 @@ func TestCreateSession(t *testing.T) {
 	}
 	match, _ := regexp.MatchString("[a-z0-9]", session.SessionId)
 
-	if !match {
-		t.Errorf("ID [%s] is not valid UUID", session.SessionId)
-	}
-	if len(session.SessionId) != 36 { // FIXME: this can be done with the regex above
-		t.Errorf("ID [%s] is not a valid UUID", session.SessionId)
-	}
+	assert.True(t, match)
+	assert.Len(t, session.SessionId, 36)
 }

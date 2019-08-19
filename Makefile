@@ -31,7 +31,7 @@ test:
 	$(call compile)
 	@REDIS_URL=redis://localhost:6380 go test -v
 
-status:
+ps:
 	@docker-compose ps
 
 logs:
