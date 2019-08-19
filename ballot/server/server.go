@@ -22,6 +22,8 @@ type Server interface {
 	Release()
 	HealthHttpHandler(w http.ResponseWriter, r *http.Request)
 	CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
+	Store() *db.Store
+	Hub() *hub.Hub
 }
 
 type server struct {
@@ -67,6 +69,14 @@ func NewServer(config config.Config) Server {
 	server.hub.HandleWebSockets("/glue/ws")
 
 	return server
+}
+
+func (p server) Store() *db.Store {
+	return p.store
+}
+
+func (p server) Hub() *hub.Hub {
+	return p.hub
 }
 
 func (p server) Release() {
