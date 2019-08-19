@@ -21,6 +21,7 @@ import (
 type Server interface {
 	Release()
 	HealthHttpHandler(w http.ResponseWriter, r *http.Request)
+	CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 }
 
 type server struct {
@@ -57,7 +58,7 @@ func NewServer(config config.Config) Server {
 	r := mux.NewRouter()
 	r.HandleFunc("/", server.indexHttpHandler).Methods("GET")
 	r.HandleFunc("/health", server.HealthHttpHandler).Methods("GET")
-	r.HandleFunc("/api/session", server.createSessionHttpHandler).Methods("POST")
+	r.HandleFunc("/api/session", server.CreateSessionHttpHandler).Methods("POST")
 	r.HandleFunc("/api/user", server.createUserHttpHandler).Methods("POST")
 	r.HandleFunc("/api/vote/start", server.startVoteHttpHandler).Methods("PUT")
 	r.HandleFunc("/api/vote/cast", server.castVoteHttpHandler).Methods("PUT")
@@ -97,7 +98,7 @@ func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p server) createSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
 	sessionUUID, _ := uuid.NewRandom()
 	sessionId := sessionUUID.String()
 	session := models.Session{SessionId: sessionId}

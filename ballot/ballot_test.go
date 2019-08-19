@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"testing"
 )
 
@@ -25,7 +26,7 @@ func TestMain(m *testing.M) {
 	}
 
 	log.SetOutput(ioutil.Discard)
-	
+
 	envConfig = config.LoadConfig()
 
 	srv = server.NewServer(envConfig)
@@ -35,28 +36,21 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestHealthEndpoint(t *testing.T) {
+func TestHealth(t *testing.T) {
 	req, err := http.NewRequest("GET", "/health", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-
 	handler := http.HandlerFunc(srv.HealthHttpHandler)
-
-	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
-	// directly and pass in our Request and ResponseRecorder.
 	handler.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("Handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
 
-	// Check the response body is what we expect.
 	var health = models.Health{Status:"OK"}
 	var data, _ = json.Marshal(health)
 
@@ -65,5 +59,36 @@ func TestHealthEndpoint(t *testing.T) {
 	if rr.Body.String() != expected {
 		t.Errorf("Handler returned unexpected body: got %v want %v",
 			rr.Body.String(), expected)
+	}
+}
+
+func TestCreateSession(t *testing.T) {
+	req, err := http.NewRequest("GET", "/health", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(srv.CreateSessionHttpHandler)
+	handler.ServeHTTP(rr, req)
+
+	// TODO: utility function
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	var session models.Session
+	err = json.Unmarshal([]byte(rr.Body.String()), &session)
+	if err != nil {
+		t.Errorf("%s. Recevied: %s", err, rr.Body.String())
+	}
+	match, _ := regexp.MatchString("[a-z0-9]", session.SessionId)
+
+	if !match {
+		t.Errorf("ID [%s] is not valid UUID", session.SessionId)
+	}
+	if len(session.SessionId) != 36 { // FIXME: this can be done with the regex above
+		t.Errorf("ID [%s] is not a valid UUID", session.SessionId)
 	}
 }
