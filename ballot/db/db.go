@@ -36,7 +36,6 @@ func (p *Store) SetKey(key string, val interface{}) error {
 
 func (p *Store) GetInt(key string) (int, error) {
 	val, err := redis.Int(p.redisConn.Do("GET", key))
-	println(val)
 
 	if err != nil {
 		log.Println(err)
