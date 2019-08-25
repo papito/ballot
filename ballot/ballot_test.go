@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/papito/ballot/ballot/config"
+	"github.com/papito/ballot/ballot/db"
 	"github.com/papito/ballot/ballot/models"
 	"github.com/papito/ballot/ballot/server"
 	"github.com/stretchr/testify/assert"
@@ -78,7 +79,22 @@ func TestCreateSession(t *testing.T) {
 	assert.True(t, match)
 	assert.Len(t, session.SessionId, 36)
 
-	sessionKey := fmt.Sprintf("session:%s:voting", session.SessionId)
+	sessionKey := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
 	sessionState, err := srv.Store().GetInt(sessionKey)
 	assert.Equal(t, sessionState, models.NotVoting)
 }
+
+/*func TestCreateUser(t *testing.T) {
+	post_data := []byte(`{"session_id": "","name": "Player 1"}`)
+	req, err := http.NewRequest("POST", "/api/user", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(srv.CreateUserHttpHandler)
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, rr.Code, http.StatusOK)
+}
+*/
