@@ -5,11 +5,15 @@ import (
 	"log"
 )
 
-
 type Store struct {
 	redisConn redis.Conn
 	redisUrl string
 }
+
+var Const = struct {
+	SessionVoting string
+}{
+	"session:%s:voting"}
 
 func (p *Store) Connect(redisUrl string)  {
 	var err error
