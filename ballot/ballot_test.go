@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/papito/ballot/ballot/config"
+	"github.com/papito/ballot/ballot/db"
 	"github.com/papito/ballot/ballot/models"
+	"github.com/papito/ballot/ballot/requests"
 	"github.com/papito/ballot/ballot/server"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -49,7 +52,7 @@ func TestHealth(t *testing.T) {
 
 	assert.Equal(t, rr.Code, http.StatusOK)
 
-	var health = models.Health{Status:"OK"}
+	var health = models.Health{Status: "OK"}
 	var data, _ = json.Marshal(health)
 
 	expected := fmt.Sprintf("%s", data)
@@ -65,7 +68,6 @@ func TestCreateSession(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(srv.CreateSessionHttpHandler)
 	handler.ServeHTTP(rr, req)
-
 	assert.Equal(t, rr.Code, http.StatusOK)
 
 	var session models.Session
@@ -77,4 +79,44 @@ func TestCreateSession(t *testing.T) {
 
 	assert.True(t, match)
 	assert.Len(t, session.SessionId, 36)
+
+	sessionKey := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
+	sessionState, err := srv.Store().GetInt(sessionKey)
+	assert.Equal(t, sessionState, models.NotVoting)
+}
+
+func TestCreateUser(t *testing.T) {
+	session, err  := srv.Service().CreateSession()
+	if err != nil {
+		t.Errorf("Could not create session: %s", err)
+	}
+
+	userName := "  Player 1  "
+
+	reqData := requests.CreateUserRequest{
+		UserName:  userName,
+		SessionId: session.SessionId,
+	}
+
+	body, err := json.Marshal(reqData)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequest("POST", "/api/user", bytes.NewBufferString(string(body)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(srv.CreateUserHttpHandler)
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, rr.Code, http.StatusOK)
+
+	var user models.User
+	err = json.Unmarshal([]byte(rr.Body.String()), &user)
+
+	assert.Equal(t, user.Name, "Player 1")
+	assert.Equal(t, user.Estimate, models.NoEstimate)
+	assert.NotNil(t, user.UserId)
 }

@@ -2,7 +2,7 @@
 
 ## Development setup
 
-### Install dependencies
+### Install Dependencies
 ```bash
 npm install --save-dev webpack webpack-cli typescript ts-loader css-loader \
     vue-loader vue-router vue-class-component vue-property-decorator vue-mixin-decorator \
@@ -26,7 +26,7 @@ Build for production:
 ./node_modules/.bin/webpack --mode=production
 ```
 
-### Redis records
+### Redis Schema
 
 #### user:{user_id} -> Hash 
 
@@ -37,7 +37,7 @@ Build for production:
 | estimate | Integer, -1 to 100    |
 
 Estimate `-1` is "idle" state. User has not voted yet. 
-This is also the value set when a voting session restarts.
+`-1` is also the value set when a voting session restarts.
 
 #### session:{session_id}:users -> Set
 

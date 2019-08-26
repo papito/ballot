@@ -241,8 +241,8 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			}
 
 			type WsSession struct {
-				Event string `json:"event"`
-				SessionState int `json:"session_state"`
+				Event string        `json:"event"`
+				SessionState int    `json:"session_state"`
 				Users []models.User `json:"users"`
 			}
 
