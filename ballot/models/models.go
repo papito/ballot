@@ -19,9 +19,11 @@ type Vote struct {
 
 type ValidationError struct {
 	Field string `json:"field"`
-	Error string `json:"error"`
+	ErrorStr string `json:"error"`
 }
-
+func (e ValidationError) Error() string {
+	return e.ErrorStr
+}
 type Health struct {
 	Status string `json:"status"`
 }

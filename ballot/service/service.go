@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/papito/ballot/ballot/config"
@@ -8,6 +9,7 @@ import (
 	"github.com/papito/ballot/ballot/hub"
 	"github.com/papito/ballot/ballot/models"
 	"log"
+	"strings"
 )
 
 type Service struct  {
@@ -50,6 +52,70 @@ func (s *Service) CreateSession() (models.Session, error) {
 	return session, nil
 }
 
-//func (s service) CreateUser() (models.User, error) {
-//
-//}
+func (s *Service) CreateUser(sessionId string, userName string) (models.User, error) {
+	log.Printf("Creating user [%s]", userName)
+
+	userName = strings.TrimSpace(userName)
+
+	if len(userName) < 1 {
+		valErr := models.ValidationError{
+			Field: "name",
+			ErrorStr: "This field cannot be empty"}
+
+
+		return models.User{}, valErr
+	}
+
+	userUUID, _ := uuid.NewRandom()
+	userId := userUUID.String()
+
+	user := models.User{
+		UserId:   userId,
+		Name:     userName,
+		Estimate: models.NoEstimate,
+	}
+
+	userKey := fmt.Sprintf(db.Const.User, userId)
+	err := s.store.SetHashKey(
+		userKey,
+		"name", user.Name,
+		"id", user.UserId,
+		"estimate", user.Estimate,)
+
+	if err != nil {
+		return models.User{}, err
+	}
+
+	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
+	err = s.store.AddToSet(sessionUserKey, userId)
+
+	if err != nil {
+		log.Printf("Error saving data: %s", err)
+		return models.User{}, err
+	}
+
+	type WsUser struct {
+		models.User
+		Event  string `json:"event"`
+	}
+
+	wsUser := WsUser{}
+	wsUser.Event = "USER_ADDED"
+	wsUser.Name = user.Name
+	wsUser.UserId = user.UserId
+	wsUser.Estimate = user.Estimate
+
+	wsResp, err := json.Marshal(wsUser)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = s.hub.Emit(sessionId, string(wsResp))
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	return user, nil
+}

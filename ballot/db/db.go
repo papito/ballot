@@ -12,8 +12,12 @@ type Store struct {
 
 var Const = struct {
 	SessionVoting string
+	SessionUsers string
+	User string
 }{
-	"session:%s:voting"}
+	"session:%s:voting",
+	"session:%s:users",
+	"user:%s"}
 
 func (p *Store) Connect(redisUrl string)  {
 	var err error

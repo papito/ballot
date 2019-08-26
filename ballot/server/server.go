@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/db"
@@ -11,12 +10,12 @@ import (
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/logutil"
 	"github.com/papito/ballot/ballot/models"
+	"github.com/papito/ballot/ballot/requests"
 	"github.com/papito/ballot/ballot/service"
 	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
-	"strings"
 )
 
 type Server interface {
@@ -274,98 +273,23 @@ func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 }
 
 func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
-	jsonData, err := jsonutil.GetRequestJson(r)
+	reqBody, err := jsonutil.GetRequestBody(r)
+
+	var reqJson requests.CreateUserRequest
+	err = json.Unmarshal([]byte(reqBody), &reqJson)
+
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "Error reading body", http.StatusBadRequest)
+		http.Error(w, "Error serializing request JSON", http.StatusBadRequest)
 		return
 	}
 
-	// get session id
-	if jsonData["session_id"] == nil {
-		http.Error(w, "Must specify 'SessionId'", http.StatusBadRequest)
-		return
-	}
-
-	sessionId := jsonData["session_id"].(string)
-	log.Printf("Session ID [%s]", sessionId)
-
-	// get user name
-	if jsonData["name"] == nil {
-		http.Error(w, "Must specify 'Name'", http.StatusBadRequest)
-		return
-	}
-	name := jsonData["name"].(string)
-	name = strings.TrimSpace(name)
-	log.Printf("Creating user [%s]", name)
-
-	if len(name) < 1 {
-		valErr := models.ValidationError{
-			Field: "name",
-			Error: "This field cannot be empty"}
-
-		data, err := json.Marshal(valErr)
-
-		if err != nil {
-			http.Error(w, "Error creating response", http.StatusInternalServerError)
-			return
-		}
-
-		http.Error(w, string(data), http.StatusBadRequest)
-		return
-	}
-
-	userUUID, _ := uuid.NewRandom()
-	userId := userUUID.String()
-
-	user := models.User{
-		UserId: userId,
-		Name: name,
-		Estimate: models.NoEstimate,
-	}
-	log.Println(user)
-
-	userKey := fmt.Sprintf("user:%s", userId)
-	err = p.store.SetHashKey(
-		userKey,
-		"name", user.Name,
-		"id", user.UserId,
-		"estimate", user.Estimate,)
+	var user models.User
+	user, err = p.service.CreateUser(reqJson.SessionId, reqJson.UserName)
 
 	if err != nil {
-		http.Error(w, "Error saving data", http.StatusInternalServerError)
+		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
-	}
-
-	sessionUserKey := fmt.Sprintf("session:%s:users", sessionId)
-	err = p.store.AddToSet(sessionUserKey, userId)
-
-	if err != nil {
-		http.Error(w, "Error saving data", http.StatusInternalServerError)
-		return
-	}
-
-	type WsUser struct {
-		models.User
-		Event  string `json:"event"`
-	}
-
-	wsUser := WsUser{}
-	wsUser.Event = "USER_ADDED"
-	wsUser.Name = user.Name
-	wsUser.UserId = user.UserId
-	wsUser.Estimate = user.Estimate
-
-	wsResp, err := json.Marshal(wsUser)
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	err = p.hub.Emit(sessionId, string(wsResp))
-
-	if err != nil {
-		log.Println(err)
 	}
 
 	var httpResp, _  = json.Marshal(user)

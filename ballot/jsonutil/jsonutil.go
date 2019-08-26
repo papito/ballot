@@ -8,7 +8,7 @@ import (
 )
 
 func GetRequestJson(r *http.Request) (map[string]interface{}, error) {
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := GetRequestBody(r)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -21,6 +21,16 @@ func GetRequestJson(r *http.Request) (map[string]interface{}, error) {
 	}
 
 	return jsonData, nil
+}
+
+func GetRequestBody(r *http.Request) (string, error)  {
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+
+	return string(reqBody), nil
 }
 
 func GetJsonFromString(data string) (map[string]interface{}, error) {
