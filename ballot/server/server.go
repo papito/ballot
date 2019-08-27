@@ -9,8 +9,7 @@ import (
 	"github.com/papito/ballot/ballot/hub"
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/logutil"
-	"github.com/papito/ballot/ballot/models"
-	"github.com/papito/ballot/ballot/requests"
+	"github.com/papito/ballot/ballot/model"
 	"github.com/papito/ballot/ballot/service"
 	"html/template"
 	"log"
@@ -98,11 +97,7 @@ func (p server) Release() {
 func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	type Health struct {
-		Status string `json:"status"`
-	}
-
-	var health = Health{Status:"OK"}
+	var health = model.HealthResponse{Status: "OK"}
 	var data, _ = json.Marshal(health)
 
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
@@ -150,7 +145,7 @@ func (p server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	log.Printf("Starting vote for session ID [%s]", sessionId)
 
 	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
-	err = p.store.SetKey(key, models.Voting)
+	err = p.store.SetKey(key, model.Voting)
 
 	if err != nil {
 		http.Error(w, "Error saving data", http.StatusInternalServerError)
@@ -201,7 +196,7 @@ func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 
 	sessionState, err := p.store.GetInt(sessionKey)
 
-	if sessionState == models.NotVoting {
+	if sessionState == model.NotVoting {
 		http.Error(w, "Not voting yet for session " + sessionId, http.StatusBadRequest)
 		return
 	}
@@ -260,7 +255,7 @@ func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 		log.Print(err)
 	}
 
-	vote := models.Vote{
+	vote := model.Vote{
 		SessionId: sessionId,
 		UserId: userId,
 		Estimate: estimate,
@@ -275,7 +270,7 @@ func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	reqBody, err := jsonutil.GetRequestBody(r)
 
-	var reqJson requests.CreateUserRequest
+	var reqJson model.CreateUserRequest
 	err = json.Unmarshal([]byte(reqBody), &reqJson)
 
 	if err != nil {
@@ -284,7 +279,7 @@ func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user models.User
+	var user model.User
 	user, err = p.service.CreateUser(reqJson.SessionId, reqJson.UserName)
 
 	if err != nil {
