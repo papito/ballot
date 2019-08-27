@@ -124,55 +124,31 @@ func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 
 	var data, _  = json.Marshal(session)
 	log.Printf("API session with %+v", session)
+
 	w.Header().Set("Content-Type", "application/json")
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (p server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
-	jsonData, err := jsonutil.GetRequestJson(r)
+	reqBody, err := jsonutil.GetRequestBody(r)
+	var reqObj model.StartVoteRequest
+	err = json.Unmarshal([]byte(reqBody), &reqObj)
+
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "Error reading body", http.StatusBadRequest)
+		http.Error(w, "Error serializing request JSON", http.StatusBadRequest)
 		return
 	}
 
-	// get session id
-	if jsonData["session_id"] == nil {
-		http.Error(w, "Must specify 'SessionId'", http.StatusBadRequest)
-		return
-	}
-	sessionId := jsonData["session_id"].(string)
-	log.Printf("Starting vote for session ID [%s]", sessionId)
-
-	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
-	err = p.store.SetKey(key, model.Voting)
+	err = p.service.StartVote(reqObj.SessionId)
 
 	if err != nil {
 		http.Error(w, "Error saving data", http.StatusInternalServerError)
 		return
 	}
 
-	type WsSession struct {
-		Event string `json:"event"`
-	}
-
-	session := WsSession{
-		Event: "VOTING",
-	}
-
-	data, err := json.Marshal(session)
-	if err != nil {
-		log.Println(err)
-	}
-
-	err = p.hub.Emit(sessionId, string(data))
-
-	if err != nil {
-		log.Print(err)
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	logutil.Logger(fmt.Fprintf(w, "%s", data))
+	logutil.Logger(fmt.Fprint(w,"{}"))
 }
 
 func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
@@ -269,9 +245,8 @@ func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 
 func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	reqBody, err := jsonutil.GetRequestBody(r)
-
-	var reqJson model.CreateUserRequest
-	err = json.Unmarshal([]byte(reqBody), &reqJson)
+	var reqObj model.CreateUserRequest
+	err = json.Unmarshal([]byte(reqBody), &reqObj)
 
 	if err != nil {
 		log.Print(err)
@@ -280,7 +255,7 @@ func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user model.User
-	user, err = p.service.CreateUser(reqJson.SessionId, reqJson.UserName)
+	user, err = p.service.CreateUser(reqObj.SessionId, reqObj.UserName)
 
 	if err != nil {
 		http.Error(w, "Error creating user", http.StatusInternalServerError)

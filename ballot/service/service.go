@@ -30,29 +30,24 @@ func NewService(config config.Config) (Service, error) {
 	 */
 	log.Println("Creating hub")
 	err = service.hub.Connect(config.RedisUrl)
-	if err != nil {
-		return service, fmt.Errorf("error creating hub: %s", err)
-	}
+	if err != nil {return service, err}
 
 	return service, nil
 }
 
-func (s *Service) CreateSession() (model.Session, error) {
+func (p *Service) CreateSession() (model.Session, error) {
 	sessionUUID, _ := uuid.NewRandom()
 	sessionId := sessionUUID.String()
 	session := model.Session{SessionId: sessionId}
 
 	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
-	err := s.store.SetKey(key, model.NotVoting)
-
-	if err != nil {
-		return model.Session{}, fmt.Errorf("error saving data: %s", err)
-	}
+	err := p.store.SetKey(key, model.NotVoting)
+	if err != nil {return model.Session{}, err}
 
 	return session, nil
 }
 
-func (s *Service) CreateUser(sessionId string, userName string) (model.User, error) {
+func (p *Service) CreateUser(sessionId string, userName string) (model.User, error) {
 	log.Printf("Creating user [%s]", userName)
 
 	userName = strings.TrimSpace(userName)
@@ -61,7 +56,6 @@ func (s *Service) CreateUser(sessionId string, userName string) (model.User, err
 		valErr := model.ValidationError{
 			Field: "name",
 			ErrorStr: "This field cannot be empty"}
-
 
 		return model.User{}, valErr
 	}
@@ -76,46 +70,48 @@ func (s *Service) CreateUser(sessionId string, userName string) (model.User, err
 	}
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
-	err := s.store.SetHashKey(
+	err := p.store.SetHashKey(
 		userKey,
 		"name", user.Name,
 		"id", user.UserId,
 		"estimate", user.Estimate,)
-
-	if err != nil {
-		return model.User{}, err
-	}
+	if err != nil {return model.User{}, err}
 
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
-	err = s.store.AddToSet(sessionUserKey, userId)
+	err = p.store.AddToSet(sessionUserKey, userId)
+	if err != nil {return model.User{}, err}
 
-	if err != nil {
-		log.Printf("Error saving data: %s", err)
-		return model.User{}, err
-	}
-
-	type WsUser struct {
-		model.User
-		Event  string `json:"event"`
-	}
-
-	wsUser := WsUser{}
+	wsUser := model.WsUser{}
 	wsUser.Event = "USER_ADDED"
 	wsUser.Name = user.Name
 	wsUser.UserId = user.UserId
 	wsUser.Estimate = user.Estimate
 
 	wsResp, err := json.Marshal(wsUser)
+	if err != nil {return model.User{}, err}
 
-	if err != nil {
-		log.Println(err)
-	}
-
-	err = s.hub.Emit(sessionId, string(wsResp))
-
-	if err != nil {
-		log.Println(err)
-	}
+	err = p.hub.Emit(sessionId, string(wsResp))
+	if err != nil {return model.User{}, err}
 
 	return user, nil
+}
+
+func (p *Service) StartVote(sessionId string) error {
+	log.Printf("Starting vote for session ID [%s]", sessionId)
+
+	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
+	err := p.store.SetKey(key, model.Voting)
+	if err != nil {return err}
+
+	session := model.WsSession{
+		Event: "VOTING",
+	}
+
+	data, err := json.Marshal(session)
+	if err != nil {return err}
+
+	err = p.hub.Emit(sessionId, string(data))
+	if err != nil {return err}
+
+	return nil
 }
