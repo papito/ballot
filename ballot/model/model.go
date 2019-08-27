@@ -1,4 +1,4 @@
-package models
+package model
 
 type Session struct {
 	SessionId string `json:"id"`
@@ -23,9 +23,6 @@ type ValidationError struct {
 }
 func (e ValidationError) Error() string {
 	return e.ErrorStr
-}
-type Health struct {
-	Status string `json:"status"`
 }
 
 const (

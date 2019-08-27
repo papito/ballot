@@ -6,7 +6,7 @@ import (
 	"github.com/desertbit/glue"
 	"github.com/gomodule/redigo/redis"
 	"github.com/papito/ballot/ballot/jsonutil"
-	"github.com/papito/ballot/ballot/models"
+	"github.com/papito/ballot/ballot/model"
 	"log"
 	"net/http"
 	"strconv"
@@ -206,7 +206,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 				fmt.Println("ERROR ", err)
 			}
 
-			var users []models.User
+			var users []model.User
 
 			for i, r := range res {
 				switch t := r.(type) {
@@ -220,7 +220,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 						fmt.Println("ERROR ", err)
 					}
 
-					user := models.User{
+					user := model.User{
 						UserId: m["id"],
 						Name: m["name"],
 						Estimate: estimate,
@@ -235,15 +235,15 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			key = fmt.Sprintf("session:%s:voting", sessionId)
 			isVoting, err := redis.Int(p.pubConn.Do("GET", key))
 
-			sessionState := models.NotVoting
+			sessionState := model.NotVoting
 			if isVoting == 1 {
-				sessionState = models.Voting
+				sessionState = model.Voting
 			}
 
 			type WsSession struct {
-				Event string        `json:"event"`
-				SessionState int    `json:"session_state"`
-				Users []models.User `json:"users"`
+				Event string       `json:"event"`
+				SessionState int   `json:"session_state"`
+				Users []model.User `json:"users"`
 			}
 
 			session := WsSession{

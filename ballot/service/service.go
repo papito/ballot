@@ -7,7 +7,7 @@ import (
 	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/db"
 	"github.com/papito/ballot/ballot/hub"
-	"github.com/papito/ballot/ballot/models"
+	"github.com/papito/ballot/ballot/model"
 	"log"
 	"strings"
 )
@@ -37,42 +37,42 @@ func NewService(config config.Config) (Service, error) {
 	return service, nil
 }
 
-func (s *Service) CreateSession() (models.Session, error) {
+func (s *Service) CreateSession() (model.Session, error) {
 	sessionUUID, _ := uuid.NewRandom()
 	sessionId := sessionUUID.String()
-	session := models.Session{SessionId: sessionId}
+	session := model.Session{SessionId: sessionId}
 
 	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
-	err := s.store.SetKey(key, models.NotVoting)
+	err := s.store.SetKey(key, model.NotVoting)
 
 	if err != nil {
-		return models.Session{}, fmt.Errorf("error saving data: %s", err)
+		return model.Session{}, fmt.Errorf("error saving data: %s", err)
 	}
 
 	return session, nil
 }
 
-func (s *Service) CreateUser(sessionId string, userName string) (models.User, error) {
+func (s *Service) CreateUser(sessionId string, userName string) (model.User, error) {
 	log.Printf("Creating user [%s]", userName)
 
 	userName = strings.TrimSpace(userName)
 
 	if len(userName) < 1 {
-		valErr := models.ValidationError{
+		valErr := model.ValidationError{
 			Field: "name",
 			ErrorStr: "This field cannot be empty"}
 
 
-		return models.User{}, valErr
+		return model.User{}, valErr
 	}
 
 	userUUID, _ := uuid.NewRandom()
 	userId := userUUID.String()
 
-	user := models.User{
+	user := model.User{
 		UserId:   userId,
 		Name:     userName,
-		Estimate: models.NoEstimate,
+		Estimate: model.NoEstimate,
 	}
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
@@ -83,7 +83,7 @@ func (s *Service) CreateUser(sessionId string, userName string) (models.User, er
 		"estimate", user.Estimate,)
 
 	if err != nil {
-		return models.User{}, err
+		return model.User{}, err
 	}
 
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
@@ -91,11 +91,11 @@ func (s *Service) CreateUser(sessionId string, userName string) (models.User, er
 
 	if err != nil {
 		log.Printf("Error saving data: %s", err)
-		return models.User{}, err
+		return model.User{}, err
 	}
 
 	type WsUser struct {
-		models.User
+		model.User
 		Event  string `json:"event"`
 	}
 

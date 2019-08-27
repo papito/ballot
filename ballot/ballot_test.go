@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/db"
-	"github.com/papito/ballot/ballot/models"
-	"github.com/papito/ballot/ballot/requests"
+	"github.com/papito/ballot/ballot/model"
 	"github.com/papito/ballot/ballot/server"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -52,7 +51,7 @@ func TestHealth(t *testing.T) {
 
 	assert.Equal(t, rr.Code, http.StatusOK)
 
-	var health = models.Health{Status: "OK"}
+	var health = model.HealthResponse{Status: "OK"}
 	var data, _ = json.Marshal(health)
 
 	expected := fmt.Sprintf("%s", data)
@@ -70,11 +69,13 @@ func TestCreateSession(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	assert.Equal(t, rr.Code, http.StatusOK)
 
-	var session models.Session
+	var session model.Session
 	err = json.Unmarshal([]byte(rr.Body.String()), &session)
 	if err != nil {
 		t.Errorf("%s. Recevied: %s", err, rr.Body.String())
 	}
+
+	// FIXME: length can also be checked with a regex
 	match, _ := regexp.MatchString("[a-z0-9]", session.SessionId)
 
 	assert.True(t, match)
@@ -82,7 +83,7 @@ func TestCreateSession(t *testing.T) {
 
 	sessionKey := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
 	sessionState, err := srv.Store().GetInt(sessionKey)
-	assert.Equal(t, sessionState, models.NotVoting)
+	assert.Equal(t, sessionState, model.NotVoting)
 }
 
 func TestCreateUser(t *testing.T) {
@@ -93,12 +94,12 @@ func TestCreateUser(t *testing.T) {
 
 	userName := "  Player 1  "
 
-	reqData := requests.CreateUserRequest{
+	reqObj := model.CreateUserRequest{
 		UserName:  userName,
 		SessionId: session.SessionId,
 	}
 
-	body, err := json.Marshal(reqData)
+	body, err := json.Marshal(reqObj)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,10 +114,10 @@ func TestCreateUser(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	assert.Equal(t, rr.Code, http.StatusOK)
 
-	var user models.User
+	var user model.User
 	err = json.Unmarshal([]byte(rr.Body.String()), &user)
 
 	assert.Equal(t, user.Name, "Player 1")
-	assert.Equal(t, user.Estimate, models.NoEstimate)
+	assert.Equal(t, user.Estimate, model.NoEstimate)
 	assert.NotNil(t, user.UserId)
 }
