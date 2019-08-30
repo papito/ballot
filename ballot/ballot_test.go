@@ -82,7 +82,7 @@ func TestCreateSession(t *testing.T) {
 	assert.Len(t, session.SessionId, 36)
 
 	sessionKey := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
-	sessionState, err := srv.Store().GetInt(sessionKey)
+	sessionState, err := srv.Service().Store().GetInt(sessionKey)
 	assert.Equal(t, sessionState, model.NotVoting)
 }
 

@@ -27,6 +27,7 @@ test:
 	$(call up_if_down)
 	$(call compile)
 	@cd ballot && REDIS_URL=redis://localhost:6380 go test -v
+	@echo "-------\nRun 'make down' to stop test containers..."
 
 ps:
 	@docker-compose ps
