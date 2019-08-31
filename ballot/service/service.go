@@ -30,24 +30,43 @@ func NewService(config config.Config) (Service, error) {
 	 */
 	log.Println("Creating hub")
 	err = service.hub.Connect(config.RedisUrl)
-	if err != nil {return service, err}
+	if err != nil {
+		return service, fmt.Errorf("error creating hub: %s", err)
+	}
 
 	return service, nil
 }
 
-func (p *Service) CreateSession() (model.Session, error) {
+func (s *Service) Release() {
+	log.Print("Releasing service resources")
+	s.hub.Release()
+	log.Print("Service done")
+}
+
+func (s *Service) Hub() *hub.Hub {
+	return s.hub
+}
+
+func (s *Service) Store() *db.Store {
+	return s.store
+}
+
+func (s *Service) CreateSession() (model.Session, error) {
 	sessionUUID, _ := uuid.NewRandom()
 	sessionId := sessionUUID.String()
 	session := model.Session{SessionId: sessionId}
 
 	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
-	err := p.store.SetKey(key, model.NotVoting)
-	if err != nil {return model.Session{}, err}
+	err := s.store.SetKey(key, model.NotVoting)
+
+	if err != nil {
+		return model.Session{}, fmt.Errorf("error saving data: %s", err)
+	}
 
 	return session, nil
 }
 
-func (p *Service) CreateUser(sessionId string, userName string) (model.User, error) {
+func (s *Service) CreateUser(sessionId string, userName string) (model.User, error) {
 	log.Printf("Creating user [%s]", userName)
 
 	userName = strings.TrimSpace(userName)
@@ -56,6 +75,7 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 		valErr := model.ValidationError{
 			Field: "name",
 			ErrorStr: "This field cannot be empty"}
+
 
 		return model.User{}, valErr
 	}
@@ -70,48 +90,119 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 	}
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
-	err := p.store.SetHashKey(
+	err := s.store.SetHashKey(
 		userKey,
 		"name", user.Name,
 		"id", user.UserId,
 		"estimate", user.Estimate,)
-	if err != nil {return model.User{}, err}
+
+	if err != nil {
+		return model.User{}, err
+	}
 
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
-	err = p.store.AddToSet(sessionUserKey, userId)
-	if err != nil {return model.User{}, err}
+	err = s.store.AddToSet(sessionUserKey, userId)
 
-	wsUser := model.WsUser{}
+	if err != nil {
+		return model.User{}, fmt.Errorf("error saving data. %v", err)
+	}
+
+	type WsUser struct {
+		model.User
+		Event  string `json:"event"`
+	}
+
+	wsUser := WsUser{}
 	wsUser.Event = "USER_ADDED"
 	wsUser.Name = user.Name
 	wsUser.UserId = user.UserId
 	wsUser.Estimate = user.Estimate
 
 	wsResp, err := json.Marshal(wsUser)
-	if err != nil {return model.User{}, err}
 
-	err = p.hub.Emit(sessionId, string(wsResp))
-	if err != nil {return model.User{}, err}
+	if err != nil {
+		return model.User{}, fmt.Errorf("error marshalling data. %v", err)
+	}
+
+	err = s.hub.Emit(sessionId, string(wsResp))
+
+	if err != nil {
+		return model.User{}, fmt.Errorf("error imitting data. %v", err)
+	}
 
 	return user, nil
 }
 
-func (p *Service) StartVote(sessionId string) error {
+func (s *Service) CastVote(sessionId string, userId string, estimate uint8) (model.Vote, error) {
+	log.Printf("Voting for session ID [%s]", sessionId)
+
+	// cannot vote on session that is inactive
+	sessionKey := fmt.Sprintf(db.Const.SessionVoting, sessionId)
+	sessionState, err := s.store.GetInt(sessionKey)
+
+	if sessionState == model.NotVoting {
+		return model.Vote{}, fmt.Errorf("not voting yet for session [%s]", sessionId)
+	}
+
+	log.Printf("Voting for user ID [%s] with estimate [%d]", userId, estimate)
+
+	userKey := fmt.Sprintf("user:%s", userId)
+	err = s.store.SetHashKey(userKey, "estimate", estimate)
+
+	if err != nil {
+		return model.Vote{}, fmt.Errorf("error saving data. %v", err)
+	}
+
+	wsUserVote := model.WsUserVote {
+		Event:"USER_VOTED",
+		UserId:userId,
+		Estimate:estimate,
+	}
+
+	data, err := json.Marshal(wsUserVote)
+	if err != nil {
+		return model.Vote{}, fmt.Errorf("error imitting data. %v", err)
+	}
+
+	err = s.hub.Emit(sessionId, string(data))
+
+	if err != nil {
+		return model.Vote{}, fmt.Errorf("error imitting data. %v", err)
+	}
+
+	vote := model.Vote{
+		SessionId: sessionId,
+		UserId: userId,
+		Estimate: estimate,
+	}
+
+	return vote, nil
+}
+
+func (s *Service) StartVote(sessionId string) error {
 	log.Printf("Starting vote for session ID [%s]", sessionId)
 
 	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
-	err := p.store.SetKey(key, model.Voting)
-	if err != nil {return err}
+	err := s.store.SetKey(key, model.Voting)
+
+	if err != nil {
+		return fmt.Errorf("error saving data. %v", err)
+	}
 
 	session := model.WsSession{
 		Event: "VOTING",
 	}
 
 	data, err := json.Marshal(session)
-	if err != nil {return err}
+	if err != nil {
+		return fmt.Errorf("error marshalling data. %v", err)
+	}
 
-	err = p.hub.Emit(sessionId, string(data))
-	if err != nil {return err}
+	err = s.hub.Emit(sessionId, string(data))
+
+	if err != nil {
+		return fmt.Errorf("error imitting data. %v", err)
+	}
 
 	return nil
 }

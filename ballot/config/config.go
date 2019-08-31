@@ -34,7 +34,7 @@ func LoadConfig() Config {
 
 	config.HttpPort = ":" + os.Getenv("HTTP_PORT")
 	if config.HttpPort == ":" {
-		config.HttpPort = ":3000"
+		config.HttpPort = ":8080"
 	}
 	log.Printf("HTTP port %s", config.HttpPort)
 

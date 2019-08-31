@@ -1,6 +1,7 @@
 package model
 
 type Session struct {
+	// FIXME: make this "session_id"
 	SessionId string `json:"id"`
 }
 
@@ -14,7 +15,7 @@ type User struct {
 type Vote struct {
 	SessionId string `json:"session_id"`
 	UserId 	  string `json:"user_id"`
-	Estimate  int    `json:"estimate"`
+	Estimate  uint8  `json:"estimate"`
 }
 
 type ValidationError struct {

@@ -1,5 +1,3 @@
-.ONESHELL:
-
 SHELL=/bin/sh
 CONTAINER_NAME=test_redis
 
@@ -8,8 +6,7 @@ define up_if_down
 endef
 
 define compile
-	cd ballot/
-	go build -o ../bin/ballot
+	@cd ballot && go build -o ../bin/ballot
 endef
 
 compile:
@@ -18,7 +15,7 @@ compile:
 run:
 	$(call up_if_down)
 	$(call compile)
-	@ENV=development ../bin/ballot
+	@cd ballot && ENV=development ../bin/ballot
 
 up:
 	$(call up_if_down)
@@ -29,7 +26,8 @@ down:
 test:
 	$(call up_if_down)
 	$(call compile)
-	@REDIS_URL=redis://localhost:6380 go test -v
+	@cd ballot && REDIS_URL=redis://localhost:6380 go test -v
+	@echo "-------\nRun 'make down' to stop test containers..."
 
 ps:
 	@docker-compose ps
