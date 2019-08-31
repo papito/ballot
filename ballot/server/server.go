@@ -20,6 +20,7 @@ type Server interface {
 	HealthHttpHandler(w http.ResponseWriter, r *http.Request)
 	CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 	CreateUserHttpHandler(w http.ResponseWriter, r *http.Request)
+	StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)
 	Service() *service.Service
 }
 
@@ -50,7 +51,7 @@ func NewServer(config config.Config) Server {
 	r.HandleFunc("/health", server.HealthHttpHandler).Methods("GET")
 	r.HandleFunc("/api/session", server.CreateSessionHttpHandler).Methods("POST")
 	r.HandleFunc("/api/user", server.CreateUserHttpHandler).Methods("POST")
-	r.HandleFunc("/api/vote/start", server.startVoteHttpHandler).Methods("PUT")
+	r.HandleFunc("/api/vote/start", server.StartVoteHttpHandler).Methods("PUT")
 	r.HandleFunc("/api/vote/cast", server.castVoteHttpHandler).Methods("PUT")
 	http.Handle("/", r)
 
@@ -102,14 +103,20 @@ func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
-func (p server) startVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
+func (p server) StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	reqBody, err := jsonutil.GetRequestBody(r)
 	var reqObj model.StartVoteRequest
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
-
 	if err != nil {
 		log.Printf("Error serializing request JSON. %v", err)
 		http.Error(w, "Error serializing request JSON", http.StatusBadRequest)
+		return
+	}
+
+	err = p.service.StartVote(reqObj.SessionId)
+	if err != nil {
+		log.Printf("Error starting the vote. %v", err)
+		http.Error(w, "Error starting the vote", http.StatusBadRequest)
 		return
 	}
 

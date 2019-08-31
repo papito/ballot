@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -24,12 +25,8 @@ var srv server.Server
 // setup/teardown
 func TestMain(m *testing.M) {
 	err := os.Setenv("ENV", config.TEST)
-	if err != nil {
-		panic(err)
-	}
-
+	if err != nil {panic(err)}
 	log.SetOutput(ioutil.Discard)
-
 	envConfig = config.LoadConfig()
 
 	srv = server.NewServer(envConfig)
@@ -39,11 +36,33 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestHealth(t *testing.T) {
-	req, err := http.NewRequest("GET", "/health", nil)
-	if err != nil {
-		t.Fatal(err)
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func RandString(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
+	return string(b)
+}
+
+func createSessionAndUsers(numOfUsers int, t *testing.T) (session model.Session, userIds []model.User) {
+	session, err  := srv.Service().CreateSession()
+	if err != nil {t.Errorf("Could not create session: %s", err)}
+
+	users := make([]model.User, numOfUsers)
+	for i := 0; i < numOfUsers; i++ {
+		user, err := srv.Service().CreateUser(session.SessionId, RandString(20))
+		if err != nil {t.Errorf("Could not create user: %s", err)}
+		users = append(users, user)
+	}
+
+	return session, users
+}
+
+func TestHealthEndpoint(t *testing.T) {
+	req, err := http.NewRequest("GET", "/health", nil)
+	if err != nil {t.Error(err)}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(srv.HealthHttpHandler)
@@ -58,11 +77,9 @@ func TestHealth(t *testing.T) {
 	assert.Equal(t, rr.Body.String(), expected)
 }
 
-func TestCreateSession(t *testing.T) {
+func TestCreateSessionEndpoint(t *testing.T) {
 	req, err := http.NewRequest("GET", "/health", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	if err != nil {t.Error(err)}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(srv.CreateSessionHttpHandler)
@@ -71,9 +88,7 @@ func TestCreateSession(t *testing.T) {
 
 	var session model.Session
 	err = json.Unmarshal([]byte(rr.Body.String()), &session)
-	if err != nil {
-		t.Errorf("%s. Recevied: %s", err, rr.Body.String())
-	}
+	if err != nil {t.Errorf("%s. Recevied: %s", err, rr.Body.String())}
 
 	// FIXME: length can also be checked with a regex
 	match, _ := regexp.MatchString("[a-z0-9]", session.SessionId)
@@ -86,28 +101,21 @@ func TestCreateSession(t *testing.T) {
 	assert.Equal(t, sessionState, model.NotVoting)
 }
 
-func TestCreateUser(t *testing.T) {
+func TestCreateUserEndpoint(t *testing.T) {
 	session, err  := srv.Service().CreateSession()
-	if err != nil {
-		t.Errorf("Could not create session: %s", err)
-	}
+	if err != nil {t.Errorf("Could not create session: %s", err)}
 
 	userName := "  Player 1  "
-
 	reqObj := model.CreateUserRequest{
 		UserName:  userName,
 		SessionId: session.SessionId,
 	}
 
 	body, err := json.Marshal(reqObj)
-	if err != nil {
-		t.Fatal(err)
-	}
+	if err != nil {t.Error(err)}
 
 	req, err := http.NewRequest("POST", "/api/user", bytes.NewBufferString(string(body)))
-	if err != nil {
-		t.Fatal(err)
-	}
+	if err != nil {t.Error(err)}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(srv.CreateUserHttpHandler)
@@ -120,4 +128,25 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(t, user.Name, "Player 1")
 	assert.Equal(t, user.Estimate, model.NoEstimate)
 	assert.NotNil(t, user.UserId)
+}
+
+func TestStartVoteEndpoint(t *testing.T) {
+	session, _ := createSessionAndUsers(2, t)
+
+	reqObj := model.StartVoteRequest{SessionId:session.SessionId}
+
+	body, err := json.Marshal(reqObj)
+	if err != nil {t.Error(err)}
+
+	req, err := http.NewRequest("PUT", "/api/vote/start", bytes.NewBufferString(string(body)))
+	if err != nil {t.Error(err)}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(srv.StartVoteHttpHandler)
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, rr.Code, http.StatusOK)
+
+	sessionKey := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
+	sessionState, err := srv.Service().Store().GetInt(sessionKey)
+	assert.Equal(t, sessionState, model.Voting)
 }
