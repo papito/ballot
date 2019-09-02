@@ -16,15 +16,15 @@ type WsNewUser struct {
 }
 
 type WsUserVote struct {
-	Event string `json:"event"`
-	UserId string `json:"user_id"`
-	Estimate uint8 `json:"estimate"`
+	Event    string `json:"event"`
+	UserId   string `json:"user_id"`
+	Estimate int    `json:"estimate"`
 }
 
 type WsSession struct {
-	Event string       `json:"event"`
-	SessionState int   `json:"session_state"`
-	Users []model.User `json:"users"`
+	Event        string `json:"event"`
+	SessionState int    `json:"session_state"`
+	Users []model.User  `json:"users"`
 }
 
 const (

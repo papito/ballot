@@ -1,7 +1,7 @@
 package request
 
 type CreateUserRequest struct {
-	UserName string `json:"name"`
+	UserName  string `json:"name"`
 	SessionId string `json:"session_id"`
 }
 
@@ -10,7 +10,7 @@ type StartVoteRequest struct {
 }
 
 type CastVoteRequest struct {
-	UserId string `json:"user_id"`
+	UserId    string `json:"user_id"`
 	SessionId string `json:"session_id"`
-	Estimate uint8 `json:"estimate"`
+	Estimate  int    `json:"estimate"`
 }

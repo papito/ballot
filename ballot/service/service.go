@@ -124,7 +124,7 @@ func (s *Service) CreateUser(sessionId string, userName string) (model.User, err
 	return user, nil
 }
 
-func (s *Service) CastVote(sessionId string, userId string, estimate uint8) (model.Vote, error) {
+func (s *Service) CastVote(sessionId string, userId string, estimate int) (model.Vote, error) {
 	log.Printf("Voting for session ID [%s]", sessionId)
 
 	// cannot vote on session that is inactive
@@ -132,13 +132,16 @@ func (s *Service) CastVote(sessionId string, userId string, estimate uint8) (mod
 	sessionState, err := s.store.GetInt(sessionKey)
 
 	if sessionState == model.NotVoting {
-		return model.Vote{}, fmt.Errorf("not voting yet for session [%s]", sessionId)
+		return model.Vote{Estimate:model.NoEstimate},
+			fmt.Errorf("not voting yet for session [%s]", sessionId)
 	}
 	log.Printf("Voting for user ID [%s] with estimate [%d]", userId, estimate)
 
 	userKey := fmt.Sprintf("user:%s", userId)
 	err = s.store.SetHashKey(userKey, "estimate", estimate)
-	if err != nil {return model.Vote{}, fmt.Errorf("error saving data. %v", err)}
+	if err != nil {
+		return model.Vote{Estimate:model.NoEstimate}, fmt.Errorf("error saving data. %v", err)
+	}
 
 	wsUserVote := response.WsUserVote{
 		Event:response.UserVotedEVent,

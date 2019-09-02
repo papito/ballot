@@ -171,3 +171,13 @@ func TestStartVoteEndpoint(t *testing.T) {
 	err = json.Unmarshal([]byte(msg), &voteStartedWsEvent)
 	assert.Equal(t, response.VoteStartedEVent, voteStartedWsEvent.Event)
 }
+
+func TestStartVoteForInactiveSession(t *testing.T) {
+	_ = testHub.Connect("")
+	session, users := createSessionAndUsers(2, t)
+
+	vote, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 8)
+	assert.NotNil(t, err)
+
+	assert.Equal(t, -1, vote.Estimate)
+}

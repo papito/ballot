@@ -5,21 +5,20 @@ type Session struct {
 	SessionId string `json:"id"`
 }
 
-// FIXME: export a factory that sets default values but not the struct
 type User struct {
-	UserId string `json:"id"`
-	Name   string `json:"name"`
-	Estimate  int `json:"estimate"`
+	UserId   string `json:"id"`
+	Name     string `json:"name"`
+	Estimate int    `json:"estimate"`
 }
 
 type Vote struct {
 	SessionId string `json:"session_id"`
 	UserId 	  string `json:"user_id"`
-	Estimate  uint8  `json:"estimate"`
+	Estimate  int    `json:"estimate"`
 }
 
 type ValidationError struct {
-	Field string `json:"field"`
+	Field    string `json:"field"`
 	ErrorStr string `json:"error"`
 }
 
