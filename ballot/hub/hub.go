@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/desertbit/glue"
 	"github.com/gomodule/redigo/redis"
+	"github.com/papito/ballot/ballot/db"
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/model"
 	"github.com/papito/ballot/ballot/model/response"
@@ -187,7 +188,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			}
 
 			// spit out all the current users
-			key := fmt.Sprintf("session:%s:users", sessionId)
+			key := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 			userIds, err := redis.Strings(p.pubConn.Do("SMEMBERS", key))
 			if err != nil {log.Print(err); return}
 
@@ -202,7 +203,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			res, err := redis.Values(p.pubConn.Do(""))
 
 			if err != nil {
-				log.Printf("ERROR ", err)
+				log.Printf("ERROR: %v", err)
 			}
 
 			var users []model.User
@@ -231,7 +232,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			}
 
 			// get session state - voting, not voting
-			key = fmt.Sprintf("session:%s:voting", sessionId)
+			key = fmt.Sprintf(db.Const.SessionVoting, sessionId)
 			isVoting, err := redis.Int(p.pubConn.Do("GET", key))
 
 			sessionState := model.NotVoting
