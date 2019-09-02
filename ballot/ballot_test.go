@@ -8,6 +8,8 @@ import (
 	"github.com/papito/ballot/ballot/db"
 	"github.com/papito/ballot/ballot/hub"
 	"github.com/papito/ballot/ballot/model"
+	"github.com/papito/ballot/ballot/model/request"
+	"github.com/papito/ballot/ballot/model/response"
 	"github.com/papito/ballot/ballot/server"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -76,7 +78,7 @@ func TestHealthEndpoint(t *testing.T) {
 
 	assert.Equal(t, rr.Code, http.StatusOK)
 
-	var health = model.HealthResponse{Status: "OK"}
+	var health = response.HealthResponse{Status: "OK"}
 	var data, _ = json.Marshal(health)
 
 	expected := fmt.Sprintf("%s", data)
@@ -112,7 +114,7 @@ func TestCreateUserEndpoint(t *testing.T) {
 	if err != nil {t.Errorf("Could not create session: %s", err)}
 
 	userName := "  Player 1  "
-	reqObj := model.CreateUserRequest{
+	reqObj := request.CreateUserRequest{
 		UserName:  userName,
 		SessionId: session.SessionId,
 	}
@@ -136,7 +138,7 @@ func TestCreateUserEndpoint(t *testing.T) {
 	assert.NotNil(t, user.UserId)
 
 	msg := testHub.Emitted[0]
-	var userAddedWsEvent model.WsUser
+	var userAddedWsEvent response.WsUser
 	err = json.Unmarshal([]byte(msg), &userAddedWsEvent)
 	assert.Equal(t, "USER_ADDED", userAddedWsEvent.Event)
 	assert.Equal(t, user.Name, userAddedWsEvent.Name)
@@ -145,7 +147,7 @@ func TestCreateUserEndpoint(t *testing.T) {
 func TestStartVoteEndpoint(t *testing.T) {
 	session, _ := createSessionAndUsers(2, t)
 
-	reqObj := model.StartVoteRequest{SessionId:session.SessionId}
+	reqObj := request.StartVoteRequest{SessionId: session.SessionId}
 
 	body, err := json.Marshal(reqObj)
 	if err != nil {t.Error(err)}

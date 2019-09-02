@@ -7,6 +7,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/model"
+	"github.com/papito/ballot/ballot/model/response"
 	"log"
 	"net/http"
 	"strconv"
@@ -238,7 +239,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 				sessionState = model.Voting
 			}
 
-			session := model.WsSession{
+			session := response.WsSession{
 				Event: "WATCHING",
 				SessionState: sessionState,
 				Users: users,

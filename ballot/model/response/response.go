@@ -1,4 +1,6 @@
-package model
+package response
+
+import "github.com/papito/ballot/ballot/model"
 
 type HealthResponse struct {
 	Status string `json:"status"`
@@ -9,7 +11,7 @@ type WsVoteStarted struct {
 }
 
 type WsUser struct {
-	User
+	model.User
 	Event  string `json:"event"`
 }
 
@@ -22,6 +24,6 @@ type WsUserVote struct {
 type WsSession struct {
 	Event string       `json:"event"`
 	SessionState int   `json:"session_state"`
-	Users []User `json:"users"`
+	Users []model.User `json:"users"`
 }
 

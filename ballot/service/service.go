@@ -8,6 +8,7 @@ import (
 	"github.com/papito/ballot/ballot/db"
 	. "github.com/papito/ballot/ballot/hub"
 	"github.com/papito/ballot/ballot/model"
+	"github.com/papito/ballot/ballot/model/response"
 	"log"
 	"strings"
 )
@@ -108,7 +109,7 @@ func (s *Service) CreateUser(sessionId string, userName string) (model.User, err
 
 	if err != nil {return model.User{}, fmt.Errorf("error saving data. %v", err)}
 
-	wsUser := model.WsUser{}
+	wsUser := response.WsUser{}
 	wsUser.Event = "USER_ADDED"
 	wsUser.Name = user.Name
 	wsUser.UserId = user.UserId
@@ -139,7 +140,7 @@ func (s *Service) CastVote(sessionId string, userId string, estimate uint8) (mod
 	err = s.store.SetHashKey(userKey, "estimate", estimate)
 	if err != nil {return model.Vote{}, fmt.Errorf("error saving data. %v", err)}
 
-	wsUserVote := model.WsUserVote {
+	wsUserVote := response.WsUserVote{
 		Event:"USER_VOTED",
 		UserId:userId,
 		Estimate:estimate,
@@ -167,7 +168,7 @@ func (s *Service) StartVote(sessionId string) error {
 	err := s.store.SetKey(key, model.Voting)
 	if err != nil {return fmt.Errorf("error saving data. %v", err)}
 
-	session := model.WsVoteStarted{
+	session := response.WsVoteStarted{
 		Event: "VOTING",
 	}
 

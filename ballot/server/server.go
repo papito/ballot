@@ -8,6 +8,8 @@ import (
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/logutil"
 	"github.com/papito/ballot/ballot/model"
+	"github.com/papito/ballot/ballot/model/request"
+	"github.com/papito/ballot/ballot/model/response"
 	"github.com/papito/ballot/ballot/service"
 	"html/template"
 	"log"
@@ -73,7 +75,7 @@ func (p server) Release() {
 func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var health = model.HealthResponse{Status: "OK"}
+	var health = response.HealthResponse{Status: "OK"}
 	var data, _ = json.Marshal(health)
 
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
@@ -105,7 +107,7 @@ func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 
 func (p server) StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	reqBody, err := jsonutil.GetRequestBody(r)
-	var reqObj model.StartVoteRequest
+	var reqObj request.StartVoteRequest
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
 	if err != nil {
 		log.Printf("Error serializing request JSON. %v", err)
@@ -126,7 +128,7 @@ func (p server) StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 
 func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	reqBody, err := jsonutil.GetRequestBody(r)
-	var reqObj model.CastVoteRequest
+	var reqObj request.CastVoteRequest
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
 
 	if err != nil {
@@ -151,7 +153,7 @@ func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 
 func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	reqBody, err := jsonutil.GetRequestBody(r)
-	var reqObj model.CreateUserRequest
+	var reqObj request.CreateUserRequest
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
 
 	if err != nil {
