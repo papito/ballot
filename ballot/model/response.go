@@ -4,7 +4,7 @@ type HealthResponse struct {
 	Status string `json:"status"`
 }
 
-type WsSession struct {
+type WsVoteStarted struct {
 	Event string `json:"event"`
 }
 
@@ -18,3 +18,10 @@ type WsUserVote struct {
 	UserId string `json:"user_id"`
 	Estimate uint8 `json:"estimate"`
 }
+
+type WsSession struct {
+	Event string       `json:"event"`
+	SessionState int   `json:"session_state"`
+	Users []User `json:"users"`
+}
+

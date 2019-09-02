@@ -134,6 +134,12 @@ func TestCreateUserEndpoint(t *testing.T) {
 	assert.Equal(t, user.Name, "Player 1")
 	assert.Equal(t, user.Estimate, model.NoEstimate)
 	assert.NotNil(t, user.UserId)
+
+	msg := testHub.Emitted[0]
+	var userAddedWsEvent model.WsUser
+	err = json.Unmarshal([]byte(msg), &userAddedWsEvent)
+	assert.Equal(t, "USER_ADDED", userAddedWsEvent.Event)
+	assert.Equal(t, user.Name, userAddedWsEvent.Name)
 }
 
 func TestStartVoteEndpoint(t *testing.T) {

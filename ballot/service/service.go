@@ -167,7 +167,7 @@ func (s *Service) StartVote(sessionId string) error {
 	err := s.store.SetKey(key, model.Voting)
 	if err != nil {return fmt.Errorf("error saving data. %v", err)}
 
-	session := model.WsSession{
+	session := model.WsVoteStarted{
 		Event: "VOTING",
 	}
 

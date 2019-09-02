@@ -188,10 +188,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			// spit out all the current users
 			key := fmt.Sprintf("session:%s:users", sessionId)
 			userIds, err := redis.Strings(p.pubConn.Do("SMEMBERS", key))
-			if err != nil {
-				log.Print(err)
-				return
-			}
+			if err != nil {log.Print(err); return}
 
 			log.Println("Current session voters: ", userIds)
 
@@ -204,7 +201,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			res, err := redis.Values(p.pubConn.Do(""))
 
 			if err != nil {
-				fmt.Println("ERROR ", err)
+				log.Printf("ERROR ", err)
 			}
 
 			var users []model.User
@@ -228,7 +225,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 					}
 					users = append(users, user)
 				default:
-					fmt.Printf("UNEXPECTED TYPE: %T", t)
+					log.Printf("UNEXPECTED TYPE: %T", t)
 				}
 			}
 
@@ -241,13 +238,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 				sessionState = model.Voting
 			}
 
-			type WsSession struct {
-				Event string       `json:"event"`
-				SessionState int   `json:"session_state"`
-				Users []model.User `json:"users"`
-			}
-
-			session := WsSession{
+			session := model.WsSession{
 				Event: "WATCHING",
 				SessionState: sessionState,
 				Users: users,
