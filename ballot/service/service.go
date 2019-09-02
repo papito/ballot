@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/db"
-	"github.com/papito/ballot/ballot/hub"
+	. "github.com/papito/ballot/ballot/hub"
 	"github.com/papito/ballot/ballot/model"
 	"log"
 	"strings"
@@ -14,13 +14,25 @@ import (
 
 type Service struct  {
 	store *db.Store
-	hub *hub.Hub
+	hub IHub
+}
+
+func getHub(config config.Config) IHub {
+	var hubImpl IHub = nil
+	if config.Environment == "test" {
+		hubImpl = &VoidHub{}
+	} else {
+		hubImpl = &Hub{}
+	}
+
+	return hubImpl
 }
 
 func NewService(config config.Config) (Service, error) {
+	hubImpl := getHub(config)
 	service := Service{
 		store: &db.Store{},
-		hub: &hub.Hub{},
+		hub: hubImpl,
 	}
 
 	service.store.Connect(config.RedisUrl)
@@ -41,7 +53,7 @@ func (s *Service) Release() {
 	log.Print("Service done")
 }
 
-func (s *Service) Hub() *hub.Hub {
+func (s *Service) Hub() IHub {
 	return s.hub
 }
 
@@ -121,7 +133,6 @@ func (s *Service) CastVote(sessionId string, userId string, estimate uint8) (mod
 	if sessionState == model.NotVoting {
 		return model.Vote{}, fmt.Errorf("not voting yet for session [%s]", sessionId)
 	}
-
 	log.Printf("Voting for user ID [%s] with estimate [%d]", userId, estimate)
 
 	userKey := fmt.Sprintf("user:%s", userId)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/db"
+	"github.com/papito/ballot/ballot/hub"
 	"github.com/papito/ballot/ballot/model"
 	"github.com/papito/ballot/ballot/server"
 	"github.com/stretchr/testify/assert"
@@ -21,24 +22,29 @@ import (
 
 var envConfig config.Config
 var srv server.Server
+var testHub *hub.VoidHub
 
 // setup/teardown
 func TestMain(m *testing.M) {
 	err := os.Setenv("ENV", config.TEST)
 	if err != nil {panic(err)}
+
+	// remove logs in test
 	log.SetOutput(ioutil.Discard)
+
 	envConfig = config.LoadConfig()
 
 	srv = server.NewServer(envConfig)
-	code := m.Run()
-	srv.Release()
+	testHub = srv.Service().Hub().(*hub.VoidHub)
 
+	code := m.Run()
+
+	srv.Release()
 	os.Exit(code)
 }
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
 func RandString(n int) string {
+	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, n)
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]

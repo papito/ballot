@@ -15,6 +15,13 @@ import (
 
 /* Modeled after https://github.com/hjr265/tonesa/blob/master/hub/hub.go */
 
+type IHub interface {
+	Connect(url string) error
+	HandleWebSockets(url string)
+	Emit(session string, data string) error
+	EmitLocal(session string, data string)
+	Release()
+}
 
 type Hub struct {
 	socketsMap  map[*glue.Socket]map[string]bool
@@ -27,18 +34,14 @@ type Hub struct {
 }
 
 func (p *Hub) Connect(url string) error {
+	// FIXME: this seems to be reassigned!
 	c, err := redis.DialURL(url)
-	if err != nil {
-		return err
-	}
+	if err != nil {return err}
 
 	p.pubConn = c
-
 	c, err = redis.DialURL(url)
-	if err != nil {
-		return err
-	}
-	p.subConn = redis.PubSubConn{c}
+	if err != nil {return err}
+	p.subConn = redis.PubSubConn{Conn:c}
 
 	p.socketsMap = map[*glue.Socket]map[string]bool{}
 	p.sessionsMap = map[string]map[*glue.Socket]bool{}
@@ -57,14 +60,12 @@ func (p *Hub) Connect(url string) error {
 		}
 	}()
 
-	/* Create the Glue server
-	 */
+	/* Create the Glue server */
 	p.glueSrv = glue.NewServer(glue.Options{
 		HTTPSocketType: glue.HTTPSocketTypeNone,
 	})
 
 	p.glueSrv.OnNewSocket(p.handleSocket)
-
 	return nil
 }
 
@@ -279,3 +280,33 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 		}
 	})
 }
+
+/* A hub implementation used for testing. Poor man's mockery.
+   Feel free to mock this.
+   Or fake outrage.
+
+   I can do this all day.
+*/
+type VoidHub struct {
+	Emitted []string
+	LocalEmitted []string
+}
+
+func (p *VoidHub) Emit(session string, data string) error {
+	p.Emitted = append(p.Emitted, data)
+	return nil
+}
+
+func (p *VoidHub) EmitLocal(session string, data string) {
+	p.LocalEmitted = append(p.LocalEmitted, data)
+}
+
+/* This VOID version resets the state */
+func (p *VoidHub) Connect(url string) error {
+	p.Emitted = p.Emitted[:0]
+	p.LocalEmitted = p.LocalEmitted[:0]
+	return nil
+}
+
+func (p *VoidHub) HandleWebSockets(url string) {return}
+func (p *VoidHub) Release() {return}
