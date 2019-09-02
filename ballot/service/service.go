@@ -109,8 +109,8 @@ func (s *Service) CreateUser(sessionId string, userName string) (model.User, err
 
 	if err != nil {return model.User{}, fmt.Errorf("error saving data. %v", err)}
 
-	wsUser := response.WsUser{}
-	wsUser.Event = "USER_ADDED"
+	wsUser := response.WsNewUser{}
+	wsUser.Event = response.UserAddedEvent
 	wsUser.Name = user.Name
 	wsUser.UserId = user.UserId
 	wsUser.Estimate = user.Estimate
@@ -141,7 +141,7 @@ func (s *Service) CastVote(sessionId string, userId string, estimate uint8) (mod
 	if err != nil {return model.Vote{}, fmt.Errorf("error saving data. %v", err)}
 
 	wsUserVote := response.WsUserVote{
-		Event:"USER_VOTED",
+		Event:response.UserVotedEVent,
 		UserId:userId,
 		Estimate:estimate,
 	}
@@ -150,7 +150,6 @@ func (s *Service) CastVote(sessionId string, userId string, estimate uint8) (mod
 	if err != nil {return model.Vote{}, fmt.Errorf("error imitting data. %v", err)}
 
 	err = s.hub.Emit(sessionId, string(data))
-
 	if err != nil {return model.Vote{}, fmt.Errorf("error imitting data. %v", err)}
 
 	vote := model.Vote{
@@ -169,7 +168,7 @@ func (s *Service) StartVote(sessionId string) error {
 	if err != nil {return fmt.Errorf("error saving data. %v", err)}
 
 	session := response.WsVoteStarted{
-		Event: "VOTING",
+		Event: response.VoteStartedEVent,
 	}
 
 	data, err := json.Marshal(session)

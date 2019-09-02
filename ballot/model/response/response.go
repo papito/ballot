@@ -10,7 +10,7 @@ type WsVoteStarted struct {
 	Event string `json:"event"`
 }
 
-type WsUser struct {
+type WsNewUser struct {
 	model.User
 	Event  string `json:"event"`
 }
@@ -26,4 +26,10 @@ type WsSession struct {
 	SessionState int   `json:"session_state"`
 	Users []model.User `json:"users"`
 }
+
+const (
+	UserAddedEvent = "USER_ADDED"
+	UserVotedEVent = "USER_VOTED"
+	VoteStartedEVent = "VOTING"
+)
 

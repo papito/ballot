@@ -110,6 +110,7 @@ func TestCreateSessionEndpoint(t *testing.T) {
 }
 
 func TestCreateUserEndpoint(t *testing.T) {
+	_ = testHub.Connect("")
 	session, err  := srv.Service().CreateSession()
 	if err != nil {t.Errorf("Could not create session: %s", err)}
 
@@ -138,13 +139,14 @@ func TestCreateUserEndpoint(t *testing.T) {
 	assert.NotNil(t, user.UserId)
 
 	msg := testHub.Emitted[0]
-	var userAddedWsEvent response.WsUser
+	var userAddedWsEvent response.WsNewUser
 	err = json.Unmarshal([]byte(msg), &userAddedWsEvent)
-	assert.Equal(t, "USER_ADDED", userAddedWsEvent.Event)
+	assert.Equal(t, response.UserAddedEvent, userAddedWsEvent.Event)
 	assert.Equal(t, user.Name, userAddedWsEvent.Name)
 }
 
 func TestStartVoteEndpoint(t *testing.T) {
+	_ = testHub.Connect("")
 	session, _ := createSessionAndUsers(2, t)
 
 	reqObj := request.StartVoteRequest{SessionId: session.SessionId}
@@ -163,4 +165,9 @@ func TestStartVoteEndpoint(t *testing.T) {
 	sessionKey := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
 	sessionState, err := srv.Service().Store().GetInt(sessionKey)
 	assert.Equal(t, sessionState, model.Voting)
+
+	msg := testHub.Emitted[len(testHub.Emitted)-1]
+	var voteStartedWsEvent response.WsVoteStarted
+	err = json.Unmarshal([]byte(msg), &voteStartedWsEvent)
+	assert.Equal(t, response.VoteStartedEVent, voteStartedWsEvent.Event)
 }
