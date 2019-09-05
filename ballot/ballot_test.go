@@ -180,3 +180,10 @@ func TestCastVoteForInactiveSession(t *testing.T) {
 	assert.Equal(t, -1, vote.Estimate)
 }
 
+func TestCastVote(t *testing.T) {
+	session, users := createSessionAndUsers(3, t)
+	err := srv.Service().StartVote(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	vote, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 8)
+}
