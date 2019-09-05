@@ -65,6 +65,7 @@ func createSessionAndUsers(numOfUsers int, t *testing.T) (session model.Session,
 		users = append(users, user)
 	}
 
+	_ = testHub.Connect("") // clear events
 	return session, users
 }
 
@@ -146,7 +147,6 @@ func TestCreateUserEndpoint(t *testing.T) {
 }
 
 func TestStartVoteEndpoint(t *testing.T) {
-	_ = testHub.Connect("")
 	session, _ := createSessionAndUsers(2, t)
 
 	reqObj := request.StartVoteRequest{SessionId: session.SessionId}
@@ -166,7 +166,7 @@ func TestStartVoteEndpoint(t *testing.T) {
 	sessionState, err := srv.Service().Store().GetInt(sessionKey)
 	assert.Equal(t, sessionState, model.Voting)
 
-	msg := testHub.Emitted[len(testHub.Emitted)-1]
+	msg := testHub.Emitted[0]
 	var voteStartedWsEvent response.WsVoteStarted
 	err = json.Unmarshal([]byte(msg), &voteStartedWsEvent)
 	assert.Equal(t, response.VoteStartedEVent, voteStartedWsEvent.Event)
@@ -180,12 +180,3 @@ func TestCastVoteForInactiveSession(t *testing.T) {
 	assert.Equal(t, -1, vote.Estimate)
 }
 
-func TestCastVoteWithNoOtherUsers(t *testing.T) {
-	session, users := createSessionAndUsers(1, t)
-	err := srv.Service().StartVote(session.SessionId)
-	if err != nil {t.Error(err)}
-
-	vote, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 8)
-	assert.NotNil(t, err)
-	assert.Equal(t, -1, vote.Estimate)
-}
