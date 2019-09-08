@@ -132,6 +132,11 @@
     votingStartedWsHandler() {
       console.log("updating session state");
       this.session.status = SessionState.VOTING;
+
+      for (let user of this.session.users) {
+        user.estimate = -1;
+        user.voted = false;
+      }
     }
 
     get isVoting() {
