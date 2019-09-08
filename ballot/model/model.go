@@ -9,12 +9,12 @@ type User struct {
 	UserId   string `json:"id"`
 	Name     string `json:"name"`
 	Estimate int    `json:"estimate"`
+	Voted    bool    `json:"voted"`
 }
 
-type Vote struct {
+type PendingVote struct {
 	SessionId string `json:"session_id"`
 	UserId 	  string `json:"user_id"`
-	Estimate  int    `json:"estimate"`
 }
 
 type ValidationError struct {

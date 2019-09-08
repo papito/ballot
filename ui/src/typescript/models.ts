@@ -9,26 +9,26 @@ export class User {
   id: string = "";
   name: string = "";
   estimate: number = NO_ESTIMATE;
+  voted: boolean = false;
 
   static fromJson(json: {[key:string]:string}) {
     let user = new User();
     user.id = json["id"];
     user.name = json["name"];
     user.estimate = Number(json["estimate"]);
+    user.voted = Boolean(json["voted"]);
     return user;
   }
 }
 
-export class Vote {
+export class PendingVote {
   user_id: string = "";
   session_id: string = "";
-  estimate: number = NO_ESTIMATE;
 
   static fromJson(json: {[key:string]:string}) {
-    let vote = new Vote();
+    let vote = new PendingVote();
     vote.user_id = json["user_id"];
     vote.session_id = json["session_id"];
-    vote.estimate = Number(json["estimate"]);
     return vote;
   }
 }

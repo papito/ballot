@@ -6,7 +6,11 @@
 
     <ul id="voters">
       <li v-for="user in session.users">
-        {{ user.name }}&nbsp;&nbsp;<span v-show="user.estimate >= 0">{{ user.estimate }}</span>
+        {{ user.name }}
+        &nbsp;&nbsp;
+        <span v-show="user.estimate >= 0">{{ user.estimate }}</span>
+        &nbsp;&nbsp;
+        <span v-show="user.voted">Voted</span>
       </li>
     </ul>
 
@@ -45,7 +49,7 @@
   import HttpMixin from "./HttpMixin";
   import { Component, Mixins } from 'vue-mixin-decorator';
   import {ws} from "../index";
-  import {Session, SessionState, User, Vote} from "../models";
+  import {Session, SessionState, User, PendingVote} from "../models";
 
   @Component
   export default class Ballot extends Mixins<HttpMixin>(HttpMixin)  {
@@ -101,7 +105,7 @@
     }
 
     userVotedHandler(json: {[key:string]:string}) {
-      let voteArg: Vote = Vote.fromJson(json);
+      let voteArg: PendingVote = PendingVote.fromJson(json);
 
       // find and update the user
       let user = this.session.users.find(function(u) {
@@ -111,9 +115,8 @@
       if (user == undefined) {
         throw new Error(`Could not find user by ID ${voteArg.user_id}`);
       }
-
-      user.estimate = voteArg.estimate;
-      console.log("USER VOTED " + user.estimate)
+      user.voted = true;
+      console.log("USER VOTED " + user.id)
     }
 
     watchingSessionWsHandler(json: {[key:string]:any}) {

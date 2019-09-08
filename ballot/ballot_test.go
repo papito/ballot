@@ -175,9 +175,8 @@ func TestStartVoteEndpoint(t *testing.T) {
 func TestCastVoteForInactiveSession(t *testing.T) {
 	session, users := createSessionAndUsers(2, t)
 
-	vote, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 8)
+	_, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 8)
 	assert.NotNil(t, err)
-	assert.Equal(t, -1, vote.Estimate)
 }
 
 func TestCastVote(t *testing.T) {

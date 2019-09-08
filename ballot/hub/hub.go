@@ -224,6 +224,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 						UserId: m["id"],
 						Name: m["name"],
 						Estimate: estimate,
+						Voted: estimate > model.NoEstimate,
 					}
 					users = append(users, user)
 				default:

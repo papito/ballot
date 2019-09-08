@@ -1,5 +1,7 @@
 import Vue from "vue";
+// @ts-ignore
 import NewBallot from './components/NewBallot.vue';
+// @ts-ignore
 import Ballot from "./components/Ballot.vue";
 import VueRouter from 'vue-router';
 import Websockets from "./websockets";

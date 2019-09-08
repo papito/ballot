@@ -124,7 +124,7 @@ func (s *Service) CreateUser(sessionId string, userName string) (model.User, err
 	return user, nil
 }
 
-func (s *Service) CastVote(sessionId string, userId string, estimate int) (model.Vote, error) {
+func (s *Service) CastVote(sessionId string, userId string, estimate int) (model.PendingVote, error) {
 	log.Printf("Voting for session ID [%s]", sessionId)
 
 	// cannot vote on session that is inactive
@@ -132,7 +132,7 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 	sessionState, err := s.store.GetInt(sessionKey)
 
 	if sessionState == model.NotVoting {
-		return model.Vote{Estimate:model.NoEstimate},
+		return model.PendingVote{},
 			fmt.Errorf("not voting yet for session [%s]", sessionId)
 	}
 	log.Printf("Voting for user ID [%s] with estimate [%d]", userId, estimate)
@@ -140,7 +140,7 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 	userKey := fmt.Sprintf("user:%s", userId)
 	err = s.store.SetHashKey(userKey, "estimate", estimate)
 	if err != nil {
-		return model.Vote{Estimate:model.NoEstimate}, fmt.Errorf("error saving data. %v", err)
+		return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
 	}
 
 	wsUserVote := response.WsUserVote{
@@ -150,15 +150,14 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 	}
 
 	data, err := json.Marshal(wsUserVote)
-	if err != nil {return model.Vote{}, fmt.Errorf("error imitting data. %v", err)}
+	if err != nil {return model.PendingVote{}, fmt.Errorf("error imitting data. %v", err)}
 
 	err = s.hub.Emit(sessionId, string(data))
-	if err != nil {return model.Vote{}, fmt.Errorf("error imitting data. %v", err)}
+	if err != nil {return model.PendingVote{}, fmt.Errorf("error imitting data. %v", err)}
 
-	vote := model.Vote{
+	vote := model.PendingVote{
 		SessionId: sessionId,
 		UserId: userId,
-		Estimate: estimate,
 	}
 
 	return vote, nil
