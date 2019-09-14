@@ -65,7 +65,7 @@ func createSessionAndUsers(numOfUsers int, t *testing.T) (session model.Session,
 		users = append(users, user)
 	}
 
-	_ = testHub.Connect("") // clear events
+	_ = testHub.Connect(nil) // clear events
 	return session, users
 }
 
@@ -111,7 +111,7 @@ func TestCreateSessionEndpoint(t *testing.T) {
 }
 
 func TestCreateUserEndpoint(t *testing.T) {
-	_ = testHub.Connect("")
+	_ = testHub.Connect(nil)
 	session, err  := srv.Service().CreateSession()
 	if err != nil {t.Errorf("Could not create session: %s", err)}
 

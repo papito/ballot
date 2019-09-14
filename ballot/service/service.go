@@ -42,7 +42,7 @@ func NewService(config config.Config) (Service, error) {
 	/* Initiate the hub that connects sessions and sockets
 	 */
 	log.Println("Creating hub")
-	err = service.hub.Connect(config.RedisUrl)
+	err = service.hub.Connect(service.store)
 	if err != nil {return service, fmt.Errorf("error creating hub: %s", err)}
 
 	return service, nil

@@ -6,7 +6,8 @@ import (
 )
 
 type Store struct {
-	redisConn redis.Conn
+	RedisConn redis.Conn
+	SubConn   redis.PubSubConn
 	redisUrl string
 }
 
@@ -21,14 +22,16 @@ var Const = struct {
 
 func (p *Store) Connect(redisUrl string)  {
 	var err error
-	p.redisConn, err = redis.DialURL(redisUrl)
-	if err != nil {
-		log.Fatal("Error connecting to Redis ", err)
-	}
+	p.RedisConn, err = redis.DialURL(redisUrl)
+	if err != nil {log.Fatal("Error connecting to Redis ", err)}
+
+	c, err := redis.DialURL(redisUrl)
+	if err != nil {log.Fatal("Error connecting to Redis ", err)}
+	p.SubConn = redis.PubSubConn{Conn: c}
 }
 
 func (p *Store) SetKey(key string, val interface{}) error {
-	_, err := p.redisConn.Do("SET", key, val)
+	_, err := p.RedisConn.Do("SET", key, val)
 
 	if err != nil {
 		log.Println(err)
@@ -39,7 +42,7 @@ func (p *Store) SetKey(key string, val interface{}) error {
 }
 
 func (p *Store) GetInt(key string) (int, error) {
-	val, err := redis.Int(p.redisConn.Do("GET", key))
+	val, err := redis.Int(p.RedisConn.Do("GET", key))
 
 	if err != nil {log.Println(err); return 0, err}
 
@@ -50,7 +53,7 @@ func (p *Store) SetHashKey(key string, args ...interface{}) error {
 	// combine the key and the args into a list of interfaces
 	redisArgs := []interface{}{key}
 	redisArgs = append(redisArgs, args...)
-	_, err := p.redisConn.Do("HSET", redisArgs[:]...)
+	_, err := p.RedisConn.Do("HSET", redisArgs[:]...)
 
 	if err != nil {log.Println(err); return err}
 
@@ -61,7 +64,7 @@ func (p *Store) AddToSet(key string, args ...interface{}) error {
 	// combine the key and the args into a list of interfaces
 	redisArgs := []interface{}{key}
 	redisArgs = append(redisArgs, args...)
-	_, err := p.redisConn.Do("SADD", redisArgs[:]...)
+	_, err := p.RedisConn.Do("SADD", redisArgs[:]...)
 
 	if err != nil {
 		log.Println(err)

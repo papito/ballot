@@ -18,7 +18,7 @@ import (
 /* Modeled after https://github.com/hjr265/tonesa/blob/master/hub/hub.go */
 
 type IHub interface {
-	Connect(url string) error
+	Connect(store *db.Store) error
 	HandleWebSockets(url string)
 	Emit(session string, data string) error
 	EmitLocal(session string, data string)
@@ -26,31 +26,22 @@ type IHub interface {
 }
 
 type Hub struct {
+	store *db.Store
 	socketsMap  map[*glue.Socket]map[string]bool
 	sessionsMap map[string]map[*glue.Socket]bool
 
-	pubConn redis.Conn
-	subConn redis.PubSubConn
 	rwMutex sync.RWMutex
 	glueSrv *glue.Server
 }
 
-func (p *Hub) Connect(url string) error {
-	// FIXME: this seems to be reassigned!
-	c, err := redis.DialURL(url)
-	if err != nil {return err}
-
-	p.pubConn = c
-	c, err = redis.DialURL(url)
-	if err != nil {return err}
-	p.subConn = redis.PubSubConn{Conn:c}
-
+func (p *Hub) Connect(store *db.Store) error {
+	p.store = store
 	p.socketsMap = map[*glue.Socket]map[string]bool{}
 	p.sessionsMap = map[string]map[*glue.Socket]bool{}
 
 	go func() {
 		for {
-			switch v := p.subConn.Receive().(type) {
+			switch v := p.store.SubConn.Receive().(type) {
 			case redis.Message:
 				log.Printf(
 					"Subscribe connection received [%s] on channel [%s]", v.Data, v.Channel)
@@ -96,7 +87,7 @@ func (p* Hub) Subscribe(sock *glue.Socket, session string) error {
 
 	if !ok {
 		p.sessionsMap[session] = map[*glue.Socket]bool{}
-		err := p.subConn.Subscribe(session)
+		err := p.store.SubConn.Subscribe(session)
 		if err != nil {
 			return err
 		}
@@ -115,7 +106,7 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 		delete(p.sessionsMap[session], sock)
 		if len(p.sessionsMap[session]) == 0 {
 			delete(p.sessionsMap, session)
-			err := p.subConn.Unsubscribe(session)
+			err := p.store.SubConn.Unsubscribe(session)
 			if err != nil {
 				return err
 			}
@@ -128,7 +119,7 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 
 func (p *Hub) Emit(session string, data string) error {
 	log.Printf("EMIT. Session %s - %s", session, data)
-	_, err := p.pubConn.Do("PUBLISH", session, data)
+	_, err := p.store.RedisConn.Do("PUBLISH", session, data)
 	return err
 }
 
@@ -187,7 +178,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 
 			// spit out all the current users
 			key := fmt.Sprintf(db.Const.SessionUsers, sessionId)
-			userIds, err := redis.Strings(p.pubConn.Do("SMEMBERS", key))
+			userIds, err := redis.Strings(p.store.RedisConn.Do("SMEMBERS", key))
 			if err != nil {log.Print(err); return}
 
 			log.Println("Current session voters: ", userIds)
@@ -195,10 +186,10 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			// OPTIMIZE: batch this
 			for _, userId := range userIds {
 				key = fmt.Sprintf("user:%s", userId)
-				_ = p.pubConn.Send("HGETALL", key)
+				_ = p.store.RedisConn.Send("HGETALL", key)
 			}
 
-			res, err := redis.Values(p.pubConn.Do(""))
+			res, err := redis.Values(p.store.RedisConn.Do(""))
 
 			if err != nil {log.Printf("ERROR: %v", err)}
 
@@ -230,7 +221,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 
 			// get session state - voting, not voting
 			key = fmt.Sprintf(db.Const.SessionVoting, sessionId)
-			isVoting, err := redis.Int(p.pubConn.Do("GET", key))
+			isVoting, err := redis.Int(p.store.RedisConn.Do("GET", key))
 
 			sessionState := model.NotVoting
 			if isVoting == 1 {
@@ -277,6 +268,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 
    I can do this all day.
 */
+// FIXME: mock wiring in tests instead of making the service aware of the test ENV
 type VoidHub struct {
 	Emitted []string
 	LocalEmitted []string
@@ -292,7 +284,7 @@ func (p *VoidHub) EmitLocal(session string, data string) {
 }
 
 /* This VOID version resets the state */
-func (p *VoidHub) Connect(url string) error {
+func (p *VoidHub) Connect(db *db.Store) error {
 	p.Emitted = p.Emitted[:0]
 	p.LocalEmitted = p.LocalEmitted[:0]
 	return nil
