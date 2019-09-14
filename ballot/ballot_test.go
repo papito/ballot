@@ -62,11 +62,15 @@ func createSessionAndUsers(numOfUsers int, t *testing.T) (session model.Session,
 	for i := 0; i < numOfUsers; i++ {
 		user, err := srv.Service().CreateUser(session.SessionId, RandString(20))
 		if err != nil {t.Errorf("Could not create user: %s", err)}
-		users = append(users, user)
+		users[i] = user
 	}
 
-	_ = testHub.Connect(nil) // clear events
+	clearHubEvents()
 	return session, users
+}
+
+func clearHubEvents() {
+	_ = testHub.Connect(nil)
 }
 
 func TestHealthEndpoint(t *testing.T) {
@@ -119,7 +123,8 @@ func TestCreateSessionEndpoint(t *testing.T) {
 }
 
 func TestCreateUserEndpoint(t *testing.T) {
-	_ = testHub.Connect(nil)
+	clearHubEvents()
+
 	session, err  := srv.Service().CreateSession()
 	if err != nil {t.Errorf("Could not create session: %s", err)}
 
@@ -178,8 +183,8 @@ func TestStartVoteEndpoint(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	assert.Equal(t,  http.StatusOK, rr.Code)
 
-	sessionVotingKey := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
-	sessionState, err := srv.Service().Store().GetInt(sessionVotingKey)
+	sessionStateKey := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
+	sessionState, err := srv.Service().Store().GetInt(sessionStateKey)
 	assert.Equal(t, model.Voting, sessionState)
 
 	msg := testHub.Emitted[0]
@@ -189,6 +194,29 @@ func TestStartVoteEndpoint(t *testing.T) {
 
 	voteCount, err := srv.Service().Store().GetInt(voteCountKey)
 	assert.Equal(t,0, voteCount)
+}
+
+func TestFinishVoteEndpoint(t *testing.T) {
+	session, _ := createSessionAndUsers(2, t)
+
+	reqObj := request.FinishVoteRequest{SessionId: session.SessionId}
+
+	body, err := json.Marshal(reqObj)
+	if err != nil {t.Error(err)}
+
+	req, err := http.NewRequest("PUT", "/api/vote/finish", bytes.NewBufferString(string(body)))
+	if err != nil {t.Error(err)}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(srv.FinishVoteHttpHandler)
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t,  http.StatusOK, rr.Code)
+
+	// get last event - it should be the vote results as we are done
+	msg := testHub.Emitted[len(testHub.Emitted) - 1]
+	var voteResultsWsEvent response.WsVoteFinished
+	err = json.Unmarshal([]byte(msg), &voteResultsWsEvent)
+	assert.Equal(t, response.VoteFinishedEvent, voteResultsWsEvent.Event)
 }
 
 func TestCastVoteForInactiveSession(t *testing.T) {
@@ -203,21 +231,38 @@ func TestCastVoteForInactiveSession(t *testing.T) {
 }
 
 func TestCastOneVote(t *testing.T) {
-	// TODO make it an HTTP handler test
-	session, users := createSessionAndUsers(3, t)
+	userCount := 3
+	session, users := createSessionAndUsers(userCount, t)
 	err := srv.Service().StartVote(session.SessionId)
 	if err != nil {t.Error(err)}
 
+	clearHubEvents()
+
 	vote, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 8)
 	if err != nil {t.Error(err)}
-
 	assert.Equal(t, vote.UserId, users[0].UserId)
 
-	key := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
-	voteCount, err := srv.Service().Store().GetInt(key)
+	voteCountKey := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
+	voteCount, err := srv.Service().Store().GetInt(voteCountKey)
 	assert.Equal(t, 1, voteCount)
 
-	// TODO: check that getting all votes is not possible as not done voting
+	storedUsers, err := srv.Service().Store().GetSessionUsers(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	for i := 0; i < userCount; i++ {
+		user := storedUsers[i]
+		if user.UserId == users[0].UserId {
+			assert.Equal(t, 8, user.Estimate)
+			assert.Equal(t, true, user.Voted)
+			break
+		}
+	}
+
+	// vote not done so we should be getting the expected event
+	msg := testHub.Emitted[0]
+	var userVotedEvent response.WsUserVote
+	err = json.Unmarshal([]byte(msg), &userVotedEvent)
+	assert.Equal(t, response.UserVotedEVent, userVotedEvent.Event)
 }
 
 func TestCastAllVotes(t *testing.T) {
@@ -227,7 +272,18 @@ func TestCastAllVotes(t *testing.T) {
 	if err != nil {t.Error(err)}
 
 	for i := 0; i < numOfUsers; i++ {
-		_, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 3)
+		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, 3)
 		if err != nil {t.Error(err)}
 	}
+
+	key := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
+	voteCount, err := srv.Service().Store().GetInt(key)
+	assert.Equal(t, numOfUsers, voteCount)
+
+	// get last event - it should be the vote results as we are done
+	msg := testHub.Emitted[len(testHub.Emitted) - 1]
+	var voteResultsWsEvent response.WsVoteFinished
+	err = json.Unmarshal([]byte(msg), &voteResultsWsEvent)
+	assert.Equal(t, response.VoteFinishedEvent, voteResultsWsEvent.Event)
+	assert.Equal(t, numOfUsers, len(voteResultsWsEvent.Users))
 }

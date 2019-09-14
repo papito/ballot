@@ -34,7 +34,6 @@ func (e ValidationError) Error() string {
 const (
 	NotVoting = iota
 	Voting
-	FinishedVoting
 )
 
 const NoEstimate = -1

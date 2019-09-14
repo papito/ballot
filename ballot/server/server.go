@@ -23,6 +23,8 @@ type Server interface {
 	CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 	CreateUserHttpHandler(w http.ResponseWriter, r *http.Request)
 	StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)
+	FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request)
+	CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)
 	Service() *service.Service
 }
 
@@ -55,7 +57,7 @@ func NewServer(config config.Config) Server {
 	r.HandleFunc("/api/user", server.CreateUserHttpHandler).Methods("POST")
 	r.HandleFunc("/api/vote/start", server.StartVoteHttpHandler).Methods("PUT")
 	r.HandleFunc("/api/vote/finish", server.FinishVoteHttpHandler).Methods("PUT")
-	r.HandleFunc("/api/vote/cast", server.castVoteHttpHandler).Methods("PUT")
+	r.HandleFunc("/api/vote/cast", server.CastVoteHttpHandler).Methods("PUT")
 	http.Handle("/", r)
 
 	server.service.Hub().HandleWebSockets("/glue/ws")
@@ -148,7 +150,7 @@ func (p server) FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	logutil.Logger(fmt.Fprint(w, "{}"))
 }
 
-func (p server) castVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
+func (p server) CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	reqBody, err := jsonutil.GetRequestBody(r)
 	var reqObj request.CastVoteRequest
 	err = json.Unmarshal([]byte(reqBody), &reqObj)

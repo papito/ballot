@@ -10,6 +10,11 @@ type WsVoteStarted struct {
 	Event string `json:"event"`
 }
 
+type WsVoteFinished struct {
+	Users []model.User `json:"users"`
+	Event string `json:"event"`
+}
+
 type WsNewUser struct {
 	model.User
 	Event  string `json:"event"`

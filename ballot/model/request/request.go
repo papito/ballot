@@ -9,6 +9,10 @@ type StartVoteRequest struct {
 	SessionId string `json:"session_id"`
 }
 
+type FinishVoteRequest struct {
+	SessionId string `json:"session_id"`
+}
+
 type CastVoteRequest struct {
 	UserId    string `json:"user_id"`
 	SessionId string `json:"session_id"`
