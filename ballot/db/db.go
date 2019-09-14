@@ -1,8 +1,11 @@
 package db
 
 import (
+	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/papito/ballot/ballot/model"
 	"log"
+	"strconv"
 )
 
 type Store struct {
@@ -72,4 +75,53 @@ func (p *Store) AddToSet(key string, args ...interface{}) error {
 	}
 
 	return nil
+}
+
+func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
+	key := fmt.Sprintf(Const.SessionUsers, sessionId)
+	userIds, err := redis.Strings(p.RedisConn.Do("SMEMBERS", key))
+	if err != nil {
+		return make([]model.User, 0), fmt.Errorf("ERROR %v", err)
+	}
+
+	log.Printf("Session voters for [%s]: %s", sessionId, userIds)
+
+	// OPTIMIZE: batch this
+	for _, userId := range userIds {
+		key = fmt.Sprintf("user:%s", userId)
+		_ = p.RedisConn.Send("HGETALL", key)
+	}
+
+	res, err := redis.Values(p.RedisConn.Do(""))
+	if err != nil {
+		log.Printf("ERROR: %v", err)
+	}
+
+	var users []model.User
+
+	for i, r := range res {
+		switch t := r.(type) {
+		case redis.Error:
+			return make([]model.User, 0), fmt.Errorf("res[%d] is redis.Error %v\n", i, r)
+		case []interface{}:
+			m, _ := redis.StringMap(r, nil)
+
+			estimate, err := strconv.Atoi(m["estimate"])
+			if err != nil {
+				return make([]model.User, 0), fmt.Errorf("ERROR %v", err)
+			}
+
+			user := model.User{
+				UserId:   m["id"],
+				Name:     m["name"],
+				Estimate: estimate,
+				Voted:    estimate > model.NoEstimate,
+			}
+			users = append(users, user)
+		default:
+			return make([]model.User, 0), fmt.Errorf("UNEXPECTED TYPE: %T", t)
+		}
+	}
+
+	return users, nil
 }

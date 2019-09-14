@@ -11,7 +11,6 @@ import (
 	"github.com/papito/ballot/ballot/model/response"
 	"log"
 	"net/http"
-	"strconv"
 	"sync"
 )
 
@@ -176,57 +175,17 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			err := p.Subscribe(sock, sessionId)
 			if err != nil {log.Print(err)}
 
-			// spit out all the current users
-			key := fmt.Sprintf(db.Const.SessionUsers, sessionId)
-			userIds, err := redis.Strings(p.store.RedisConn.Do("SMEMBERS", key))
-			if err != nil {log.Print(err); return}
-
-			log.Println("Current session voters: ", userIds)
-
-			// OPTIMIZE: batch this
-			for _, userId := range userIds {
-				key = fmt.Sprintf("user:%s", userId)
-				_ = p.store.RedisConn.Send("HGETALL", key)
-			}
-
-			res, err := redis.Values(p.store.RedisConn.Do(""))
-
-			if err != nil {log.Printf("ERROR: %v", err)}
-
-			var users []model.User
-
-			for i, r := range res {
-				switch t := r.(type) {
-				case redis.Error:
-					fmt.Printf("res[%d] is redis.Error %v\n", i, r)
-				case []interface{}:
-					m, _ := redis.StringMap(r, nil)
-
-					estimate, err := strconv.Atoi(m["estimate"])
-					if err != nil {
-						fmt.Println("ERROR ", err)
-					}
-
-					user := model.User{
-						UserId: m["id"],
-						Name: m["name"],
-						Estimate: estimate,
-						Voted: estimate > model.NoEstimate,
-					}
-					users = append(users, user)
-				default:
-					log.Printf("UNEXPECTED TYPE: %T", t)
-				}
-			}
-
 			// get session state - voting, not voting
-			key = fmt.Sprintf(db.Const.SessionVoting, sessionId)
+			key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
 			isVoting, err := redis.Int(p.store.RedisConn.Do("GET", key))
 
 			sessionState := model.NotVoting
 			if isVoting == 1 {
 				sessionState = model.Voting
 			}
+
+			users, err := p.store.GetSessionUsers(sessionId)
+			if err != nil {log.Print(err)}
 
 			session := response.WsSession{
 				Event: "WATCHING",
