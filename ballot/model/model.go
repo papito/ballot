@@ -17,14 +17,8 @@ type PendingVote struct {
 	UserId 	  string `json:"user_id"`
 }
 
-type FinishedVote struct {
-	SessionId string `json:"session_id"`
-	UserId 	  string `json:"user_id"`
-	Estimate  int    `json:"estimate"`
-}
-
 type VoteResults struct {
-	Votes[] FinishedVote `json:"votes"`
+	Votes[] User `json:"users"`
 }
 
 type ValidationError struct {

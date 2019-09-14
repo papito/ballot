@@ -43,6 +43,14 @@ Estimate `-1` is "idle" state. User has not voted yet.
 
 A set of users in this current session
 
+#### session:{session_id}:user_count -> Integer
+
+Number of users in a session
+
+#### session:{session_id}:vote_count -> Integer
+
+Number of users in a session who cast a vote
+
 #### session:{session_id}:voting -> Flag
 
   * 0 - Voting

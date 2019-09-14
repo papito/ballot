@@ -30,5 +30,6 @@ const (
 	UserAddedEvent = "USER_ADDED"
 	UserVotedEVent = "USER_VOTED"
 	VoteStartedEVent = "VOTING"
+	VoteFinishedEvent = "VOTE_FINISHED"
 )
 

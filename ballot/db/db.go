@@ -11,17 +11,22 @@ import (
 type Store struct {
 	RedisConn redis.Conn
 	SubConn   redis.PubSubConn
-	redisUrl string
+	redisUrl  string
 }
 
 var Const = struct {
 	SessionVoting string
-	SessionUsers string
-	User string
+	SessionUsers  string
+	User          string
+	UserCount     string
+	VoteCount     string
 }{
 	"session:%s:voting",
 	"session:%s:users",
-	"user:%s"}
+	"user:%s",
+	"session:%s:user_count",
+	"session:%s:vote_count",
+}
 
 func (p *Store) Connect(redisUrl string)  {
 	var err error
@@ -35,18 +40,27 @@ func (p *Store) Connect(redisUrl string)  {
 
 func (p *Store) SetKey(key string, val interface{}) error {
 	_, err := p.RedisConn.Do("SET", key, val)
+	if err != nil {log.Println(err); return err}
 
-	if err != nil {
-		log.Println(err)
-		return err
-	}
+	return nil
+}
+
+func (p *Store) Incr(key string, num uint8) error {
+	_, err := p.RedisConn.Do("INCRBY", key, num)
+	if err != nil {log.Println(err); return err}
+
+	return nil
+}
+
+func (p *Store) Decr(key string, num uint8) error {
+	_, err := p.RedisConn.Do("DECRBY", key, num)
+	if err != nil {log.Println(err); return err}
 
 	return nil
 }
 
 func (p *Store) GetInt(key string) (int, error) {
 	val, err := redis.Int(p.RedisConn.Do("GET", key))
-
 	if err != nil {log.Println(err); return 0, err}
 
 	return val, nil

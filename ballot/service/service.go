@@ -71,6 +71,14 @@ func (s *Service) CreateSession() (model.Session, error) {
 	err := s.store.SetKey(key, model.NotVoting)
 	if err != nil {return model.Session{}, fmt.Errorf("error saving data: %s", err)}
 
+	key = fmt.Sprintf(db.Const.UserCount, sessionId)
+	err = s.store.SetKey(key, 0)
+	if err != nil {return model.Session{}, fmt.Errorf("error saving data: %s", err)}
+
+	key = fmt.Sprintf(db.Const.VoteCount, sessionId)
+	err = s.store.SetKey(key, 0)
+	if err != nil {return model.Session{}, fmt.Errorf("error saving data: %s", err)}
+
 	return session, nil
 }
 
@@ -106,8 +114,11 @@ func (s *Service) CreateUser(sessionId string, userName string) (model.User, err
 
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 	err = s.store.AddToSet(sessionUserKey, userId)
-
 	if err != nil {return model.User{}, fmt.Errorf("error saving data. %v", err)}
+
+	userCountKey  := fmt.Sprintf(db.Const.UserCount, sessionId)
+	err = s.store.Incr(userCountKey, 1)
+	if err != nil {return model.User{}, err}
 
 	wsUser := response.WsNewUser{}
 	wsUser.Event = response.UserAddedEvent
@@ -143,6 +154,12 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 		return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
 	}
 
+	voteCountKey := fmt.Sprintf(db.Const.VoteCount, sessionId)
+	err = s.store.Incr(voteCountKey, 1)
+	if err != nil {
+		return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
+	}
+
 	wsUserVote := response.WsUserVote{
 		Event:response.UserVotedEVent,
 		UserId:userId,
@@ -166,20 +183,60 @@ func (s *Service) StartVote(sessionId string) error {
 	log.Printf("Starting vote for session ID [%s]", sessionId)
 	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
 	err := s.store.SetKey(key, model.Voting)
-	if err != nil {return fmt.Errorf("error saving data. %v", err)}
+	if err != nil {return fmt.Errorf("error saving data: %v", err)}
+
+	key = fmt.Sprintf(db.Const.VoteCount, sessionId)
+	err = s.store.SetKey(key, 0)
+	if err != nil {return fmt.Errorf("error saving data: %v", err)}
 
 	session := response.WsVoteStarted{
 		Event: response.VoteStartedEVent,
 	}
 
 	data, err := json.Marshal(session)
-	if err != nil {return fmt.Errorf("error marshalling data. %v", err)}
+	if err != nil {return fmt.Errorf("error marshalling data: %v", err)}
 
 	err = s.hub.Emit(sessionId, string(data))
-	if err != nil {return fmt.Errorf("error imitting data. %v", err)}
+	if err != nil {return fmt.Errorf("error imitting data: %v", err)}
 
 	return nil
 }
 
-//func (s * Service) GetVoteResults(sessionId string) ([]model.FinishedVote, error) {
-//}
+func (s *Service) FinishVote(sessionId string) error {
+	log.Printf("Finishing vote for session ID [%s]", sessionId)
+	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
+	err := s.store.SetKey(key, model.FinishedVoting)
+	if err != nil {return fmt.Errorf("error saving data: %v", err)}
+
+	session := response.WsVoteStarted{
+		Event: response.VoteFinishedEvent,
+	}
+
+	data, err := json.Marshal(session)
+	if err != nil {return fmt.Errorf("error marshalling data: %v", err)}
+
+	err = s.hub.Emit(sessionId, string(data))
+	if err != nil {return fmt.Errorf("error imitting data: %v", err)}
+
+	return nil
+}
+
+func (s * Service) GetVoteResults(sessionId string) ([]model.User, error) {
+	users, err := s.store.GetSessionUsers(sessionId)
+	if err != nil {
+		return make([]model.User, 0), fmt.Errorf("error getting users: %v", err)
+	}
+
+	// cannot get results until the vote is finished or forced
+
+	// cannot vote on session that is inactive
+	sessionKey := fmt.Sprintf(db.Const.SessionVoting, sessionId)
+	sessionState, err := s.store.GetInt(sessionKey)
+
+	if sessionState != model.FinishedVoting {
+		return make([]model.User, 0),
+			fmt.Errorf("voting not finished for [%s]", sessionId)
+	}
+
+	return users, nil
+}
