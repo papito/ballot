@@ -18,7 +18,6 @@ type WsNewUser struct {
 type WsUserVote struct {
 	Event    string `json:"event"`
 	UserId   string `json:"user_id"`
-	Estimate int    `json:"estimate"`
 }
 
 type WsSession struct {

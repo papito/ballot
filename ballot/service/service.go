@@ -146,7 +146,6 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 	wsUserVote := response.WsUserVote{
 		Event:response.UserVotedEVent,
 		UserId:userId,
-		Estimate:estimate,
 	}
 
 	data, err := json.Marshal(wsUserVote)
