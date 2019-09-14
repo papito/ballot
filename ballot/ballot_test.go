@@ -179,10 +179,27 @@ func TestCastVoteForInactiveSession(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestCastVote(t *testing.T) {
+func TestCastOneVote(t *testing.T) {
 	session, users := createSessionAndUsers(3, t)
 	err := srv.Service().StartVote(session.SessionId)
 	if err != nil {t.Error(err)}
 
 	vote, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 8)
+	if err != nil {t.Error(err)}
+
+	assert.Equal(t, vote.UserId, users[0].UserId)
+
+	// TODO: check that getting all votes is not possible as not done voting
+}
+
+func TestCastAllVotes(t *testing.T) {
+	numOfUsers := 3
+	session, users := createSessionAndUsers(numOfUsers, t)
+	err := srv.Service().StartVote(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	for i := 0; i < numOfUsers; i++ {
+		_, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 3)
+		if err != nil {t.Error(err)}
+	}
 }

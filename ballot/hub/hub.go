@@ -183,9 +183,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 		case "WATCH":
 			log.Printf("WS. Watching session %s", sessionId)
 			err := p.Subscribe(sock, sessionId)
-			if err != nil {
-				log.Print(err)
-			}
+			if err != nil {log.Print(err)}
 
 			// spit out all the current users
 			key := fmt.Sprintf(db.Const.SessionUsers, sessionId)
@@ -202,9 +200,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 
 			res, err := redis.Values(p.pubConn.Do(""))
 
-			if err != nil {
-				log.Printf("ERROR: %v", err)
-			}
+			if err != nil {log.Printf("ERROR: %v", err)}
 
 			var users []model.User
 

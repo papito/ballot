@@ -180,3 +180,6 @@ func (s *Service) StartVote(sessionId string) error {
 
 	return nil
 }
+
+//func (s * Service) GetVoteResults(sessionId string) ([]model.FinishedVote, error) {
+//}
