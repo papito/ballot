@@ -292,3 +292,31 @@ func TestCastAllVotes(t *testing.T) {
 	assert.Equal(t, sessionState, model.NotVoting)
 
 }
+
+/*
+We want to make sure that all users in the session start with a "clean record"
+ */
+func TestNewVoteState(t *testing.T) {
+	numOfUsers := 2
+	session, users := createSessionAndUsers(numOfUsers, t)
+	err := srv.Service().StartVote(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	for i := 0; i < numOfUsers; i++ {
+		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, 3)
+		if err != nil {t.Error(err)}
+	}
+
+	err = srv.Service().StartVote(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	usersForNewSession, err := srv.Service().Store().GetSessionUsers(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	for i := 0; i < numOfUsers; i++ {
+		user := usersForNewSession[i]
+		assert.Equal(t, model.NoEstimate, user.Estimate)
+		assert.Equal(t, false, user.Voted)
+	}
+
+}

@@ -77,6 +77,16 @@ func (p *Store) SetHashKey(key string, args ...interface{}) error {
 	return nil
 }
 
+func (p* Store) GetSessionUserIds(sessionId string) ([]string, error) {
+	key := fmt.Sprintf(Const.SessionUsers, sessionId)
+	userIds, err := redis.Strings(p.RedisConn.Do("SMEMBERS", key))
+	if err != nil {
+		return make([]string, 0), fmt.Errorf("ERROR %v", err)
+	}
+
+	return userIds, nil
+}
+
 func (p *Store) AddToSet(key string, args ...interface{}) error {
 	// combine the key and the args into a list of interfaces
 	redisArgs := []interface{}{key}
@@ -92,8 +102,7 @@ func (p *Store) AddToSet(key string, args ...interface{}) error {
 }
 
 func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
-	key := fmt.Sprintf(Const.SessionUsers, sessionId)
-	userIds, err := redis.Strings(p.RedisConn.Do("SMEMBERS", key))
+	userIds, err := p.GetSessionUserIds(sessionId)
 	if err != nil {
 		return make([]model.User, 0), fmt.Errorf("ERROR %v", err)
 	}
@@ -102,7 +111,7 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 
 	// OPTIMIZE: batch this
 	for _, userId := range userIds {
-		key = fmt.Sprintf("user:%s", userId)
+		key := fmt.Sprintf("user:%s", userId)
 		_ = p.RedisConn.Send("HGETALL", key)
 	}
 

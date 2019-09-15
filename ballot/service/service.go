@@ -194,6 +194,15 @@ func (s *Service) StartVote(sessionId string) error {
 	err = s.store.SetKey(key, 0)
 	if err != nil {return fmt.Errorf("error saving data: %v", err)}
 
+	// reset user state
+	userIds, err := s.store.GetSessionUserIds(sessionId)
+
+	for i := 0; i < len(userIds); i++ {
+		userId := userIds[i]
+		userKey := fmt.Sprintf(db.Const.User, userId)
+		err = s.store.SetHashKey(userKey, "estimate", model.NoEstimate)
+	}
+
 	session := response.WsVoteStarted{
 		Event: response.VoteStartedEVent,
 	}
