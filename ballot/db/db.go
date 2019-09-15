@@ -15,11 +15,11 @@ type Store struct {
 }
 
 var Const = struct {
-	SessionVoting string
-	SessionUsers  string
-	User          string
-	UserCount     string
-	VoteCount     string
+	SessionState string
+	SessionUsers string
+	User         string
+	UserCount    string
+	VoteCount    string
 }{
 	"session:%s:voting",
 	"session:%s:users",

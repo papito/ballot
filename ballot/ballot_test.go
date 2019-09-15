@@ -109,7 +109,7 @@ func TestCreateSessionEndpoint(t *testing.T) {
 	assert.True(t, match)
 	assert.Len(t, session.SessionId, 36)
 
-	key := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
+	key := fmt.Sprintf(db.Const.SessionState, session.SessionId)
 	sessionState, err := srv.Service().Store().GetInt(key)
 	assert.Equal(t, sessionState, model.NotVoting)
 
@@ -183,7 +183,7 @@ func TestStartVoteEndpoint(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	assert.Equal(t,  http.StatusOK, rr.Code)
 
-	sessionStateKey := fmt.Sprintf(db.Const.SessionVoting, session.SessionId)
+	sessionStateKey := fmt.Sprintf(db.Const.SessionState, session.SessionId)
 	sessionState, err := srv.Service().Store().GetInt(sessionStateKey)
 	assert.Equal(t, model.Voting, sessionState)
 

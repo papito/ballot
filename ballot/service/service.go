@@ -67,7 +67,7 @@ func (s *Service) CreateSession() (model.Session, error) {
 	sessionId := sessionUUID.String()
 	session := model.Session{SessionId: sessionId}
 
-	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
+	key := fmt.Sprintf(db.Const.SessionState, sessionId)
 	err := s.store.SetKey(key, model.NotVoting)
 	if err != nil {return model.Session{}, fmt.Errorf("error saving data: %s", err)}
 
@@ -138,7 +138,7 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 	log.Printf("Voting for session ID [%s] and user ID [%s]", sessionId, userId)
 
 	// cannot vote on session that is inactive
-	sessionKey := fmt.Sprintf(db.Const.SessionVoting, sessionId)
+	sessionKey := fmt.Sprintf(db.Const.SessionState, sessionId)
 	sessionState, err := s.store.GetInt(sessionKey)
 
 	if sessionState == model.NotVoting {
@@ -187,7 +187,7 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 
 func (s *Service) StartVote(sessionId string) error {
 	log.Printf("Starting vote for session ID [%s]", sessionId)
-	key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
+	key := fmt.Sprintf(db.Const.SessionState, sessionId)
 	err := s.store.SetKey(key, model.Voting)
 	if err != nil {return fmt.Errorf("error saving data: %v", err)}
 

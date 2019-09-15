@@ -176,7 +176,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			if err != nil {log.Print(err)}
 
 			// get session state - voting, not voting
-			key := fmt.Sprintf(db.Const.SessionVoting, sessionId)
+			key := fmt.Sprintf(db.Const.SessionState, sessionId)
 			isVoting, err := redis.Int(p.store.RedisConn.Do("GET", key))
 
 			sessionState := model.NotVoting
