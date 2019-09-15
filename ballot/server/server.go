@@ -46,8 +46,8 @@ func NewServer(config config.Config) Server {
 	}
 
 	// Serve static files
-	fs := http.FileServer(http.Dir("../ui/dist/js"))
-	http.Handle("/ui/js/",http.StripPrefix("/ui/js/", fs))
+	fs := http.FileServer(http.Dir("../ui/dist/"))
+	http.Handle("/ui/",http.StripPrefix("/ui/", fs))
 
 	// Handlers
 	r := mux.NewRouter()
