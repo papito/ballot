@@ -61,7 +61,6 @@ func (p *Store) Decr(key string, num uint8) error {
 func (p *Store) GetInt(key string) (int, error) {
 	val, err := redis.Int(p.RedisConn.Do("GET", key))
 	if err != nil {log.Println(err); return 0, err}
-
 	return val, nil
 }
 
@@ -74,6 +73,12 @@ func (p *Store) SetHashKey(key string, args ...interface{}) error {
 	if err != nil {log.Println(err); return err}
 
 	return nil
+}
+
+func (p *Store) GetHashKey(key string, field string) (string, error) {
+	val, err := redis.String(p.RedisConn.Do("HGET", key, field))
+	if err != nil {log.Println(err); return "", err}
+	return val, nil
 }
 
 func (p* Store) GetSessionUserIds(sessionId string) ([]string, error) {
@@ -91,12 +96,7 @@ func (p *Store) AddToSet(key string, args ...interface{}) error {
 	redisArgs := []interface{}{key}
 	redisArgs = append(redisArgs, args...)
 	_, err := p.RedisConn.Do("SADD", redisArgs[:]...)
-
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
+	if err != nil {log.Println(err); return err}
 	return nil
 }
 
@@ -105,10 +105,8 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 	if err != nil {
 		return make([]model.User, 0), fmt.Errorf("ERROR %v", err)
 	}
-
 	log.Printf("Session voters for [%s]: %s", sessionId, userIds)
 
-	// OPTIMIZE: batch this
 	for _, userId := range userIds {
 		key := fmt.Sprintf("user:%s", userId)
 		_ = p.RedisConn.Send("HGETALL", key)

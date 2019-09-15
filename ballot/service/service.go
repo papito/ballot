@@ -148,15 +148,24 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 	log.Printf("Voting for user ID [%s] with estimate [%d]", userId, estimate)
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
+
+	previousEstimate, err := s.store.GetHashKey(userKey, "estimate")
+	if err != nil {
+		return model.PendingVote{}, fmt.Errorf("error getting data. %v", err)
+	}
+
 	err = s.store.SetHashKey(userKey, "estimate", estimate)
 	if err != nil {
 		return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
 	}
 
-	voteCountKey := fmt.Sprintf(db.Const.VoteCount, sessionId)
-	err = s.store.Incr(voteCountKey, 1)
-	if err != nil {
-		return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
+	// increment vote count IF this is a brand new vote for the user this sessuion
+	if previousEstimate == model.NoEstimate {
+		voteCountKey := fmt.Sprintf(db.Const.VoteCount, sessionId)
+		err = s.store.Incr(voteCountKey, 1)
+		if err != nil {
+			return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
+		}
 	}
 
 	wsUserVote := response.WsUserVote{

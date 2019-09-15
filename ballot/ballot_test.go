@@ -320,3 +320,20 @@ func TestNewVoteState(t *testing.T) {
 	}
 
 }
+
+func TestRepeatedVote(t *testing.T) {
+	numOfUsers := 2
+	session, users := createSessionAndUsers(numOfUsers, t)
+	err := srv.Service().StartVote(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, 3)
+	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, 3)
+	if err != nil {t.Error(err)}
+
+	// vote count should still be 1 - one user voted
+	key := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
+	voteCount, err := srv.Service().Store().GetInt(key)
+	assert.Equal(t, 1, voteCount)
+
+}
