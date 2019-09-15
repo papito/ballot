@@ -159,20 +159,19 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 		return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
 	}
 
+	wsUserVote := response.WsUserVote{
+		Event:response.UserVotedEVent,
+		UserId:userId,
+	}
+
+	data, err := json.Marshal(wsUserVote)
+	if err != nil {return model.PendingVote{}, fmt.Errorf("error emitting data. %v", err)}
+
+	err = s.hub.Emit(sessionId, string(data))
+	if err != nil {return model.PendingVote{}, fmt.Errorf("error emitting data. %v", err)}
+
 	voteFinished, err := s.IsVoteFinished(sessionId)
-
-	if voteFinished == false {
-		wsUserVote := response.WsUserVote{
-			Event:response.UserVotedEVent,
-			UserId:userId,
-		}
-
-		data, err := json.Marshal(wsUserVote)
-		if err != nil {return model.PendingVote{}, fmt.Errorf("error emitting data. %v", err)}
-
-		err = s.hub.Emit(sessionId, string(data))
-		if err != nil {return model.PendingVote{}, fmt.Errorf("error emitting data. %v", err)}
-	} else {
+	if voteFinished == true {
 		err = s.FinishVote(sessionId)
 		if err != nil {return model.PendingVote{}, fmt.Errorf("error finishing vote. %v", err)}
 	}

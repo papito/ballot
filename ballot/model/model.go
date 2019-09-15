@@ -15,6 +15,7 @@ type User struct {
 type PendingVote struct {
 	SessionId string `json:"session_id"`
 	UserId 	  string `json:"user_id"`
+	// Pending vote has no estimate since we are hiding it while the vote is going on
 }
 
 type VoteResults struct {
@@ -36,4 +37,5 @@ const (
 	Voting
 )
 
+// FIXME: after the estimate is converted to string - this should just be empty string value
 const NoEstimate = -1

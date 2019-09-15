@@ -172,7 +172,7 @@ func (p server) CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	data, _  := json.Marshal(vote)
 	w.Header().Set("Content-Type", "application/json")
 	log.Println(string(data))
-	logutil.Logger(fmt.Fprintf(w, "%ss", data))
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {

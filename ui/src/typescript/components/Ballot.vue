@@ -7,7 +7,7 @@
     <ul id="voters">
       <li v-for="user in session.users">
         {{ user.name }}
-        &nbsp;&nbsp;
+        &nbsp;
         <span v-show="user.estimate >= 0">{{ user.estimate }}</span>
         &nbsp;&nbsp;
         <span v-show="user.voted">Voted</span>
@@ -28,13 +28,12 @@
 
 
     <div v-show="user.id">
-      <button v-on:click="startVote">
-        <span v-if="isVoting">
-          Restart
-        </span>
-        <span v-else-if="isIdle">
-          Start
-        </span>
+      <button v-if="isIdle" v-on:click="startVote">
+        Start
+      </button>
+
+      <button v-if="isVoting" v-on:click="finishVote">
+        End Vote Early
       </button>
     </div>
 
@@ -95,6 +94,10 @@
             this.userVotedHandler(json);
             break;
           }
+          case "VOTE_FINISHED": {
+            this.votingFinishedWsHandler(json);
+            break
+          }
         }
       });
     }
@@ -139,6 +142,26 @@
       }
     }
 
+    votingFinishedWsHandler(json: {[key:string]:any}) {
+      console.log("vote finished");
+      this.session.status = SessionState.IDLE;
+      let usersJson: any = json["users"] || [];
+
+      for (let userJson of usersJson) {
+        let user = User.fromJson(userJson);
+
+        // find and update the user
+        let sessionUser = this.session.users.find(function(u) {
+          return u.id == user.id;
+        });
+        if (sessionUser == undefined) {
+          throw new Error(`Could not find user by ID ${user.id}`);
+        }
+        sessionUser.voted = user.voted;
+        sessionUser.estimate = user.estimate;
+      }
+    }
+
     get isVoting() {
       return this.session.status == SessionState.VOTING;
     }
@@ -156,8 +179,22 @@
 
       resp.then((res) => {
         // TODO: handle errors for user who is trying to start the vote
-        if (res.ok) {
-        }
+        // if (res.ok) {
+        // }
+      });
+    }
+
+    finishVote() {
+      const resp: Promise<{[key:string]:string}> = this.putRequest(
+          "/api/vote/finish", {
+            "session_id": this.session.id
+          }
+      );
+
+      resp.then((res) => {
+        // TODO: handle errors for user who is trying to end the vote
+        // if (res.ok) {
+        // }
       });
     }
 
