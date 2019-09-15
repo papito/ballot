@@ -209,6 +209,10 @@ func (s *Service) StartVote(sessionId string) error {
 }
 
 func (s *Service) FinishVote(sessionId string) error {
+	key := fmt.Sprintf(db.Const.SessionState, sessionId)
+	err := s.store.SetKey(key, model.NotVoting)
+	if err != nil {return fmt.Errorf("error saving data: %v", err)}
+
 	users, err := s.store.GetSessionUsers(sessionId)
 	if err != nil {return fmt.Errorf("error getting users: %v", err)}
 

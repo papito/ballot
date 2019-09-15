@@ -286,4 +286,9 @@ func TestCastAllVotes(t *testing.T) {
 	err = json.Unmarshal([]byte(msg), &voteResultsWsEvent)
 	assert.Equal(t, response.VoteFinishedEvent, voteResultsWsEvent.Event)
 	assert.Equal(t, numOfUsers, len(voteResultsWsEvent.Users))
+
+	key = fmt.Sprintf(db.Const.SessionState, session.SessionId)
+	sessionState, err := srv.Service().Store().GetInt(key)
+	assert.Equal(t, sessionState, model.NotVoting)
+
 }
