@@ -34,22 +34,21 @@ Build for production:
 |----------|-----------------------|
 | id       | UUID                  |
 | name     | String                |
-| estimate | Integer, -1 to 100    |
+| estimate | String                |
 
-Estimate `-1` is "idle" state. User has not voted yet. 
-`-1` is also the value set when a voting session restarts.
+Estimate is an empty string by default. 
 
 #### session:{session_id}:users -> Set
 
-A set of users in this current session
+A set of users in this current session.
 
 #### session:{session_id}:user_count -> Integer
 
-Number of users in a session
+Number of users in a session.
 
 #### session:{session_id}:vote_count -> Integer
 
-Number of users in a session who cast a vote
+Number of users in a session who cast a vote.
 
 #### session:{session_id}:voting -> Flag
 

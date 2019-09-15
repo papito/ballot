@@ -5,7 +5,6 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/papito/ballot/ballot/model"
 	"log"
-	"strconv"
 )
 
 type Store struct {
@@ -129,16 +128,13 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 		case []interface{}:
 			m, _ := redis.StringMap(r, nil)
 
-			estimate, err := strconv.Atoi(m["estimate"])
-			if err != nil {
-				return make([]model.User, 0), fmt.Errorf("ERROR %v", err)
-			}
+			estimate := m["estimate"]
 
 			user := model.User{
 				UserId:   m["id"],
 				Name:     m["name"],
 				Estimate: estimate,
-				Voted:    estimate > model.NoEstimate,
+				Voted:    estimate != model.NoEstimate,
 			}
 			users = append(users, user)
 		default:

@@ -8,7 +8,7 @@ type Session struct {
 type User struct {
 	UserId   string `json:"id"`
 	Name     string `json:"name"`
-	Estimate int    `json:"estimate"`
+	Estimate string `json:"estimate"`
 	Voted    bool   `json:"voted"`
 }
 
@@ -37,5 +37,4 @@ const (
 	Voting
 )
 
-// FIXME: after the estimate is converted to string - this should just be empty string value
-const NoEstimate = -1
+const NoEstimate = ""

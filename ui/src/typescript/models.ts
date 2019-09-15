@@ -3,19 +3,19 @@ export enum SessionState {
   VOTING = 1
 }
 
-const NO_ESTIMATE: number= -1;
+export const NO_ESTIMATE: string= '';
 
 export class User {
   id: string = "";
   name: string = "";
-  estimate: number = NO_ESTIMATE;
+  estimate: string = NO_ESTIMATE;
   voted: boolean = false;
 
   static fromJson(json: {[key:string]:string}) {
     let user = new User();
     user.id = json["id"];
     user.name = json["name"];
-    user.estimate = Number(json["estimate"]);
+    user.estimate = json["estimate"];
     user.voted = Boolean(json["voted"]);
     return user;
   }

@@ -8,7 +8,7 @@
       <li v-for="user in session.users">
         {{ user.name }}
         &nbsp;
-        <span v-show="user.estimate >= 0">{{ user.estimate }}</span>
+        <span v-show="user.estimate !== ''">{{ user.estimate }}</span>
         &nbsp;&nbsp;
         <span v-show="user.voted">Voted</span>
       </li>
@@ -48,7 +48,7 @@
   import HttpMixin from "./HttpMixin";
   import { Component, Mixins } from 'vue-mixin-decorator';
   import {ws} from "../index";
-  import {Session, SessionState, User, PendingVote} from "../models";
+  import {Session, SessionState, User, PendingVote, NO_ESTIMATE} from "../models";
 
   @Component
   export default class Ballot extends Mixins<HttpMixin>(HttpMixin)  {
@@ -137,7 +137,7 @@
       this.session.status = SessionState.VOTING;
 
       for (let user of this.session.users) {
-        user.estimate = -1;
+        user.estimate = NO_ESTIMATE;
         user.voted = false;
       }
     }

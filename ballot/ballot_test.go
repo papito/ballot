@@ -252,7 +252,7 @@ func TestCastOneVote(t *testing.T) {
 	for i := 0; i < userCount; i++ {
 		user := storedUsers[i]
 		if user.UserId == users[0].UserId {
-			assert.Equal(t, 8, user.Estimate)
+			assert.Equal(t, "8", user.Estimate)
 			assert.Equal(t, true, user.Voted)
 			break
 		}
