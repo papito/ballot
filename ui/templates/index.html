@@ -1,28 +1,32 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="/ui/css/bootstrap.min.css">
+
     <title>Ballot</title>
 </head>
+<body class="bg-light">
 
-<body>
 <div id="app">
-    <p>
-        <a href="/">Home</a>
-    </p>
-    <p>
-        <router-link to="/new">New Voting Space</router-link>
-    </p>
-
-    <router-view></router-view>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">Ballot</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </nav>
+    <div class="container-fluid">
+        <router-link class="nav-link" to="/new">New Voting Space</router-link>
+        <router-view></router-view>
+    </div>
 </div>
-
-</body>
 
 <script src="/ui/js/jquery-3.4.1.min.js"></script>
 <script src="/ui/js/popper.min.js"></script>
 <script src="/ui/js/bootstrap.min.js"></script>
 <script src="/ui/js/glue.js"></script>
 <script src="/ui/js/app.js?{{.}}"></script>
-
-<link rel="stylesheet" href="/ui/css/bootstrap.min.css">
+</body>
 </html>
