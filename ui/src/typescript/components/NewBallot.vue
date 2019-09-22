@@ -23,7 +23,6 @@
       resp.then((res) => {
         this.sessionId = res["id"];
       });
-
     }
   }
 </script>

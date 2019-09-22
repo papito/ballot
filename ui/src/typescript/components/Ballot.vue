@@ -214,6 +214,7 @@
     }
 
     castVote(event: Event) {
+      // FIXME: May not be a number
       let estimate: Number = Number((<HTMLInputElement>event.target).value);
 
       const resp: Promise<{[key:string]:string}> = this.putRequest(
