@@ -7,9 +7,8 @@
     <ul id="voters">
       <li v-for="user in session.users">
         {{ user.name }}
-        &nbsp;
         <span v-show="user.estimate !== ''">{{ user.estimate }}</span>
-        &nbsp;&nbsp;
+        &nbsp;
         <span v-show="user.voted">Voted</span>
       </li>
     </ul>
