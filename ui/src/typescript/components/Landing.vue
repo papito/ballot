@@ -1,7 +1,9 @@
 <template>
-  <div class="row">
-    <div class="col align-self-center">
-      <router-link class="nav-link" to="/new">New Voting Space</router-link>
+  <div id="landing">
+    <div class="row">
+      <div class="col centered">
+        <router-link class="nav-link" to="/new">New Voting Space</router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -11,5 +13,9 @@
   import { Component } from 'vue-mixin-decorator';
 
   @Component
-  export default class Landing extends Vue {}
+  export default class Landing extends Vue {
+    beforeCreate() {
+      document.body.className = 'bg';
+    }
+  }
 </script>

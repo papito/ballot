@@ -60,6 +60,10 @@
       'user.name': ''
     };
 
+    beforeCreate() {
+      document.body.className = 'no-bg';
+    }
+
     created () {
       this.session.id = this.$route.params["sessionId"];
       console.log(`Voting for session ${this.session.id}`);

@@ -1,0 +1,24 @@
+html {
+  height: 100%;
+  margin: 0;
+  background-color: #272b30;
+}
+
+body.bg {
+  height: 100%;
+  margin: 0;
+  background: #272b30 url("/ui/img/bg.jpg") no-repeat fixed center center;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;}
+
+body.no-bg {
+  height: 100%;
+  margin: 0;
+  background-color: #272b30;
+}
+
+.centered {
+  text-align: center;
+}

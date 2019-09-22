@@ -17,6 +17,10 @@
   export default class NewBallot extends Mixins<HttpMixin>(HttpMixin)  {
     sessionId: string = "";
 
+    beforeCreate() {
+      document.body.className = 'no-bg';
+    }
+
     created () {
       const resp: Promise<{[key:string]:string}> = this.postRequest("/api/session", {});
 
