@@ -10,7 +10,7 @@ import Websockets from "./websockets";
 import {getUrlParameter} from "./util";
 
 const routes = [
-  { path: '/', name: "start", component: Landing },
+  { path: '/', name: "landing", component: Landing },
   { path: '/new', component: NewBallot },
   { path: '/vote/:sessionId', name: "ballot", component: Ballot },
 ];
@@ -34,4 +34,4 @@ new Vue({
   }
 },).$mount('#app');
 
-router.replace({name: 'start'});
+router.replace({name: 'landing'});

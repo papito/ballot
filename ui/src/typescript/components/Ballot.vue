@@ -68,6 +68,9 @@
       this.session.id = this.$route.params["sessionId"];
       console.log(`Voting for session ${this.session.id}`);
 
+      let user_id = this.$route.params["userId"];
+      console.log(`Voting with user id ${user_id}`);
+
       // start watching the session
       let data = {
         "action": "WATCH",
