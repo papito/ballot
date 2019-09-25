@@ -134,6 +134,12 @@ func (s *Service) CreateUser(sessionId string, userName string) (model.User, err
 	return user, nil
 }
 
+func (s *Service) GetUser(userId string) (model.User, error) {
+	user, err := s.store.GetUser(userId)
+	if err != nil {return model.User{}, err}
+	return user, nil
+}
+
 func (s *Service) CastVote(sessionId string, userId string, estimate int) (model.PendingVote, error) {
 	log.Printf("Voting for session ID [%s] and user ID [%s]", sessionId, userId)
 

@@ -22,6 +22,7 @@ type Server interface {
 	HealthHttpHandler(w http.ResponseWriter, r *http.Request)
 	CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 	CreateUserHttpHandler(w http.ResponseWriter, r *http.Request)
+	GetUserHttpHandler(w http.ResponseWriter, r *http.Request)
 	StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)
 	FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request)
 	CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)
@@ -54,6 +55,7 @@ func NewServer(config config.Config) Server {
 	r.HandleFunc("/", server.indexHttpHandler).Methods("GET")
 	r.HandleFunc("/health", server.HealthHttpHandler).Methods("GET")
 	r.HandleFunc("/api/session", server.CreateSessionHttpHandler).Methods("POST")
+	r.HandleFunc("/api/user/{id}", server.GetUserHttpHandler).Methods("GET")
 	r.HandleFunc("/api/user", server.CreateUserHttpHandler).Methods("POST")
 	r.HandleFunc("/api/vote/start", server.StartVoteHttpHandler).Methods("PUT")
 	r.HandleFunc("/api/vote/finish", server.FinishVoteHttpHandler).Methods("PUT")
@@ -171,7 +173,6 @@ func (p server) CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 
 	data, _  := json.Marshal(vote)
 	w.Header().Set("Content-Type", "application/json")
-	log.Println(string(data))
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
@@ -198,4 +199,21 @@ func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	var httpResp, _  = json.Marshal(user)
 	w.Header().Set("Content-Type", "application/json")
 	logutil.Logger(fmt.Fprintf(w, "%s", httpResp))
+}
+
+func (p server) GetUserHttpHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["id"]
+
+	user, err := p.service.GetUser(userId)
+
+	if err != nil {
+		log.Printf("Error getting user. %s", err)
+		http.Error(w, "Error creating user", http.StatusInternalServerError)
+		return
+	}
+
+	data, _  := json.Marshal(user)
+	w.Header().Set("Content-Type", "application/json")
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }

@@ -142,3 +142,20 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 
 	return users, nil
 }
+
+func (p *Store) GetUser(userId string) (model.User, error) {
+	key := fmt.Sprintf("user:%s", userId)
+	resp, err := p.RedisConn.Do("HGETALL", key)
+	if err != nil {log.Println(err); return model.User{}, err}
+
+	m, _ := redis.StringMap(resp, nil)
+	estimate := m["estimate"]
+	user := model.User{
+		UserId:   m["id"],
+		Name:     m["name"],
+		Estimate: estimate,
+		Voted:    estimate != model.NoEstimate,
+	}
+
+	return user, nil
+}

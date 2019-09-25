@@ -337,3 +337,15 @@ func TestRepeatedVote(t *testing.T) {
 	assert.Equal(t, 1, voteCount)
 
 }
+
+func TestGetUserById(t *testing.T) {
+	_, users := createSessionAndUsers(1, t)
+	createdUser := users[0]
+	user, err := srv.Service().GetUser(createdUser.UserId)
+	if err != nil {t.Error(err)}
+
+	assert.Equal(t, createdUser.UserId, user.UserId)
+	assert.Equal(t, createdUser.Name, user.Name)
+	assert.Equal(t, false, user.Voted)
+	assert.Equal(t, model.NoEstimate, user.Estimate)
+}
