@@ -1,7 +1,5 @@
 import Vue from "vue";
 // @ts-ignore
-import NewBallot from './components/NewBallot.vue';
-// @ts-ignore
 import Ballot from "./components/Ballot.vue";
 // @ts-ignore
 import Landing from "./components/Landing.vue";
@@ -11,7 +9,6 @@ import {getUrlParameter} from "./util";
 
 const routes = [
   { path: '/', name: "landing", component: Landing },
-  { path: '/new', component: NewBallot },
   { path: '/vote/:sessionId', name: "ballot", component: Ballot },
 ];
 
@@ -30,8 +27,8 @@ new Vue({
     const sessionId: string = getUrlParameter("join");
     if (sessionId) {
       router.push({ name: 'ballot', params: { sessionId: sessionId } });
+    } else {
+      router.replace({name: 'landing'});
     }
   }
 },).$mount('#app');
-
-router.replace({name: 'landing'});

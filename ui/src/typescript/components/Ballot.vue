@@ -68,16 +68,6 @@
       this.session.id = this.$route.params["sessionId"];
       console.log(`Voting for session ${this.session.id}`);
 
-      let user_id = this.$route.params["userId"];
-      console.log(`Voting with user id ${user_id}`);
-
-      // start watching the session
-      let data = {
-        "action": "WATCH",
-        "session_id": this.session.id}
-      ;
-      ws.send(JSON.stringify(data));
-
       ws.socket.onMessage((data: string) => {
         console.log("onMessage: " + data);
         let json = JSON.parse(data);
@@ -106,6 +96,23 @@
           }
         }
       });
+      
+      let user_id = this.$route.params["userId"];
+      // if we are joining as an existing user (creator), get user details and assign to current
+      // user object
+      if (user_id) {
+        const userResp: Promise<{[key:string]:string}> = this.getRequest(`/api/user/${user_id}`);
+        userResp.then((userRes) => {
+          this.user = User.fromJson(userRes);
+        });
+      }
+
+      // start watching the session
+      let data = {
+        "action": "WATCH",
+        "session_id": this.session.id
+      };
+      ws.send(JSON.stringify(data));
     }
 
     userAddedWsHandler(json: {[key:string]:string}) {
