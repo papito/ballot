@@ -96,6 +96,12 @@
           }
         }
       });
+
+      // start watching the session
+      let watchCmd = {
+        "action": "WATCH",
+        "session_id": this.session.id
+      };
       
       let user_id = this.$route.params["userId"];
       // if we are joining as an existing user (creator), get user details and assign to current
@@ -104,15 +110,11 @@
         const userResp: Promise<{[key:string]:string}> = this.getRequest(`/api/user/${user_id}`);
         userResp.then((userRes) => {
           this.user = User.fromJson(userRes);
+          ws.send(JSON.stringify(watchCmd));
         });
+      } else {
+        ws.send(JSON.stringify(watchCmd));
       }
-
-      // start watching the session
-      let data = {
-        "action": "WATCH",
-        "session_id": this.session.id
-      };
-      ws.send(JSON.stringify(data));
     }
 
     userAddedWsHandler(json: {[key:string]:string}) {
