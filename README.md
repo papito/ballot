@@ -1,4 +1,4 @@
-# ballot
+# Ballot
 
 ## Development setup
 
