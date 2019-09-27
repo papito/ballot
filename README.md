@@ -4,11 +4,7 @@
 
 ### Install Dependencies
 ```bash
-npm install --save-dev webpack webpack-cli typescript ts-loader css-loader \
-    vue-loader vue-router vue-class-component vue-property-decorator vue-mixin-decorator \
-    acorn tslint node-fetch
-
-npm install vue vue-template-compiler
+make build
 ```
 
 ### Build
