@@ -10,9 +10,14 @@ define compile
 endef
 
 build:
-    npm install
-    ./node_modules/.bin/webpack --mode=development
+	npm ci
 	$(call compile)
+	./node_modules/.bin/webpack --mode=development
+
+build_prod:
+	npm ci
+	$(call compile)
+	./node_modules/.bin/webpack --mode=production
 
 compile:
 	$(call compile)
