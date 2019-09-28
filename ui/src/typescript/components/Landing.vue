@@ -28,21 +28,29 @@
     }
 
     goVote() {
-      const sessionResp: Promise<{[key:string]:string}> = this.postRequest("/api/session", {});
+      const sessionCreateFut: Promise<{[key:string]:string}> = this.postRequest("/api/session", {});
 
-      sessionResp.then((sessionRes) => {
+      sessionCreateFut.then((sessionRes) => {
         let sessionId: string= sessionRes['id'];
-        const userResp: Promise<{[key:string]:string}> = this.postRequest("/api/user", {
+
+        const addUserFut: Promise<{[key:string]:string}> = this.postRequest("/api/user", {
           'name': this.user.name,
           'session_id': sessionId
         });
 
-        userResp.then((userRes) => {
+        addUserFut.then((userRes) => {
           this.user.id = userRes['id'];
-          this.$router.push({ name: 'ballot', params: {
-            sessionId: sessionId,
-            userId: this.user.id
-          } });
+
+          const sessionStartFut: Promise<{[key:string]:string}> = this.putRequest("/api/vote/start", {
+            'session_id': sessionId
+          });
+          sessionStartFut.then((sessionStartRes) => {
+            this.$router.push({ name: 'ballot', params: {
+                sessionId: sessionId,
+                userId: this.user.id
+              }
+            });
+          });
         });
       });
     }

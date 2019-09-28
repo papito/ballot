@@ -102,7 +102,7 @@
         "action": "WATCH",
         "session_id": this.session.id
       };
-      
+
       let user_id = this.$route.params["userId"];
       // if we are joining as an existing user (creator), get user details and assign to current
       // user object
