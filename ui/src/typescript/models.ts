@@ -37,4 +37,8 @@ export class Session {
   id: string = "";
   status: SessionState = SessionState.IDLE;
   users: User[] = [];
+
+  url() {
+    return `?join=${this.id}`;
+  }
 }

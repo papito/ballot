@@ -1,18 +1,28 @@
 <template>
   <div>
-    <div id="ctrl-panels" class="row">
+    <div id="ctrl-panels" class="row" v-show="user.id">
       <div id="start-ctrl-panel" class="col-6">
         <div v-show="user.id">
           <button v-if="isIdle" v-on:click="startVote" class="btn btn-outline-success">
             Start
           </button>
 
-          <button v-if="isVoting" v-on:click="finishVote" class="btn btn-outline-success">
+          <button v-if="isVoting" v-on:click="finishVote" class="btn btn-outline-danger">
             End Vote Now
           </button>
         </div>
       </div>
+
       <div id="copy-ctrl-panel" class="col-6">
+        <form class="form-inline" @submit.prevent="copyJoinUrl">
+          <div class="form-group mb-2">
+            <label for="sessionUrl" class="sr-only"></label>
+            <input type="text" :value="session.url()" class="form-control form-control-sm" id="sessionUrl" readonly>
+          </div>
+          <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm mb-2">
+            Copy session url
+          </button>
+        </form>
       </div>
     </div>
 
@@ -25,7 +35,7 @@
       </div>
     </div>
 
-    <ul id="voters" class="row">
+    <ul id="voters" class="row" v-show="user.id">
       <div v-for="user in session.users" class="vote" v-bind:class="{ voted: user.voted }">
         {{ user.name }}
         <div>
@@ -35,19 +45,21 @@
         <div class="estimate" v-show="user.estimate !== ''">{{ user.estimate }}</div>
         <div class="estimate" v-show="user.estimate === ''">--</div>
       </div>
-
     </ul>
 
-    <div v-show="!user.id">
-      <form @submit.prevent="setUsername">
-        <div>
-          <span v-show="errors.name">{{errors.name}}</span>
-        </div>
-        <div>
-          <label for="user.name">Enter voter name:</label>
-          <input id="user.name" type="text" name="user.name" maxlength="100" v-model="user.name">
-        </div>
-      </form>
+    <div id="join-session" class="row" v-show="!user.id">
+      <div class="col-4 offset-4">
+        <form @submit.prevent="setUsername">
+          <div class="form-group">
+            <div>
+              <span v-show="errors.name">{{errors.name}}</span>
+            </div>
+            <label for="name"></label>
+            <input type="text" v-model="user.name" class="form-control" id="name" placeholder="Your name/alias">
+          </div>
+          <button type="submit" class="btn btn-lg btn-warning">Join</button>
+        </form>
+      </div>
     </div>
 
   </div>
@@ -250,6 +262,19 @@
             "estimate": estimate
           }
       );
+    }
+
+    copyJoinUrl() {
+      function copyToClipboard(text: string) {
+        let dummy = document.createElement("textarea");
+        document.body.appendChild(dummy);
+        dummy.value = text;
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+      }
+
+      copyToClipboard(this.session.url());
     }
   }
 </script>

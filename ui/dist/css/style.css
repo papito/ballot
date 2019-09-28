@@ -70,13 +70,23 @@ div.vote img {
 }
 
 #start-ctrl-panel {
-  text-align: left;
+  display: flex;
+  justify-content: center;
 }
 
 #copy-ctrl-panel {
-  text-align: right;
+  display: flex;
+  justify-content: center;
 }
 
+#copy-ctrl-panel input {
+  background-color: #1b1e21;
+  color: gray;
+}
+
+#copy-ctrl-panel button {
+  margin-left: 1em;
+}
 #choices {
   padding: .8em;
   background-color: #262606;
@@ -89,4 +99,8 @@ div.vote img {
 #choices .choice {
   padding-left: 1em;
   padding-right: 1em;
+}
+
+#join-session {
+  text-align: center;
 }
