@@ -13,17 +13,23 @@
         </div>
       </div>
 
-      <div id="copy-ctrl-panel" class="col-6">
-        <form class="form-inline" @submit.prevent="copyJoinUrl">
-          <div class="form-group mb-2">
-            <label for="sessionUrl" class="sr-only"></label>
-            <input type="text" :value="session.url()" class="form-control form-control-sm" id="sessionUrl" readonly>
+
+        <div id="copy-ctrl-panel" class="col-6">
+          <form @submit.prevent="copyJoinUrl">
+          <div class="row">
+            <div class="col-8">
+              <label for="sessionUrl" class="sr-only"></label>
+              <input type="text" :value="session.url()" class="form-control form-control-sm" id="sessionUrl" readonly>
+            </div>
+            <div class="col-4">
+              <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm mb-2">
+                Copy session url
+              </button>
+            </div>
           </div>
-          <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm mb-2">
-            Copy session url
-          </button>
-        </form>
-      </div>
+          </form>
+        </div>
+
     </div>
 
     <div id="choices" class="row">

@@ -74,9 +74,11 @@ div.vote img {
   justify-content: center;
 }
 
+#start-ctrl-panel button {
+  width: 10em;
+}
+
 #copy-ctrl-panel {
-  display: flex;
-  justify-content: center;
 }
 
 #copy-ctrl-panel input {
@@ -85,8 +87,8 @@ div.vote img {
 }
 
 #copy-ctrl-panel button {
-  margin-left: 1em;
 }
+
 #choices {
   padding: .8em;
   background-color: #262606;
