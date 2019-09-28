@@ -1,16 +1,22 @@
 <template>
   <div>
+<!--
     <div>
       Voting for session {{session.id}}
     </div>
+-->
 
-    <ul id="voters">
-      <li v-for="user in session.users">
+    <ul id="voters" class="row">
+      <div v-for="user in session.users" class="vote" v-bind:class="{ voted: user.voted }">
         {{ user.name }}
-        <span v-show="user.estimate !== ''">{{ user.estimate }}</span>
-        &nbsp;
-        <span v-show="user.voted">Voted</span>
-      </li>
+        <div>
+          <img v-show="user.voted" src="/ui/img/v.png">
+          <img v-show="!user.voted" src="/ui/img/x.png">
+        </div>
+        <div class="estimate" v-show="user.estimate !== ''">{{ user.estimate }}</div>
+        <div class="estimate" v-show="user.estimate === ''">-</div>
+      </div>
+
     </ul>
 
     <div v-show="!user.id">

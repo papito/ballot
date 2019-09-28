@@ -24,3 +24,36 @@ body.no-bg {
   padding-top: 20%;
   text-align: center;
 }
+
+#voters {
+  margin-top: 1em;
+}
+
+#voters div.vote {
+  margin: .2em;
+  float: left;
+  width: 20em;
+  height: 10em;
+  border-radius: 1em;
+  color: #fff;
+  padding-top: .6em;
+  text-align: center;
+  font-size: 1em;
+  font-weight: bold;
+  border: 1px solid #676767;
+  background-color: #424242;
+}
+
+#voters div.voted {
+  background-color: #0f3b07;
+}
+
+#voters div.estimate {
+  font-size: 3em;
+  margin-top: .1em;
+  color: #fff;
+}
+
+div.vote img {
+  height: 3em;
+}
