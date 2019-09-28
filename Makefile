@@ -9,6 +9,11 @@ define compile
 	@cd ballot && go build -o ../bin/ballot
 endef
 
+build:
+    npm install
+    ./node_modules/.bin/webpack --mode=development
+	$(call compile)
+
 compile:
 	$(call compile)
 

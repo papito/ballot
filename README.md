@@ -1,29 +1,10 @@
-# ballot
+# Ballot
 
 ## Development setup
 
-### Install Dependencies
-```bash
-npm install --save-dev webpack webpack-cli typescript ts-loader css-loader \
-    vue-loader vue-router vue-class-component vue-property-decorator vue-mixin-decorator \
-    acorn tslint node-fetch
-
-npm install vue vue-template-compiler
-```
-
 ### Build
 ```bash
-npm run build
-```
-
-Build for debugging:
-```bash
-./node_modules/.bin/webpack --mode=development
-```
-
-Build for production:
-```bash
-./node_modules/.bin/webpack --mode=production
+make build
 ```
 
 ### Redis Schema
@@ -52,5 +33,5 @@ Number of users in a session who cast a vote.
 
 #### session:{session_id}:voting -> Flag
 
-  * 0 - Voting
-  * 2 - Not voting (idle before start, or vote finished) 
+  * 0 - Not voting (idle before start, or vote finished) 
+  * 1 - Voting
