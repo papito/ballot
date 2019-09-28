@@ -32,7 +32,7 @@
       </button>
 
       <button v-if="isVoting" v-on:click="finishVote">
-        End Vote Early
+        End Vote Now
       </button>
     </div>
 

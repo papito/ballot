@@ -2,7 +2,7 @@
   <div id="landing">
     <div class="row">
       <div class="col-4 offset-4">
-        <form>
+        <form @submit.prevent="goVote">
           <div class="form-group">
             <label for="name"></label>
             <input type="text" v-model="user.name" class="form-control" id="name" placeholder="Your name/alias">
