@@ -1,10 +1,29 @@
 <template>
   <div>
-<!--
-    <div>
-      Voting for session {{session.id}}
+    <div id="ctrl-panels" class="row">
+      <div id="start-ctrl-panel" class="col-6">
+        <div v-show="user.id">
+          <button v-if="isIdle" v-on:click="startVote" class="btn btn-outline-success">
+            Start
+          </button>
+
+          <button v-if="isVoting" v-on:click="finishVote" class="btn btn-outline-success">
+            End Vote Now
+          </button>
+        </div>
+      </div>
+      <div id="copy-ctrl-panel" class="col-6">
+      </div>
     </div>
--->
+
+    <div id="choices" class="row">
+      <div v-show="user.id && isVoting" v-for="estimate in possibleEstimates" class="choice">
+        <button :value="estimate" v-on:click="castVote" class="btn btn-outline-warning">{{estimate}}</button>
+      </div>
+      <div v-show="!user.id || !isVoting" v-for="estimate in possibleEstimates" class="choice">
+        <button  class="btn btn-outline-warning">&nbsp;&nbsp;</button>
+      </div>
+    </div>
 
     <ul id="voters" class="row">
       <div v-for="user in session.users" class="vote" v-bind:class="{ voted: user.voted }">
@@ -14,7 +33,7 @@
           <img v-show="!user.voted" src="/ui/img/x.png">
         </div>
         <div class="estimate" v-show="user.estimate !== ''">{{ user.estimate }}</div>
-        <div class="estimate" v-show="user.estimate === ''">-</div>
+        <div class="estimate" v-show="user.estimate === ''">--</div>
       </div>
 
     </ul>
@@ -29,21 +48,6 @@
           <input id="user.name" type="text" name="user.name" maxlength="100" v-model="user.name">
         </div>
       </form>
-    </div>
-
-
-    <div v-show="user.id">
-      <button v-if="isIdle" v-on:click="startVote">
-        Start
-      </button>
-
-      <button v-if="isVoting" v-on:click="finishVote">
-        End Vote Now
-      </button>
-    </div>
-
-    <div v-show="user.id && isVoting" v-for="estimate in possibleEstimates">
-      <button :value="estimate" v-on:click="castVote">{{estimate}}</button>
     </div>
 
   </div>
@@ -67,7 +71,7 @@
     };
 
     beforeCreate() {
-      document.body.className = 'no-bg';
+      //document.body.className = 'no-bg';
     }
 
     created () {

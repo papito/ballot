@@ -30,13 +30,13 @@ body.no-bg {
 }
 
 #voters {
-  margin-top: 1em;
+  margin-top: 1.5em;
 }
 
 #voters div.vote {
   margin: .2em;
   float: left;
-  width: 20em;
+  width: 18em;
   height: 9.5em;
   border-radius: 1em;
   color: #fff;
@@ -62,4 +62,31 @@ div.vote img {
   position: relative;
   top: .5em;
   height: 3em;
+}
+
+#ctrl-panels {
+  margin-top: .8em;
+  padding-bottom: .8em;
+}
+
+#start-ctrl-panel {
+  text-align: left;
+}
+
+#copy-ctrl-panel {
+  text-align: right;
+}
+
+#choices {
+  padding: .8em;
+  background-color: #262606;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #424242;
+  border-bottom: 1px solid #424242;
+}
+
+#choices .choice {
+  padding-left: 1em;
+  padding-right: 1em;
 }
