@@ -1,8 +1,9 @@
 FROM node:12.10.0-alpine as build_ui
 COPY . /app
 
-WORKDIR /app/ballot
+WORKDIR /app
 RUN npm ci
+RUN ./node_modules/.bin/webpack --mode=production
 
 
 FROM golang:1.12 AS build_service
