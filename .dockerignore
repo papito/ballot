@@ -1,1 +1,5 @@
-./node_modules
+ui/src/gen/js/**/*.js
+ui/src/gen/js/**/*.map
+ui/dist/js/app.js
+ui/dist/img/*.xcf
+node_modules/
