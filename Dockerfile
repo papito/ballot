@@ -1,5 +1,11 @@
-FROM golang:1.12 AS build
+FROM node:12.10.0-alpine as build_ui
+COPY . /app
 
+WORKDIR /app/ballot
+RUN npm ci
+
+
+FROM golang:1.12 AS build_service
 COPY . /app
 
 WORKDIR /app/ballot
@@ -12,8 +18,15 @@ FROM alpine:latest AS runtime
 RUN mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
 
 WORKDIR /app
-COPY --from=build /app/ ./
+RUN mkdir /app/server
+COPY --from=build_service /app/ballot/ballot /app/server/ballot
+COPY --from=build_ui /app/ui/dist/ ./ui/dist/
+COPY --from=build_ui /app/ui/templates/ ./ui/templates/
+COPY start.sh ./
 
-WORKDIR /app/ballot
+RUN apk add --no-cache redis
 
-CMD ["./ballot"]
+EXPOSE 8080
+
+WORKDIR /app
+CMD ["./start.sh"]
