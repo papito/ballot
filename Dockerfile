@@ -1,11 +1,13 @@
+#----------------------------
 FROM node:12.10.0-alpine as build_ui
-COPY . /app
 
+COPY . /app
 WORKDIR /app
 RUN npm ci
 RUN ./node_modules/.bin/webpack --mode=production
 
 
+#----------------------------
 FROM golang:1.12 AS build_service
 COPY . /app
 
@@ -13,6 +15,7 @@ WORKDIR /app/ballot
 RUN go get -d
 RUN go build -o ballot
 
+#----------------------------
 FROM alpine:latest AS runtime
 # the libc from the build stage is not the same as the alpine libc
 # create a symlink to where it expects it since they are compatable. https://stackoverflow.com/a/35613430/3105368
