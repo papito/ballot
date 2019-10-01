@@ -106,3 +106,7 @@ div.vote img {
 #join-session {
   text-align: center;
 }
+
+span.noshow {
+  display: none;
+}

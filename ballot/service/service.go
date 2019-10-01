@@ -16,6 +16,7 @@ import (
 type Service struct  {
 	store *db.Store
 	hub IHub
+	config config.Config
 }
 
 func getHub(config config.Config) IHub {
@@ -34,6 +35,7 @@ func NewService(config config.Config) (Service, error) {
 	service := Service{
 		store: &db.Store{},
 		hub: hubImpl,
+		config: config,
 	}
 
 	service.store.Connect(config.RedisUrl)
@@ -56,6 +58,10 @@ func (s *Service) Release() {
 
 func (s *Service) Hub() IHub {
 	return s.hub
+}
+
+func (s *Service) Config() config.Config {
+	return s.config
 }
 
 func (s *Service) Store() *db.Store {

@@ -39,6 +39,13 @@ export class Session {
   users: User[] = [];
 
   url() {
-    return `?join=${this.id}`;
+    const el: HTMLElement | null = document.getElementById('paramDomain');
+    let domain: string | null  =  "";
+
+    if (el) {
+      domain = el.textContent;
+    }
+
+    return `${domain}/?join=${this.id}`;
   }
 }

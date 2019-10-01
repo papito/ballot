@@ -89,8 +89,17 @@ func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
 func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Serving Index")
 
-	nocache := rand.Intn(1000000)
-	err := p.templates.ExecuteTemplate(w, "index.html", nocache)
+	type TemplateParams struct {
+		NoCache int
+		Domain  string
+	}
+
+	templateParams := TemplateParams{
+		NoCache: rand.Intn(1000000),
+		Domain:  p.service.Config().HttpHost,
+	}
+
+	err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
 	if err != nil {
 		log.Fatal("Error getting index view ", err)
 	}
