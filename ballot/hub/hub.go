@@ -26,7 +26,7 @@ type IHub interface {
 
 type Hub struct {
 	store *db.Store
-	socketsMap  map[*glue.Socket]map[string]bool
+	socketsMap  map[*glue.Socket]string
 	sessionsMap map[string]map[*glue.Socket]bool
 	userMap  map[*glue.Socket]string
 
@@ -36,7 +36,7 @@ type Hub struct {
 
 func (p *Hub) Connect(store *db.Store) error {
 	p.store = store
-	p.socketsMap = map[*glue.Socket]map[string]bool{}
+	p.socketsMap = map[*glue.Socket]string{}
 	p.sessionsMap = map[string]map[*glue.Socket]bool{}
 	p.userMap = map[*glue.Socket]string{}
 
@@ -78,13 +78,9 @@ func (p* Hub) Subscribe(sock *glue.Socket, sessionId string) error {
 	p.rwMutex.Lock()
 	defer p.rwMutex.Unlock()
 
-	_, ok := p.socketsMap[sock]
-	if !ok {
-		p.socketsMap[sock] = map[string]bool{}
-	}
-	p.socketsMap[sock][sessionId] = true
+	p.socketsMap[sock] = sessionId
 
-	_, ok = p.sessionsMap[sessionId]
+	_, ok := p.sessionsMap[sessionId]
 
 	if !ok {
 		p.sessionsMap[sessionId] = map[*glue.Socket]bool{}
@@ -111,11 +107,11 @@ func (p* Hub) disassociateSocketWithUser(sock *glue.Socket) {
 
 
 func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
-	log.Printf("Unsubscribing all from socket %p", sock.ID())
+	log.Printf("Unsubscribing all from socket %s", sock.ID())
 	p.rwMutex.Lock()
 	defer p.rwMutex.Unlock()
 
-	for session := range p.socketsMap[sock] {
+	if session, ok := p.socketsMap[sock]; ok {
 		delete(p.sessionsMap[session], sock)
 		if len(p.sessionsMap[session]) == 0 {
 			delete(p.sessionsMap, session)
