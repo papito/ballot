@@ -49,7 +49,7 @@ func NewService(config config.Config) (Service, error) {
 				log.Printf(
 					"Service subscriber connection received [%s] on channel [%s]", v.Data, v.Channel)
 
-			service.processSubscriberEvent(string(v.Data))
+			service.processSubscriberEvent(v.Channel, string(v.Data))
 
 			case error:
 				panic(v)
@@ -244,7 +244,7 @@ func (p *Service) CastVote(sessionId string, userId string, estimate string) (mo
 }
 
 func (p *Service) StartVote(sessionId string) error {
-	log.Printf("Starting vote for session ID [%p]", sessionId)
+	log.Printf("Starting vote for session ID [%s]", sessionId)
 	key := fmt.Sprintf(db.Const.SessionState, sessionId)
 	err := p.store.Set(key, model.Voting)
 	if err != nil {return fmt.Errorf("error saving data: %v", err)}
@@ -313,19 +313,13 @@ func (p * Service) IsVoteFinished(sessionId string) (bool, error) {
 	return voteCount == userCount, nil
 }
 
-func(p *Service) processSubscriberEvent(data string) {
+func(p *Service) processSubscriberEvent(sessionId string, data string) {
 	jsonData, err := jsonutil.GetJsonFromString(data)
 	if err != nil {log.Print(err)}
 
 	event, ok := jsonData["event"].(string)
 	if !ok {
 		log.Printf("no event found in: %v", data)
-		return
-	}
-
-	sessionId, ok := jsonData["session_id"].(string)
-	if !ok {
-		log.Printf("no session_id found in: %v", data)
 		return
 	}
 

@@ -56,11 +56,6 @@ func (p *Hub) Connect(store *db.Store) error {
 	p.sessionsMap = map[string]map[*glue.Socket]bool{}
 	p.userMap = map[*glue.Socket]string{}
 
-	err := p.store.ServiceSubCon.Subscribe("departures")
-	if err != nil {
-		return err
-	}
-
 	go func() {
 		for {
 			switch v := p.store.SubConn.Receive().(type) {
@@ -109,6 +104,10 @@ func (p* Hub) Subscribe(sock *glue.Socket, sessionId string) error {
 		if err != nil {
 			return err
 		}
+		err = p.store.ServiceSubCon.Subscribe(sessionId)
+		if err != nil {
+			return err
+		}
 	}
 	p.sessionsMap[sessionId][sock] = true
 
@@ -142,6 +141,10 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 			if err != nil {
 				return err
 			}
+			err = p.store.ServiceSubCon.Unsubscribe(sessionId)
+			if err != nil {
+				return err
+			}
 		}
 
 		type UserLeftEvent struct {
@@ -161,8 +164,6 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 		if err != nil {log.Println(err)}
 		err = p.Emit(sessionId, string(data))
 		if err != nil {log.Println(err)}
-		print("!!!!!!!!!!!!!")
-		_, err = p.store.RedisConn.Do("PUBLISH", "departures", data)
 
 	}
 	delete(p.socketsMap, sock)
