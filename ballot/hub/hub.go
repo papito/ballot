@@ -28,6 +28,7 @@ type Hub struct {
 	store *db.Store
 	socketsMap  map[*glue.Socket]map[string]bool
 	sessionsMap map[string]map[*glue.Socket]bool
+	userMap  map[*glue.Socket]string
 
 	rwMutex sync.RWMutex
 	glueSrv *glue.Server
@@ -37,6 +38,7 @@ func (p *Hub) Connect(store *db.Store) error {
 	p.store = store
 	p.socketsMap = map[*glue.Socket]map[string]bool{}
 	p.sessionsMap = map[string]map[*glue.Socket]bool{}
+	p.userMap = map[*glue.Socket]string{}
 
 	go func() {
 		for {
@@ -71,8 +73,8 @@ func (p* Hub) Release() {
 	log.Print("Hub done")
 }
 
-func (p* Hub) Subscribe(sock *glue.Socket, session string) error {
-	log.Printf("Subscribing socket %p to session %s", sock, session)
+func (p* Hub) Subscribe(sock *glue.Socket, sessionId string) error {
+	log.Printf("Subscribing socket %s to sessionId %s", sock.ID(), sessionId)
 	p.rwMutex.Lock()
 	defer p.rwMutex.Unlock()
 
@@ -80,24 +82,36 @@ func (p* Hub) Subscribe(sock *glue.Socket, session string) error {
 	if !ok {
 		p.socketsMap[sock] = map[string]bool{}
 	}
-	p.socketsMap[sock][session] = true
+	p.socketsMap[sock][sessionId] = true
 
-	_, ok = p.sessionsMap[session]
+	_, ok = p.sessionsMap[sessionId]
 
 	if !ok {
-		p.sessionsMap[session] = map[*glue.Socket]bool{}
-		err := p.store.SubConn.Subscribe(session)
+		p.sessionsMap[sessionId] = map[*glue.Socket]bool{}
+		err := p.store.SubConn.Subscribe(sessionId)
 		if err != nil {
 			return err
 		}
 	}
-	p.sessionsMap[session][sock] = true
+	p.sessionsMap[sessionId][sock] = true
 
 	return nil
 }
 
+func (p* Hub) associateSocketWithUser(sock *glue.Socket, userId string) {
+	log.Printf("Associating user [%s] with socket [%s]", userId, sock.ID())
+	p.userMap[sock] = userId
+}
+
+func (p* Hub) disassociateSocketWithUser(sock *glue.Socket) {
+	userId, _ := p.userMap[sock]
+	log.Printf("Disassociating user [%s] with socket [%s]", userId, sock.ID())
+	delete(p.userMap, sock)
+}
+
+
 func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
-	log.Printf("Unsubscribing all from socket %p", sock)
+	log.Printf("Unsubscribing all from socket %p", sock.ID())
 	p.rwMutex.Lock()
 	defer p.rwMutex.Unlock()
 
@@ -105,6 +119,7 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 		delete(p.sessionsMap[session], sock)
 		if len(p.sessionsMap[session]) == 0 {
 			delete(p.sessionsMap, session)
+			log.Printf("Unsubscribing from session [%s] - no sockets connecting", session)
 			err := p.store.SubConn.Unsubscribe(session)
 			if err != nil {
 				return err
@@ -112,6 +127,8 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 		}
 	}
 	delete(p.socketsMap, sock)
+
+	p.disassociateSocketWithUser(sock)
 
 	return nil
 }
@@ -143,20 +160,26 @@ func (p *Hub) emitSocket(sock *glue.Socket,data string) {
 }
 
 func (p *Hub) handleSocket(sock *glue.Socket) {
-	log.Printf("Handling socket %p", sock)
+	log.Printf("Handling socket %s", sock.ID())
 
 	sock.OnClose(func() {
-		log.Printf("Socket %p closed", sock)
+		log.Printf("Socket %s closed", sock.ID())
+
+/*		sessionId, _ := p.socketsMap[sock].
+		userId, ok := p.userMap[sock]
+
+		if ok {
+			p.service.RemoveUser(sessionId, userId)
+		}
+*/
 		err := p.unsubscribeAll(sock)
 		if err != nil {
 			log.Print(err)
 		}
-
-		// TODO: let other users in this session know the user left
 	})
 
 	sock.OnRead(func(data string) {
-		log.Printf("Reading from socket %p: %s", sock, data)
+		log.Printf("Reading from socket %s: %s", sock.ID(), data)
 
 		jsonData, err := jsonutil.GetJsonFromString(data)
 		if err != nil {
@@ -174,6 +197,10 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			log.Printf("WS. Watching session %s", sessionId)
 			err := p.Subscribe(sock, sessionId)
 			if err != nil {log.Print(err)}
+
+			if userId, ok := jsonData["user_id"].(string); ok {
+				p.associateSocketWithUser(sock, userId)
+			}
 
 			// get session state - voting, not voting
 			key := fmt.Sprintf(db.Const.SessionState, sessionId)

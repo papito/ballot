@@ -140,6 +140,11 @@ func (s *Service) CreateUser(sessionId string, userName string) (model.User, err
 	return user, nil
 }
 
+func (s *Service) RemoveUser(sessionId string, userId string) error {
+
+	return nil
+}
+
 func (s *Service) GetUser(userId string) (model.User, error) {
 	user, err := s.store.GetUser(userId)
 	if err != nil {return model.User{}, err}
@@ -171,7 +176,7 @@ func (s *Service) CastVote(sessionId string, userId string, estimate string) (mo
 		return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
 	}
 
-	// increment vote count IF this is a brand new vote for the user this sessuion
+	// increment vote count IF this is a brand new vote for the user this session
 	if previousEstimate == model.NoEstimate {
 		voteCountKey := fmt.Sprintf(db.Const.VoteCount, sessionId)
 		err = s.store.Incr(voteCountKey, 1)

@@ -125,12 +125,6 @@
         }
       });
 
-      // start watching the session
-      let watchCmd = {
-        "action": "WATCH",
-        "session_id": this.session.id
-      };
-
       let user_id = this.$route.params["userId"];
       // if we are joining as an existing user (creator), get user details and assign to current
       // user object
@@ -138,10 +132,14 @@
         const userResp: Promise<{[key:string]:string}> = this.getRequest(`/api/user/${user_id}`);
         userResp.then((userRes) => {
           this.user = User.fromJson(userRes);
+
+          let watchCmd = {
+            "action": "WATCH",
+            "session_id": this.session.id,
+            "user_id": user_id
+          };
           ws.send(JSON.stringify(watchCmd));
         });
-      } else {
-        ws.send(JSON.stringify(watchCmd));
       }
     }
 
@@ -252,6 +250,13 @@
       resp.then((res) => {
         this.user.id = res["id"];
         this.user.name = res["name"];
+
+        let watchCmd = {
+          "action": "WATCH",
+          "session_id": this.session.id,
+          "user_id": this.user.id
+        };
+        ws.send(JSON.stringify(watchCmd));
       });
 
       console.log("setting user to", this.user);
