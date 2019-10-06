@@ -168,7 +168,7 @@ func TestStartVoteEndpoint(t *testing.T) {
 
 	// force vote count to make sure it's reset
 	voteCountKey := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
-	err := srv.Service().Store().SetKey(voteCountKey, 2)
+	err := srv.Service().Store().Set(voteCountKey, 2)
 
 	reqObj := request.StartVoteRequest{SessionId: session.SessionId}
 
@@ -290,7 +290,6 @@ func TestCastAllVotes(t *testing.T) {
 	key = fmt.Sprintf(db.Const.SessionState, session.SessionId)
 	sessionState, err := srv.Service().Store().GetInt(key)
 	assert.Equal(t, sessionState, model.NotVoting)
-
 }
 
 /*
@@ -328,6 +327,7 @@ func TestRepeatedVote(t *testing.T) {
 	if err != nil {t.Error(err)}
 
 	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, "3")
+	if err != nil {t.Error(err)}
 	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, "3")
 	if err != nil {t.Error(err)}
 
@@ -349,3 +349,56 @@ func TestGetUserById(t *testing.T) {
 	assert.Equal(t, false, user.Voted)
 	assert.Equal(t, model.NoEstimate, user.Estimate)
 }
+
+func TestStateUserLeft(t *testing.T) {
+	numOfUsers := 3
+	session, users := createSessionAndUsers(numOfUsers, t)
+	createdUser := users[0]
+
+	err := srv.Service().RemoveUser(session.SessionId, createdUser.UserId)
+	if err != nil {t.Error(err)}
+
+	newNumOfUsers := numOfUsers - 1
+	userIds, err := srv.Service().Store().GetSessionUserIds(session.SessionId)
+	assert.Len(t, userIds, newNumOfUsers)
+
+	key := fmt.Sprintf(db.Const.UserCount, session.SessionId)
+	userCount, err := srv.Service().Store().GetInt(key)
+	assert.Equal(t, newNumOfUsers, userCount)
+
+	user, err := srv.Service().GetUser(createdUser.UserId)
+	assert.Empty(t, user)
+}
+
+func TestVoteFinishedAfterUserLeft(t *testing.T) {
+	numOfUsers := 3
+	session, users := createSessionAndUsers(numOfUsers, t)
+	flakeUser := users[0]
+
+	err := srv.Service().StartVote(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	/* Two users vote. Vote is not finished.
+	 */
+	_, err = srv.Service().CastVote(session.SessionId, users[1].UserId, "3")
+	if err != nil {t.Error(err)}
+	_, err = srv.Service().CastVote(session.SessionId, users[2].UserId, "8")
+	if err != nil {t.Error(err)}
+
+	// flake user does not vote and bails or gets disconnected
+	err = srv.Service().RemoveUser(session.SessionId, flakeUser.UserId)
+	if err != nil {t.Error(err)}
+
+	// vote should be finished
+	// get last event - it should be the vote results as we are done
+	msg := testHub.Emitted[len(testHub.Emitted) - 1]
+	var voteResultsWsEvent response.WsVoteFinished
+	err = json.Unmarshal([]byte(msg), &voteResultsWsEvent)
+	assert.Equal(t, response.VoteFinishedEvent, voteResultsWsEvent.Event)
+	assert.Equal(t, numOfUsers - 1, len(voteResultsWsEvent.Users))
+
+	key := fmt.Sprintf(db.Const.SessionState, session.SessionId)
+	sessionState, err := srv.Service().Store().GetInt(key)
+	assert.Equal(t, sessionState, model.NotVoting)
+}
+

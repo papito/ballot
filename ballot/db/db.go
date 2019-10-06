@@ -10,6 +10,7 @@ import (
 type Store struct {
 	RedisConn redis.Conn
 	SubConn   redis.PubSubConn
+	ServiceSubCon redis.PubSubConn
 	redisUrl  string
 }
 
@@ -30,15 +31,26 @@ var Const = struct {
 func (p *Store) Connect(redisUrl string)  {
 	var err error
 	p.RedisConn, err = redis.DialURL(redisUrl)
-	if err != nil {log.Fatal("Error connecting to Redis ", err)}
+	if err != nil {log.Fatalf("Error connecting to Redis: %s", err)}
 
 	c, err := redis.DialURL(redisUrl)
-	if err != nil {log.Fatal("Error connecting to Redis ", err)}
+	if err != nil {log.Fatalf("Error connecting to Redis: %s ", err)}
 	p.SubConn = redis.PubSubConn{Conn: c}
+
+	c2, err := redis.DialURL(redisUrl)
+	if err != nil {log.Fatalf("Error connecting to Redis: %s ", err)}
+	p.ServiceSubCon = redis.PubSubConn{Conn: c2}
 }
 
-func (p *Store) SetKey(key string, val interface{}) error {
+func (p *Store) Set(key string, val interface{}) error {
 	_, err := p.RedisConn.Do("SET", key, val)
+	if err != nil {log.Println(err); return err}
+
+	return nil
+}
+
+func (p *Store) Del(key string) error {
+	_, err := p.RedisConn.Do("DEL", key)
 	if err != nil {log.Println(err); return err}
 
 	return nil
@@ -75,6 +87,13 @@ func (p *Store) SetHashKey(key string, args ...interface{}) error {
 	return nil
 }
 
+func (p *Store) DelHashKey(key string, field string) error {
+	_, err := p.RedisConn.Do("HDEL", field)
+	if err != nil {log.Println(err); return err}
+
+	return nil
+}
+
 func (p *Store) GetHashKey(key string, field string) (string, error) {
 	val, err := redis.String(p.RedisConn.Do("HGET", key, field))
 	if err != nil {log.Println(err); return "", err}
@@ -96,6 +115,12 @@ func (p *Store) AddToSet(key string, args ...interface{}) error {
 	redisArgs := []interface{}{key}
 	redisArgs = append(redisArgs, args...)
 	_, err := p.RedisConn.Do("SADD", redisArgs[:]...)
+	if err != nil {log.Println(err); return err}
+	return nil
+}
+
+func (p *Store) RemoveFromSet(key string, val string) error {
+	_, err := p.RedisConn.Do("SREM", key, val)
 	if err != nil {log.Println(err); return err}
 	return nil
 }

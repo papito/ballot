@@ -24,6 +24,22 @@ type IHub interface {
 	Release()
 }
 
+var Event = struct{
+	Start    string
+	Restart  string
+	Vote     string
+	Watch    string
+	Watching string
+	UserLeft string
+}{
+	"START",
+	"RESTART",
+	"VOTE",
+	"WATCH",
+	"WATCHING",
+	"USER_LEFT",
+}
+
 type Hub struct {
 	store *db.Store
 	socketsMap  map[*glue.Socket]string
@@ -39,6 +55,11 @@ func (p *Hub) Connect(store *db.Store) error {
 	p.socketsMap = map[*glue.Socket]string{}
 	p.sessionsMap = map[string]map[*glue.Socket]bool{}
 	p.userMap = map[*glue.Socket]string{}
+
+	err := p.store.ServiceSubCon.Subscribe("departures")
+	if err != nil {
+		return err
+	}
 
 	go func() {
 		for {
@@ -111,16 +132,38 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 	p.rwMutex.Lock()
 	defer p.rwMutex.Unlock()
 
-	if session, ok := p.socketsMap[sock]; ok {
-		delete(p.sessionsMap[session], sock)
-		if len(p.sessionsMap[session]) == 0 {
-			delete(p.sessionsMap, session)
-			log.Printf("Unsubscribing from session [%s] - no sockets connecting", session)
-			err := p.store.SubConn.Unsubscribe(session)
+	if sessionId, ok := p.socketsMap[sock]; ok {
+		delete(p.sessionsMap[sessionId], sock)
+
+		if len(p.sessionsMap[sessionId]) == 0 {
+			delete(p.sessionsMap, sessionId)
+			log.Printf("Unsubscribing from sessionId [%s] - no sockets connecting", sessionId)
+			err := p.store.SubConn.Unsubscribe(sessionId)
 			if err != nil {
 				return err
 			}
 		}
+
+		type UserLeftEvent struct {
+			Event    string `json:"event"`
+			SessionId   string `json:"session_id"`
+			UserId   string `json:"user_id"`
+		}
+
+		userId, _ := p.userMap[sock]
+
+		event := UserLeftEvent{
+			Event:     Event.UserLeft,
+			SessionId: sessionId,
+			UserId:    userId,
+		}
+		data, err := json.Marshal(event)
+		if err != nil {log.Println(err)}
+		err = p.Emit(sessionId, string(data))
+		if err != nil {log.Println(err)}
+		print("!!!!!!!!!!!!!")
+		_, err = p.store.RedisConn.Do("PUBLISH", "departures", data)
+
 	}
 	delete(p.socketsMap, sock)
 
@@ -161,13 +204,6 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 	sock.OnClose(func() {
 		log.Printf("Socket %s closed", sock.ID())
 
-/*		sessionId, _ := p.socketsMap[sock].
-		userId, ok := p.userMap[sock]
-
-		if ok {
-			p.service.RemoveUser(sessionId, userId)
-		}
-*/
 		err := p.unsubscribeAll(sock)
 		if err != nil {
 			log.Print(err)
@@ -189,7 +225,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 		/*
 		Emit the WATCHING event, as well as a list of current users in this session
 		 */
-		case "WATCH":
+		case Event.Watch:
 			log.Printf("WS. Watching session %s", sessionId)
 			err := p.Subscribe(sock, sessionId)
 			if err != nil {log.Print(err)}
@@ -211,7 +247,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			if err != nil {log.Print(err)}
 
 			session := response.WsSession{
-				Event: "WATCHING",
+				Event: Event.Watching,
 				SessionState: sessionState,
 				Users: users,
 			}
@@ -223,19 +259,19 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 
 			p.emitSocket(sock, string(data))
 
-		case "START":
+		case Event.Start:
 			err := p.Emit(sessionId, "{}")
 			if err != nil {
 				log.Print(err)
 			}
 
-		case "RESTART":
+		case Event.Restart:
 			err := p.Emit(sessionId, "{}")
 			if err != nil {
 				log.Print(err)
 			}
 
-		case "VOTE":
+		case Event.Vote:
 			err := p.Emit(sessionId, "{}")
 			if err != nil {
 				log.Print(err)

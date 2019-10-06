@@ -122,6 +122,10 @@
             this.votingFinishedWsHandler(json);
             break
           }
+          case "USER_LEFT": {
+            this.userLeftWsHandler(json);
+            break
+          }
         }
       });
 
@@ -201,6 +205,16 @@
         sessionUser.voted = user.voted;
         sessionUser.estimate = user.estimate;
       }
+    }
+
+    userLeftWsHandler(json: {[key:string]:any}) {
+      console.log("user left");
+
+      let userId = json['user_id'];
+
+      this.session.users = this.session.users.filter(function (user: User) {
+        return user.id != userId;
+      });
     }
 
     get isVoting() {
