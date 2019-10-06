@@ -222,7 +222,7 @@ func TestFinishVoteEndpoint(t *testing.T) {
 func TestCastVoteForInactiveSession(t *testing.T) {
 	session, users := createSessionAndUsers(2, t)
 
-	_, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 8)
+	_, err := srv.Service().CastVote(session.SessionId, users[0].UserId, "8")
 	assert.NotNil(t, err)
 
 	key := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
@@ -238,7 +238,7 @@ func TestCastOneVote(t *testing.T) {
 
 	clearHubEvents()
 
-	vote, err := srv.Service().CastVote(session.SessionId, users[0].UserId, 8)
+	vote, err := srv.Service().CastVote(session.SessionId, users[0].UserId, "8")
 	if err != nil {t.Error(err)}
 	assert.Equal(t, vote.UserId, users[0].UserId)
 
@@ -272,7 +272,7 @@ func TestCastAllVotes(t *testing.T) {
 	if err != nil {t.Error(err)}
 
 	for i := 0; i < numOfUsers; i++ {
-		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, 3)
+		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, "3")
 		if err != nil {t.Error(err)}
 	}
 
@@ -303,7 +303,7 @@ func TestNewVoteState(t *testing.T) {
 	if err != nil {t.Error(err)}
 
 	for i := 0; i < numOfUsers; i++ {
-		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, 3)
+		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, "3")
 		if err != nil {t.Error(err)}
 	}
 
@@ -327,8 +327,8 @@ func TestRepeatedVote(t *testing.T) {
 	err := srv.Service().StartVote(session.SessionId)
 	if err != nil {t.Error(err)}
 
-	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, 3)
-	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, 3)
+	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, "3")
+	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, "3")
 	if err != nil {t.Error(err)}
 
 	// vote count should still be 1 - one user voted

@@ -34,7 +34,7 @@
 
     <div id="choices" class="row">
       <div v-show="user.id && isVoting" v-for="estimate in possibleEstimates" class="choice">
-        <button :value="estimate" v-on:click="castVote" class="btn btn-outline-warning">{{estimate}}</button>
+        <button :value="estimate" v-on:click="castVote(estimate)" class="btn btn-outline-warning">{{estimate}}</button>
       </div>
       <div v-show="!user.id || !isVoting" v-for="estimate in possibleEstimates" class="choice">
         <button  class="btn btn-outline-warning">&nbsp;&nbsp;</button>
@@ -82,7 +82,7 @@
     session: Session = new Session();
     user: User = new User();
 
-    readonly possibleEstimates:Number[] = Array(0, 1, 2, 3, 5, 8, 13, 20, 40, 100);
+    readonly possibleEstimates:string[] = Array('¯\\_(ツ)_/¯', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100');
 
     errors = {
       'user.name': ''
@@ -257,10 +257,7 @@
       console.log("setting user to", this.user);
     }
 
-    castVote(event: Event) {
-      // FIXME: May not be a number
-      let estimate: Number = Number((<HTMLInputElement>event.target).value);
-
+    castVote(estimate: string) {
       const resp: Promise<{[key:string]:string}> = this.putRequest(
           "/api/vote/cast", {
             "session_id": this.session.id,

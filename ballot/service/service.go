@@ -146,7 +146,7 @@ func (s *Service) GetUser(userId string) (model.User, error) {
 	return user, nil
 }
 
-func (s *Service) CastVote(sessionId string, userId string, estimate int) (model.PendingVote, error) {
+func (s *Service) CastVote(sessionId string, userId string, estimate string) (model.PendingVote, error) {
 	log.Printf("Voting for session ID [%s] and user ID [%s]", sessionId, userId)
 
 	// cannot vote on session that is inactive
@@ -157,7 +157,7 @@ func (s *Service) CastVote(sessionId string, userId string, estimate int) (model
 		return model.PendingVote{},
 			fmt.Errorf("not voting yet for session [%s]", sessionId)
 	}
-	log.Printf("Voting for user ID [%s] with estimate [%d]", userId, estimate)
+	log.Printf("Voting for user ID [%s] with estimate [%s]", userId, estimate)
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
 

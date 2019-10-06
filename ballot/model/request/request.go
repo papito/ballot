@@ -16,5 +16,5 @@ type FinishVoteRequest struct {
 type CastVoteRequest struct {
 	UserId    string `json:"user_id"`
 	SessionId string `json:"session_id"`
-	Estimate  int    `json:"estimate"`
+	Estimate  string    `json:"estimate"`
 }
