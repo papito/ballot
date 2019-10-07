@@ -49,7 +49,7 @@ func NewService(config config.Config) (Service, error) {
 				log.Printf(
 					"Service subscriber connection received [%s] on channel [%s]", v.Data, v.Channel)
 
-			service.processSubscriberEvent(v.Channel, string(v.Data))
+				service.processSubscriberEvent(v.Channel, string(v.Data))
 
 			case error:
 				panic(v)
@@ -165,6 +165,7 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 	err = p.store.RemoveFromSet(sessionUserKey, userId)
+	if err != nil {return err}
 
 	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Decr(userCountKey, 1)
@@ -173,15 +174,13 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 	// if user count is 0, nuke the session to bits
 	userCount, err := p.store.GetInt(userCountKey)
 	log.Printf("User count now: %d", userCount)
-	if err != nil {
-		return fmt.Errorf("error: %v", err)
-	}
+	if err != nil {return err}
+
+	log.Printf("REMOVED user [%s]", userId)
 
 	if userCount == 0 {
 		err = p.DeleteSessionData(sessionId)
-		if err != nil {
-			return fmt.Errorf("error: %v", err)
-		}
+		if err != nil {return err}
 		return nil
 	}
 
@@ -374,6 +373,9 @@ func(p *Service) processSubscriberEvent(sessionId string, data string) {
 		}
 
 		err = p.RemoveUser(sessionId, userId)
+		if err != nil {
+			log.Printf("Error removnig user: %v", err)
+		}
 	}
 
 }

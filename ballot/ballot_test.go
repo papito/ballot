@@ -401,3 +401,31 @@ func TestVoteFinishedAfterUserLeft(t *testing.T) {
 	sessionState, err := srv.Service().Store().GetInt(key)
 	assert.Equal(t, sessionState, model.NotVoting)
 }
+
+func TestSessionClearAfterAllUsersLeave(t *testing.T) {
+	numOfUsers := 3
+	session, users := createSessionAndUsers(numOfUsers, t)
+
+	err := srv.Service().StartVote(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	for i := 0; i < numOfUsers; i++ {
+		err = srv.Service().RemoveUser(session.SessionId, users[i].UserId)
+	}
+
+	userCountKey := fmt.Sprintf(db.Const.UserCount, session.SessionId)
+	_, err = srv.Service().Store().GetInt(userCountKey)
+	assert.NotNil(t, err)
+
+	sessionUserIds, err := srv.Service().Store().GetSessionUserIds(session.SessionId)
+	if err != nil {t.Error(err)}
+	assert.Empty(t, sessionUserIds)
+
+	sessionStateKey := fmt.Sprintf(db.Const.SessionState, session.SessionId)
+	_, err = srv.Service().Store().GetInt(sessionStateKey)
+	assert.NotNil(t, err)
+
+	voteCountKey := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
+	_, err = srv.Service().Store().GetInt(voteCountKey)
+	assert.NotNil(t, err)
+}

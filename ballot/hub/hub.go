@@ -155,9 +155,7 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 		if err != nil {log.Println(err)}
 	}
 	delete(p.socketsMap, sock)
-
 	p.disassociateSocketWithUser(sock)
-
 	return nil
 }
 
@@ -194,9 +192,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 		log.Printf("Socket %s closed", sock.ID())
 
 		err := p.unsubscribeAll(sock)
-		if err != nil {
-			log.Print(err)
-		}
+		if err != nil {log.Print(err)}
 	})
 
 	sock.OnRead(func(data string) {
