@@ -401,4 +401,3 @@ func TestVoteFinishedAfterUserLeft(t *testing.T) {
 	sessionState, err := srv.Service().Store().GetInt(key)
 	assert.Equal(t, sessionState, model.NotVoting)
 }
-

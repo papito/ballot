@@ -157,6 +157,8 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 }
 
 func (p *Service) RemoveUser(sessionId string, userId string) error {
+	log.Printf("REMOVING user [%s]", userId)
+
 	userKey := fmt.Sprintf(db.Const.User, userId)
 	err := p.store.Del(userKey)
 	if err != nil {return err}
@@ -164,15 +166,57 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 	err = p.store.RemoveFromSet(sessionUserKey, userId)
 
-	userCountKey  := fmt.Sprintf(db.Const.UserCount, sessionId)
+	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Decr(userCountKey, 1)
 	if err != nil {return err}
+
+	// if user count is 0, nuke the session to bits
+	userCount, err := p.store.GetInt(userCountKey)
+	log.Printf("User count now: %d", userCount)
+	if err != nil {
+		return fmt.Errorf("error: %v", err)
+	}
+
+	if userCount == 0 {
+		err = p.DeleteSessionData(sessionId)
+		if err != nil {
+			return fmt.Errorf("error: %v", err)
+		}
+		return nil
+	}
 
 	voteFinished, err := p.IsVoteFinished(sessionId)
 	if voteFinished == true {
 		err = p.FinishVote(sessionId)
 		if err != nil {return fmt.Errorf("error finishing vote. %v", err)}
 	}
+
+	return nil
+}
+
+func (p *Service) DeleteSessionData(sessionId string) error {
+	// don't have to delete users, they are all gone anyway
+	log.Printf("DELETING SESSION DATA for [%s]", sessionId)
+
+	sessionUsersKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
+	err := p.store.Del(sessionUsersKey)
+	if err != nil {return err}
+
+	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
+	err = p.store.Del(userCountKey)
+	if err != nil {return err}
+
+	sessionStateKey := fmt.Sprintf(db.Const.SessionState, sessionId)
+	err = p.store.Del(sessionStateKey)
+	if err != nil {return err}
+
+	voteCountKey := fmt.Sprintf(db.Const.VoteCount, sessionId)
+	err = p.store.Del(voteCountKey)
+	if err != nil {return err}
+
+	// now that we are done with all the events, unsub to this session for the service connection
+	err = p.store.ServiceSubCon.Unsubscribe(sessionId)
+	if err != nil {return err}
 
 	return nil
 }
