@@ -117,12 +117,16 @@ func (p* Hub) Subscribe(sock *glue.Socket, sessionId string) error {
 func (p* Hub) associateSocketWithUser(sock *glue.Socket, userId string) {
 	log.Printf("Associating user [%s] with socket [%s]", userId, sock.ID())
 	p.userMap[sock] = userId
+	log.Printf("user map: %v", p.userMap)
 }
 
 func (p* Hub) disassociateSocketWithUser(sock *glue.Socket) {
-	userId, _ := p.userMap[sock]
-	log.Printf("Disassociating user [%s] with socket [%s]", userId, sock.ID())
-	delete(p.userMap, sock)
+	log.Printf("user map: %v", p.userMap)
+
+	if userId, ok := p.userMap[sock]; ok {
+		log.Printf("Disassociating user [%s] with socket [%s]", userId, sock.ID())
+		delete(p.userMap, sock)
+	}
 }
 
 
@@ -138,33 +142,24 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 			delete(p.sessionsMap, sessionId)
 			log.Printf("Unsubscribing from sessionId [%s] - no sockets connecting", sessionId)
 			err := p.store.SubConn.Unsubscribe(sessionId)
-			if err != nil {
-				return err
-			}
-			err = p.store.ServiceSubCon.Unsubscribe(sessionId)
-			if err != nil {
-				return err
-			}
-		}
+			if err != nil {return err}
 
-		type UserLeftEvent struct {
-			Event    string `json:"event"`
-			SessionId   string `json:"session_id"`
-			UserId   string `json:"user_id"`
+			err = p.store.ServiceSubCon.Unsubscribe(sessionId)
+			if err != nil {return err}
 		}
 
 		userId, _ := p.userMap[sock]
 
-		event := UserLeftEvent{
+		event := response.WsUserLeftEvent{
 			Event:     Event.UserLeft,
 			SessionId: sessionId,
 			UserId:    userId,
 		}
+
 		data, err := json.Marshal(event)
 		if err != nil {log.Println(err)}
 		err = p.Emit(sessionId, string(data))
 		if err != nil {log.Println(err)}
-
 	}
 	delete(p.socketsMap, sock)
 

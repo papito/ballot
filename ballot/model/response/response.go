@@ -31,6 +31,13 @@ type WsSession struct {
 	Users []model.User  `json:"users"`
 }
 
+type WsUserLeftEvent struct {
+	Event    string `json:"event"`
+	SessionId   string `json:"session_id"`
+	UserId   string `json:"user_id"`
+}
+
+
 const (
 	UserAddedEvent = "USER_ADDED"
 	UserVotedEVent = "USER_VOTED"

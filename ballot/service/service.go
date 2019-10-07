@@ -158,7 +158,6 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 
 func (p *Service) RemoveUser(sessionId string, userId string) error {
 	userKey := fmt.Sprintf(db.Const.User, userId)
-
 	err := p.store.Del(userKey)
 	if err != nil {return err}
 
@@ -323,13 +322,13 @@ func(p *Service) processSubscriberEvent(sessionId string, data string) {
 		return
 	}
 
-	userId, ok := jsonData["user_id"].(string)
-	if !ok {
-		log.Printf("no user_id found in: %v", data)
-		return
-	}
-
 	if event == Event.UserLeft {
+		userId, ok := jsonData["user_id"].(string)
+		if !ok {
+			log.Printf("no user_id found in: %v", data)
+			return
+		}
+
 		err = p.RemoveUser(sessionId, userId)
 	}
 
