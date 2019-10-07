@@ -46,7 +46,7 @@ func LoadConfig() Config {
 
 	config.RedisUrl = os.Getenv("REDIS_URL")
 	if config.RedisUrl == "" {
-		config.RedisUrl = "redis://localhost:6379"
+		config.RedisUrl = "localhost:6379"
 	}
 	log.Printf("Redis URL %s", config.RedisUrl)
 

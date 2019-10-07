@@ -161,7 +161,9 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 
 func (p *Hub) Emit(session string, data string) error {
 	log.Printf("EMIT. Session %s - %s", session, data)
-	_, err := p.store.RedisConn.Do("PUBLISH", session, data)
+	c  := p.store.Pool.Get()
+	defer p.store.Close(c)
+	_, err := c.Do("PUBLISH", session, data)
 	return err
 }
 
@@ -198,6 +200,9 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 	sock.OnRead(func(data string) {
 		log.Printf("Reading from socket %s: %s", sock.ID(), data)
 
+		c  := p.store.Pool.Get()
+		defer p.store.Close(c)
+
 		jsonData, err := jsonutil.GetJsonFromString(data)
 		if err != nil {
 			log.Print(err)
@@ -221,7 +226,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 
 			// get session state - voting, not voting
 			key := fmt.Sprintf(db.Const.SessionState, sessionId)
-			isVoting, err := redis.Int(p.store.RedisConn.Do("GET", key))
+			isVoting, err := redis.Int(c.Do("GET", key))
 
 			sessionState := model.NotVoting
 			if isVoting == 1 {

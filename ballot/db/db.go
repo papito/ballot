@@ -5,10 +5,11 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/papito/ballot/ballot/model"
 	"log"
+	"time"
 )
 
 type Store struct {
-	RedisConn redis.Conn
+	Pool *redis.Pool
 	SubConn   redis.PubSubConn
 	ServiceSubCon redis.PubSubConn
 	redisUrl  string
@@ -28,50 +29,75 @@ var Const = struct {
 	"session:%s:vote_count",
 }
 
+func newPool(server string) *redis.Pool {
+	return &redis.Pool{
+		MaxIdle: 3,
+		IdleTimeout: 240 * time.Second,
+		Dial: func () (redis.Conn, error) {
+			c, err := redis.Dial("tcp", server)
+			if err != nil {
+				return nil, err
+			}
+			return c, err
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
+	}
+}
+
+func (p *Store) Close(c redis.Conn) {
+	err := c.Close()
+	if err != nil {
+		fmt.Printf("Error closing connection: %v", err)
+	}
+}
+
 func (p *Store) Connect(redisUrl string)  {
-	var err error
-	p.RedisConn, err = redis.DialURL(redisUrl)
-	if err != nil {log.Fatalf("Error connecting to Redis: %s", err)}
-
-	c, err := redis.DialURL(redisUrl)
-	if err != nil {log.Fatalf("Error connecting to Redis: %s ", err)}
-	p.SubConn = redis.PubSubConn{Conn: c}
-
-	c2, err := redis.DialURL(redisUrl)
-	if err != nil {log.Fatalf("Error connecting to Redis: %s ", err)}
-	p.ServiceSubCon = redis.PubSubConn{Conn: c2}
+	p.Pool = newPool(redisUrl)
+	p.SubConn = redis.PubSubConn{Conn: p.Pool.Get()}
+	p.ServiceSubCon = redis.PubSubConn{Conn: p.Pool.Get()}
 }
 
 func (p *Store) Set(key string, val interface{}) error {
-	_, err := p.RedisConn.Do("SET", key, val)
+	_, err := p.Pool.Get().Do("SET", key, val)
 	if err != nil {log.Println(err); return err}
 
 	return nil
 }
 
 func (p *Store) Del(key string) error {
-	_, err := p.RedisConn.Do("DEL", key)
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	_, err := c.Do("DEL", key)
 	if err != nil {log.Println(err); return err}
 
 	return nil
 }
 
 func (p *Store) Incr(key string, num uint8) error {
-	_, err := p.RedisConn.Do("INCRBY", key, num)
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	_, err := c.Do("INCRBY", key, num)
 	if err != nil {log.Println(err); return err}
 
 	return nil
 }
 
 func (p *Store) Decr(key string, num uint8) error {
-	_, err := p.RedisConn.Do("DECRBY", key, num)
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	_, err := c.Do("DECRBY", key, num)
 	if err != nil {log.Println(err); return err}
 
 	return nil
 }
 
 func (p *Store) GetInt(key string) (int, error) {
-	val, err := redis.Int(p.RedisConn.Do("GET", key))
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	val, err := redis.Int(c.Do("GET", key))
 	if err != nil {log.Println(err); return 0, err}
 	return val, nil
 }
@@ -80,7 +106,9 @@ func (p *Store) SetHashKey(key string, args ...interface{}) error {
 	// combine the key and the args into a list of interfaces
 	redisArgs := []interface{}{key}
 	redisArgs = append(redisArgs, args...)
-	_, err := p.RedisConn.Do("HSET", redisArgs[:]...)
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	_, err := c.Do("HSET", redisArgs[:]...)
 
 	if err != nil {log.Println(err); return err}
 
@@ -88,21 +116,27 @@ func (p *Store) SetHashKey(key string, args ...interface{}) error {
 }
 
 func (p *Store) DelHashKey(key string, field string) error {
-	_, err := p.RedisConn.Do("HDEL", field)
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	_, err := c.Do("HDEL", field)
 	if err != nil {log.Println(err); return err}
 
 	return nil
 }
 
 func (p *Store) GetHashKey(key string, field string) (string, error) {
-	val, err := redis.String(p.RedisConn.Do("HGET", key, field))
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	val, err := redis.String(c.Do("HGET", key, field))
 	if err != nil {log.Println(err); return "", err}
 	return val, nil
 }
 
 func (p* Store) GetSessionUserIds(sessionId string) ([]string, error) {
+	c  := p.Pool.Get()
+	defer p.Close(c)
 	key := fmt.Sprintf(Const.SessionUsers, sessionId)
-	userIds, err := redis.Strings(p.RedisConn.Do("SMEMBERS", key))
+	userIds, err := redis.Strings(c.Do("SMEMBERS", key))
 	if err != nil {
 		return make([]string, 0), fmt.Errorf("ERROR %v", err)
 	}
@@ -114,13 +148,17 @@ func (p *Store) AddToSet(key string, args ...interface{}) error {
 	// combine the key and the args into a list of interfaces
 	redisArgs := []interface{}{key}
 	redisArgs = append(redisArgs, args...)
-	_, err := p.RedisConn.Do("SADD", redisArgs[:]...)
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	_, err :=c.Do("SADD", redisArgs[:]...)
 	if err != nil {log.Println(err); return err}
 	return nil
 }
 
 func (p *Store) RemoveFromSet(key string, val string) error {
-	_, err := p.RedisConn.Do("SREM", key, val)
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	_, err := c.Do("SREM", key, val)
 	if err != nil {log.Println(err); return err}
 	return nil
 }
@@ -132,12 +170,15 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 	}
 	log.Printf("Session voters for [%s]: %s", sessionId, userIds)
 
+	c  := p.Pool.Get()
+	defer p.Close(c)
+
 	for _, userId := range userIds {
 		key := fmt.Sprintf("user:%s", userId)
-		_ = p.RedisConn.Send("HGETALL", key)
+		_ = c.Send("HGETALL", key)
 	}
 
-	res, err := redis.Values(p.RedisConn.Do(""))
+	res, err := redis.Values(c.Do(""))
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 	}
@@ -170,7 +211,10 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 
 func (p *Store) GetUser(userId string) (model.User, error) {
 	key := fmt.Sprintf("user:%s", userId)
-	resp, err := p.RedisConn.Do("HGETALL", key)
+	c  := p.Pool.Get()
+	defer p.Close(c)
+
+	resp, err := c.Do("HGETALL", key)
 	if err != nil {log.Println(err); return model.User{}, err}
 
 	m, _ := redis.StringMap(resp, nil)
