@@ -157,7 +157,7 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 }
 
 func (p *Service) RemoveUser(sessionId string, userId string) error {
-	log.Printf("REMOVING user [%s]", userId)
+	log.Printf("REMOVING USER [%s]", userId)
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
 	err := p.store.Del(userKey)
@@ -173,10 +173,7 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 
 	// if user count is 0, nuke the session to bits
 	userCount, err := p.store.GetInt(userCountKey)
-	log.Printf("User count now: %d", userCount)
 	if err != nil {return err}
-
-	log.Printf("REMOVED user [%s]", userId)
 
 	if userCount == 0 {
 		err = p.DeleteSessionData(sessionId)
@@ -227,7 +224,7 @@ func (p *Service) GetUser(userId string) (model.User, error) {
 }
 
 func (p *Service) CastVote(sessionId string, userId string, estimate string) (model.PendingVote, error) {
-	log.Printf("Voting for session ID [%p] and user ID [%p]", sessionId, userId)
+	log.Printf("Voting for session ID [%s] and user ID [%s]", sessionId, userId)
 
 	// cannot vote on session that is inactive
 	sessionKey := fmt.Sprintf(db.Const.SessionState, sessionId)
@@ -235,9 +232,9 @@ func (p *Service) CastVote(sessionId string, userId string, estimate string) (mo
 
 	if sessionState == model.NotVoting {
 		return model.PendingVote{},
-			fmt.Errorf("not voting yet for session [%p]", sessionId)
+			fmt.Errorf("not voting yet for session [%s]", sessionId)
 	}
-	log.Printf("Voting for user ID [%p] with estimate [%p]", userId, estimate)
+	log.Printf("Voting for user ID [%s] with estimate [%s]", userId, estimate)
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
 
