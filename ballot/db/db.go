@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/joomcode/errorx"
 	"github.com/papito/ballot/ballot/model"
 	"log"
 	"time"
@@ -36,7 +37,7 @@ func newPool(server string) *redis.Pool {
 		Dial: func () (redis.Conn, error) {
 			c, err := redis.Dial("tcp", server)
 			if err != nil {
-				return nil, err
+				return nil, errorx.EnsureStackTrace(err)
 			}
 			return c, err
 		},

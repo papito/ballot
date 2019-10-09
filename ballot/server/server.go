@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/joomcode/errorx"
 	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/logutil"
@@ -99,9 +100,9 @@ func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
 		Domain:  p.service.Config().HttpHost,
 	}
 
-	err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
+	err := p.templates.ExecuteTemplate(w, "index.htm", templateParams)
 	if err != nil {
-		log.Fatal("Error getting index view ", err)
+		log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
 	}
 }
 
