@@ -20,6 +20,8 @@ github.com/google/uuid
 github.com/gorilla/mux
 # github.com/gorilla/websocket v1.4.0
 github.com/gorilla/websocket
+# github.com/joomcode/errorx v1.0.0
+github.com/joomcode/errorx
 # github.com/konsorten/go-windows-terminal-sequences v1.0.1
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/pmezard/go-difflib v1.0.0
