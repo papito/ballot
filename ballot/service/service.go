@@ -91,15 +91,15 @@ func (p *Service) CreateSession() (model.Session, error) {
 
 	key := fmt.Sprintf(db.Const.SessionState, sessionId)
 	err := p.store.Set(key, model.NotVoting)
-	if err != nil {return model.Session{}, fmt.Errorf("error saving data: %p", err)}
+	if err != nil {return model.Session{}, err}
 
 	key = fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Set(key, 0)
-	if err != nil {return model.Session{}, fmt.Errorf("error saving data: %p", err)}
+	if err != nil {return model.Session{}, err}
 
 	key = fmt.Sprintf(db.Const.VoteCount, sessionId)
 	err = p.store.Set(key, 0)
-	if err != nil {return model.Session{}, fmt.Errorf("error saving data: %p", err)}
+	if err != nil {return model.Session{}, err}
 
 	return session, nil
 }
@@ -135,7 +135,7 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 	err = p.store.AddToSet(sessionUserKey, userId)
-	if err != nil {return model.User{}, fmt.Errorf("error saving data. %v", err)}
+	if err != nil {return model.User{}, err}
 
 	userCountKey  := fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Incr(userCountKey, 1)

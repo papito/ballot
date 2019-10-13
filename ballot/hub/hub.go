@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/desertbit/glue"
 	"github.com/gomodule/redigo/redis"
+	"github.com/joomcode/errorx"
 	"github.com/papito/ballot/ballot/db"
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/model"
@@ -101,13 +102,9 @@ func (p* Hub) Subscribe(sock *glue.Socket, sessionId string) error {
 	if !ok {
 		p.sessionsMap[sessionId] = map[*glue.Socket]bool{}
 		err := p.store.SubConn.Subscribe(sessionId)
-		if err != nil {
-			return err
-		}
+		if err != nil {return errorx.EnsureStackTrace(err)}
 		err = p.store.ServiceSubCon.Subscribe(sessionId)
-		if err != nil {
-			return err
-		}
+		if err != nil {return errorx.EnsureStackTrace(err)}
 	}
 	p.sessionsMap[sessionId][sock] = true
 
@@ -139,7 +136,7 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 			delete(p.sessionsMap, sessionId)
 			log.Printf("Unsubscribing from sessionId [%s] - no sockets connecting", sessionId)
 			err := p.store.SubConn.Unsubscribe(sessionId)
-			if err != nil {return err}
+			if err != nil {return errorx.EnsureStackTrace(err)}
 		}
 
 		userId, _ := p.userMap[sock]
@@ -150,9 +147,9 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 		}
 
 		data, err := json.Marshal(event)
-		if err != nil {log.Println(err)}
+		if err != nil {return errorx.EnsureStackTrace(err)}
 		err = p.Emit(sessionId, string(data))
-		if err != nil {log.Println(err)}
+		if err != nil {return errorx.EnsureStackTrace(err)}
 	}
 	delete(p.socketsMap, sock)
 	p.disassociateSocketWithUser(sock)
@@ -164,7 +161,12 @@ func (p *Hub) Emit(session string, data string) error {
 	c  := p.store.Pool.Get()
 	defer p.store.Close(c)
 	_, err := c.Do("PUBLISH", session, data)
-	return err
+
+	if err != nil {
+		return errorx.EnsureStackTrace(err)
+	} else {
+		return nil
+	}
 }
 
 
@@ -194,7 +196,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 		log.Printf("Socket %s closed", sock.ID())
 
 		err := p.unsubscribeAll(sock)
-		if err != nil {log.Print(err)}
+		if err != nil {log.Printf("%+v", errorx.EnsureStackTrace(err)); return}
 	})
 
 	sock.OnRead(func(data string) {
@@ -204,9 +206,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 		defer p.store.Close(c)
 
 		jsonData, err := jsonutil.GetJsonFromString(data)
-		if err != nil {
-			log.Print(err)
-		}
+		if err != nil {log.Printf("%+v", err); return}
 
 		var sessionId = jsonData["session_id"].(string)
 		var action = jsonData["action"].(string)
@@ -218,7 +218,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 		case Event.Watch:
 			log.Printf("WS. Watching session %s", sessionId)
 			err := p.Subscribe(sock, sessionId)
-			if err != nil {log.Print(err)}
+			if err != nil {log.Printf("%+v", err); return}
 
 			if userId, ok := jsonData["user_id"].(string); ok {
 				p.associateSocketWithUser(sock, userId)
@@ -227,6 +227,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			// get session state - voting, not voting
 			key := fmt.Sprintf(db.Const.SessionState, sessionId)
 			isVoting, err := redis.Int(c.Do("GET", key))
+			if err != nil {log.Printf("%+v", err); return}
 
 			sessionState := model.NotVoting
 			if isVoting == 1 {
@@ -234,7 +235,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			}
 
 			users, err := p.store.GetSessionUsers(sessionId)
-			if err != nil {log.Print(err)}
+			if err != nil {log.Printf("%+v", err); return}
 
 			session := response.WsSession{
 				Event: Event.Watching,
@@ -243,29 +244,21 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			}
 
 			data, err := json.Marshal(session)
-			if err != nil {
-				log.Println(err)
-			}
+			if err != nil {log.Printf("%+v", err); return}
 
 			p.emitSocket(sock, string(data))
 
 		case Event.Start:
 			err := p.Emit(sessionId, "{}")
-			if err != nil {
-				log.Print(err)
-			}
+			if err != nil {log.Printf("%+v", err); return}
 
 		case Event.Restart:
 			err := p.Emit(sessionId, "{}")
-			if err != nil {
-				log.Print(err)
-			}
+			if err != nil {log.Printf("%+v", err); return}
 
 		case Event.Vote:
 			err := p.Emit(sessionId, "{}")
-			if err != nil {
-				log.Print(err)
-			}
+			if err != nil {log.Printf("%+v", err); return}
 		}
 	})
 }
