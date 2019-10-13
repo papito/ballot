@@ -32,8 +32,8 @@
 
     </div>
 
-    <div id="choices" class="row">
-      <div v-show="user.id && isVoting" v-for="estimate in possibleEstimates" class="choice">
+    <div id="choices" v-show="user.id && isVoting">
+      <div v-for="estimate in possibleEstimates" class="choice">
         <button :value="estimate" v-on:click="castVote(estimate)" class="btn btn-outline-warning">{{estimate}}</button>
       </div>
       <div v-show="!user.id || !isVoting" v-for="estimate in possibleEstimates" class="choice">
@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <ul id="voters" class="row" v-show="user.id">
+    <div id="voters" v-show="user.id">
       <div v-for="user in session.users" class="vote" v-bind:class="{ voted: user.voted }">
         {{ user.name }}
         <div>
@@ -51,7 +51,7 @@
         <div class="estimate" v-show="user.estimate !== ''">{{ user.estimate }}</div>
         <div class="estimate" v-show="user.estimate === ''">--</div>
       </div>
-    </ul>
+    </div>
 
     <div id="join-session" class="row" v-show="!user.id">
       <div class="col-4 offset-4">

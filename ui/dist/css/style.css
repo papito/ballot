@@ -25,17 +25,19 @@ body.no-bg {
 }
 
 #landing {
-  padding-top: 20%;
+  padding-top: 15%;
   text-align: center;
 }
 
 #voters {
   margin-top: 1.5em;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 #voters div.vote {
   margin: .2em;
-  float: left;
   width: 18em;
   height: 9.5em;
   border-radius: 1em;
