@@ -18,7 +18,7 @@ import (
 /* Modeled after https://github.com/hjr265/tonesa/blob/master/hub/hub.go */
 
 type IHub interface {
-	Connect(store *db.Store) error
+	Connect(store *db.Store)
 	HandleWebSockets(url string)
 	Emit(session string, data string) error
 	EmitLocal(session string, data string)
@@ -51,7 +51,7 @@ type Hub struct {
 	glueSrv *glue.Server
 }
 
-func (p *Hub) Connect(store *db.Store) error {
+func (p *Hub) Connect(store *db.Store) {
 	p.store = store
 	p.socketsMap = map[*glue.Socket]string{}
 	p.sessionsMap = map[string]map[*glue.Socket]bool{}
@@ -66,7 +66,7 @@ func (p *Hub) Connect(store *db.Store) error {
 				p.EmitLocal(v.Channel, string(v.Data))
 
 			case error:
-				panic(v)
+				log.Printf("%+v", v)
 			}
 		}
 	}()
@@ -77,7 +77,6 @@ func (p *Hub) Connect(store *db.Store) error {
 	})
 
 	p.glueSrv.OnNewSocket(p.handleSocket)
-	return nil
 }
 
 func (p* Hub) HandleWebSockets(url string) {
@@ -285,10 +284,9 @@ func (p *VoidHub) EmitLocal(session string, data string) {
 }
 
 /* This VOID version resets the state */
-func (p *VoidHub) Connect(db *db.Store) error {
+func (p *VoidHub) Connect(db *db.Store) {
 	p.Emitted = p.Emitted[:0]
 	p.LocalEmitted = p.LocalEmitted[:0]
-	return nil
 }
 
 func (p *VoidHub) HandleWebSockets(url string) {return}

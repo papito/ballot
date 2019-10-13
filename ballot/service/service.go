@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"github.com/google/uuid"
+	"github.com/joomcode/errorx"
 	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/db"
+	"github.com/papito/ballot/ballot/errors"
 	. "github.com/papito/ballot/ballot/hub"
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/model"
@@ -32,7 +34,7 @@ func getHub(config config.Config) IHub {
 	return hubImpl
 }
 
-func NewService(config config.Config) (Service, error) {
+func NewService(config config.Config) Service {
 	hubImpl := getHub(config)
 	service := Service{
 		store: &db.Store{},
@@ -60,10 +62,9 @@ func NewService(config config.Config) (Service, error) {
 	/* Initiate the hub that connects sessions and sockets
 	 */
 	log.Println("Creating hub")
-	err := service.hub.Connect(service.store)
-	if err != nil {return service, fmt.Errorf("error creating hub: %s", err)}
+	service.hub.Connect(service.store)
 
-	return service, nil
+	return service
 }
 
 func (p *Service) Release() {
@@ -91,15 +92,15 @@ func (p *Service) CreateSession() (model.Session, error) {
 
 	key := fmt.Sprintf(db.Const.SessionState, sessionId)
 	err := p.store.Set(key, model.NotVoting)
-	if err != nil {return model.Session{}, err}
+	if err != nil {log.Printf("%+v", err); return model.Session{}, err}
 
 	key = fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Set(key, 0)
-	if err != nil {return model.Session{}, err}
+	if err != nil {log.Printf("%+v", err); return model.Session{}, err}
 
 	key = fmt.Sprintf(db.Const.VoteCount, sessionId)
 	err = p.store.Set(key, 0)
-	if err != nil {return model.Session{}, err}
+	if err != nil {log.Printf("%+v", err); return model.Session{}, err}
 
 	return session, nil
 }
@@ -108,7 +109,7 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 	userName = strings.TrimSpace(userName)
 
 	if len(userName) < 1 {
-		valErr := model.ValidationError{
+		valErr := errors.ValidationError{
 			Field: "name",
 			ErrorStr: "This field cannot be empty"}
 		return model.User{}, valErr
@@ -131,15 +132,15 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 		"id", user.UserId,
 		"estimate", user.Estimate,)
 
-	if err != nil {return model.User{}, err}
+	if err != nil {log.Printf("%+v", err); return model.User{}, err}
 
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 	err = p.store.AddToSet(sessionUserKey, userId)
-	if err != nil {return model.User{}, err}
+	if err != nil {log.Printf("%+v", err); return model.User{}, err}
 
 	userCountKey  := fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Incr(userCountKey, 1)
-	if err != nil {return model.User{}, err}
+	if err != nil {log.Printf("%+v", err); return model.User{}, err}
 
 	wsUser := response.WsNewUser{}
 	wsUser.Event = response.UserAddedEvent
@@ -148,10 +149,16 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 	wsUser.Estimate = user.Estimate
 
 	wsResp, err := json.Marshal(wsUser)
-	if err != nil {return model.User{}, fmt.Errorf("error marshalling data. %v", err)}
+	if err != nil {
+		log.Printf("%+v", errorx.EnsureStackTrace(err))
+		return model.User{}, errorx.EnsureStackTrace(err)
+	}
 
 	err = p.hub.Emit(sessionId, string(wsResp))
-	if err != nil {return model.User{}, fmt.Errorf("error emitting data. %v", err)}
+	if err != nil {
+		log.Printf("%+v", errorx.EnsureStackTrace(err))
+		return model.User{}, errorx.EnsureStackTrace(err)
+	}
 
 	return user, nil
 }
@@ -161,30 +168,30 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
 	err := p.store.Del(userKey)
-	if err != nil {return err}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 	err = p.store.RemoveFromSet(sessionUserKey, userId)
-	if err != nil {return err}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Decr(userCountKey, 1)
-	if err != nil {return err}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	// if user count is 0, nuke the session to bits
 	userCount, err := p.store.GetInt(userCountKey)
-	if err != nil {return err}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	if userCount == 0 {
 		err = p.DeleteSessionData(sessionId)
-		if err != nil {return err}
+		if err != nil {log.Printf("%+v", err); return err}
 		return nil
 	}
 
 	voteFinished, err := p.IsVoteFinished(sessionId)
 	if voteFinished == true {
 		err = p.FinishVote(sessionId)
-		if err != nil {return fmt.Errorf("error finishing vote. %v", err)}
+		if err != nil {log.Printf("%+v", err); return err}
 	}
 
 	return nil
@@ -196,30 +203,30 @@ func (p *Service) DeleteSessionData(sessionId string) error {
 
 	sessionUsersKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 	err := p.store.Del(sessionUsersKey)
-	if err != nil {return err}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Del(userCountKey)
-	if err != nil {return err}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	sessionStateKey := fmt.Sprintf(db.Const.SessionState, sessionId)
 	err = p.store.Del(sessionStateKey)
-	if err != nil {return err}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	voteCountKey := fmt.Sprintf(db.Const.VoteCount, sessionId)
 	err = p.store.Del(voteCountKey)
-	if err != nil {return err}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	// now that we are done with all the events, unsub to this session for the service connection
 	err = p.store.ServiceSubCon.Unsubscribe(sessionId)
-	if err != nil {return err}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	return nil
 }
 
 func (p *Service) GetUser(userId string) (model.User, error) {
 	user, err := p.store.GetUser(userId)
-	if err != nil {return model.User{}, err}
+	if err != nil {log.Printf("%+v", err); return model.User{}, err}
 	return user, nil
 }
 
@@ -240,12 +247,14 @@ func (p *Service) CastVote(sessionId string, userId string, estimate string) (mo
 
 	previousEstimate, err := p.store.GetHashKey(userKey, "estimate")
 	if err != nil {
-		return model.PendingVote{}, fmt.Errorf("error getting data. %v", err)
+		log.Printf("%+v", err)
+		return model.PendingVote{}, err
 	}
 
 	err = p.store.SetHashKey(userKey, "estimate", estimate)
 	if err != nil {
-		return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
+		log.Printf("%+v", err)
+		return model.PendingVote{}, err
 	}
 
 	// increment vote count IF this is a brand new vote for the user this session
@@ -253,7 +262,8 @@ func (p *Service) CastVote(sessionId string, userId string, estimate string) (mo
 		voteCountKey := fmt.Sprintf(db.Const.VoteCount, sessionId)
 		err = p.store.Incr(voteCountKey, 1)
 		if err != nil {
-			return model.PendingVote{}, fmt.Errorf("error saving data. %v", err)
+			log.Printf("%+v", err)
+			return model.PendingVote{}, err
 		}
 	}
 
@@ -263,15 +273,24 @@ func (p *Service) CastVote(sessionId string, userId string, estimate string) (mo
 	}
 
 	data, err := json.Marshal(wsUserVote)
-	if err != nil {return model.PendingVote{}, fmt.Errorf("error emitting data. %v", err)}
+	if err != nil {
+		log.Printf("%+v", errorx.EnsureStackTrace(err))
+		return model.PendingVote{}, errorx.EnsureStackTrace(err)
+	}
 
 	err = p.hub.Emit(sessionId, string(data))
-	if err != nil {return model.PendingVote{}, fmt.Errorf("error emitting data. %v", err)}
+	if err != nil {
+		log.Printf("%+v", errorx.EnsureStackTrace(err))
+		return model.PendingVote{}, errorx.EnsureStackTrace(err)
+	}
 
 	voteFinished, err := p.IsVoteFinished(sessionId)
 	if voteFinished == true {
 		err = p.FinishVote(sessionId)
-		if err != nil {return model.PendingVote{}, fmt.Errorf("error finishing vote. %v", err)}
+		if err != nil {
+			log.Printf("%+v", err)
+			return model.PendingVote{}, err
+		}
 	}
 
 	vote := model.PendingVote{
@@ -286,11 +305,11 @@ func (p *Service) StartVote(sessionId string) error {
 	log.Printf("Starting vote for session ID [%s]", sessionId)
 	key := fmt.Sprintf(db.Const.SessionState, sessionId)
 	err := p.store.Set(key, model.Voting)
-	if err != nil {return fmt.Errorf("error saving data: %v", err)}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	key = fmt.Sprintf(db.Const.VoteCount, sessionId)
 	err = p.store.Set(key, 0)
-	if err != nil {return fmt.Errorf("error saving data: %v", err)}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	// reset user state
 	userIds, err := p.store.GetSessionUserIds(sessionId)
@@ -306,10 +325,10 @@ func (p *Service) StartVote(sessionId string) error {
 	}
 
 	data, err := json.Marshal(session)
-	if err != nil {return fmt.Errorf("error marshalling data: %v", err)}
+	if err != nil {log.Printf("%+v", errorx.EnsureStackTrace(err)); return errorx.EnsureStackTrace(err)}
 
 	err = p.hub.Emit(sessionId, string(data))
-	if err != nil {return fmt.Errorf("error emitting data: %v", err)}
+	if err != nil {log.Printf("%+v", errorx.EnsureStackTrace(err)); return errorx.EnsureStackTrace(err)}
 
 	return nil
 }
@@ -317,10 +336,10 @@ func (p *Service) StartVote(sessionId string) error {
 func (p *Service) FinishVote(sessionId string) error {
 	key := fmt.Sprintf(db.Const.SessionState, sessionId)
 	err := p.store.Set(key, model.NotVoting)
-	if err != nil {return fmt.Errorf("error saving data: %v", err)}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	users, err := p.store.GetSessionUsers(sessionId)
-	if err != nil {return fmt.Errorf("error getting users: %v", err)}
+	if err != nil {log.Printf("%+v", err); return err}
 
 	session := response.WsVoteFinished{
 		Event: response.VoteFinishedEvent,
@@ -328,10 +347,10 @@ func (p *Service) FinishVote(sessionId string) error {
 	}
 
 	data, err := json.Marshal(session)
-	if err != nil {return fmt.Errorf("error marshalling data: %v", err)}
+	if err != nil {log.Printf("%+v", errorx.EnsureStackTrace(err)); return errorx.EnsureStackTrace(err)}
 
 	err = p.hub.Emit(sessionId, string(data))
-	if err != nil {return fmt.Errorf("error emitting data: %v", err)}
+	if err != nil {log.Printf("%+v", errorx.EnsureStackTrace(err)); return errorx.EnsureStackTrace(err)}
 
 	return nil
 }
@@ -339,22 +358,18 @@ func (p *Service) FinishVote(sessionId string) error {
 func (p * Service) IsVoteFinished(sessionId string) (bool, error) {
 	voteCountKey := fmt.Sprintf(db.Const.VoteCount, sessionId)
 	voteCount, err := p.store.GetInt(voteCountKey)
-	if err != nil {
-		return false, fmt.Errorf("error: %v", err)
-	}
+	if err != nil {log.Printf("%+v", err); return false, err}
 
 	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
 	userCount, err := p.store.GetInt(userCountKey)
-	if err != nil {
-		return false, fmt.Errorf("error: %v", err)
-	}
+	if err != nil {log.Printf("%+v", err); return false, err}
 
 	return voteCount == userCount, nil
 }
 
 func(p *Service) processSubscriberEvent(sessionId string, data string) {
 	jsonData, err := jsonutil.GetJsonFromString(data)
-	if err != nil {log.Print(err)}
+	if err != nil {log.Printf("%+v", err)}
 
 	event, ok := jsonData["event"].(string)
 	if !ok {
@@ -371,7 +386,7 @@ func(p *Service) processSubscriberEvent(sessionId string, data string) {
 
 		err = p.RemoveUser(sessionId, userId)
 		if err != nil {
-			log.Printf("Error removnig user: %v", err)
+			log.Printf("Error removnig user: %+v", err)
 		}
 	}
 

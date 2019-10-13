@@ -70,7 +70,7 @@ func createSessionAndUsers(numOfUsers int, t *testing.T) (session model.Session,
 }
 
 func clearHubEvents() {
-	_ = testHub.Connect(nil)
+	testHub.Connect(nil)
 }
 
 func TestHealthEndpoint(t *testing.T) {

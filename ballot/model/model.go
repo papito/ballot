@@ -22,16 +22,6 @@ type VoteResults struct {
 	Votes[] User `json:"users"`
 }
 
-type ValidationError struct {
-	Field    string `json:"field"`
-	ErrorStr string `json:"error"`
-}
-
-// FIXME: move into its own custom error package
-func (e ValidationError) Error() string {
-	return e.ErrorStr
-}
-
 const (
 	NotVoting = iota
 	Voting

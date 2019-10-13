@@ -37,11 +37,8 @@ type server struct {
 
 func NewServer(config config.Config) Server {
 	log.Println("Creating server")
-	ballotService, err := service.NewService(config)
+	ballotService := service.NewService(config)
 
-	if err !=  nil {
-		log.Fatalf("Could not initialize service. %v", err)
-	}
 	server := server{
 		service: &ballotService,
 		templates: template.Must(template.ParseGlob("../ui/templates/*")),
