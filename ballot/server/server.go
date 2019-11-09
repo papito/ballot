@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joomcode/errorx"
 	"github.com/papito/ballot/ballot/config"
+	"github.com/papito/ballot/ballot/errors"
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/logutil"
 	"github.com/papito/ballot/ballot/model"
@@ -104,6 +105,8 @@ func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	session, err := p.service.CreateSession()
 	if err != nil {
 		log.Printf("%+v", err)
@@ -113,11 +116,12 @@ func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 
 	var data, _  = json.Marshal(session)
 	log.Printf("API session with %+v", session)
-	w.Header().Set("Content-Type", "application/json")
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (p server) StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
+	w.Header().Set("Content-Type", "application/json")
+
 	reqBody, err := jsonutil.GetRequestBody(r)
 	var reqObj request.StartVoteRequest
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
@@ -134,11 +138,12 @@ func (p server) StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	logutil.Logger(fmt.Fprint(w, "{}"))
 }
 
 func (p server) FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
+	w.Header().Set("Content-Type", "application/json")
+
 	reqBody, err := jsonutil.GetRequestBody(r)
 	var reqObj request.StartVoteRequest
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
@@ -155,11 +160,12 @@ func (p server) FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	logutil.Logger(fmt.Fprint(w, "{}"))
 }
 
 func (p server) CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
+	w.Header().Set("Content-Type", "application/json")
+
 	reqBody, err := jsonutil.GetRequestBody(r)
 	var reqObj request.CastVoteRequest
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
@@ -179,11 +185,12 @@ func (p server) CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	}
 
 	data, _  := json.Marshal(vote)
-	w.Header().Set("Content-Type", "application/json")
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	reqBody, err := jsonutil.GetRequestBody(r)
 	var reqObj request.CreateUserRequest
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
@@ -198,8 +205,16 @@ func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	user, err = p.service.CreateUser(reqObj.SessionId, reqObj.UserName)
 
 	if err != nil {
-		log.Printf("%+v", err)
-		http.Error(w, "Error creating user", http.StatusInternalServerError)
+		log.Printf("%+v", errorx.EnsureStackTrace(err))
+
+		switch err.(type) {
+		case errors.ValidationError:
+			data, _ := json.Marshal(err)
+			http.Error(w, string(data), http.StatusBadRequest)
+		default:
+			http.Error(w, "{}", http.StatusInternalServerError)
+		}
+
 		return
 	}
 
@@ -209,6 +224,8 @@ func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p server) GetUserHttpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	vars := mux.Vars(r)
 	userId := vars["id"]
 
@@ -221,6 +238,5 @@ func (p server) GetUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data, _  := json.Marshal(user)
-	w.Header().Set("Content-Type", "application/json")
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }

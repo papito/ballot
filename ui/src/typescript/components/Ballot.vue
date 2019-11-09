@@ -133,10 +133,10 @@
       // if we are joining as an existing user (creator), get user details and assign to current
       // user object
       if (user_id) {
-        const userResp: Promise<{[key:string]:string}> = this.getRequest(`/api/user/${user_id}`);
-        userResp.then((userRes) => {
-          this.user = User.fromJson(userRes);
-
+        this.getRequest(`/api/user/${user_id}`).then((resp) => {
+          return resp.json();
+        }).then((json) => {
+          this.user = User.fromJson(json);
           let watchCmd = {
             "action": "WATCH",
             "session_id": this.session.id,
@@ -226,7 +226,7 @@
     }
 
     startVote() {
-      const resp: Promise<{[key:string]:string}> = this.putRequest(
+      const resp: Promise<Response> = this.putRequest(
           "/api/vote/start", {
             "session_id": this.session.id
           }
@@ -240,7 +240,7 @@
     }
 
     finishVote() {
-      const resp: Promise<{[key:string]:string}> = this.putRequest(
+      const resp: Promise<Response> = this.putRequest(
           "/api/vote/finish", {
             "session_id": this.session.id
           }
@@ -254,16 +254,17 @@
     }
 
     setUsername() {
-      const resp: Promise<{[key:string]:string}> = this.postRequest(
+      this.postRequest(
           "/api/user", {
             "name": this.user.name,
             "session_id": this.session.id
           }
-      );
-
-      resp.then((res) => {
-        this.user.id = res["id"];
-        this.user.name = res["name"];
+      ).then((resp) => {
+        return resp.json();
+      }).then((json) => {
+        this.user.id = json["id"];
+        this.user.name = json["name"];
+        console.log("setting user to", this.user);
 
         let watchCmd = {
           "action": "WATCH",
@@ -271,13 +272,12 @@
           "user_id": this.user.id
         };
         ws.send(JSON.stringify(watchCmd));
-      });
 
-      console.log("setting user to", this.user);
+      });
     }
 
     castVote(estimate: string) {
-      const resp: Promise<{[key:string]:string}> = this.putRequest(
+      const resp: Promise<Response> = this.putRequest(
           "/api/vote/cast", {
             "session_id": this.session.id,
             "user_id": this.user.id,

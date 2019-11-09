@@ -4,24 +4,23 @@ import {Mixin} from 'vue-mixin-decorator';
 @Mixin
 export default class HttpMixin extends Vue {
 
-  async getRequest(url: string): Promise<{}> {
-    let json = null;
+  async getRequest(url: string): Promise<Response> {
+    let response: Response = new Response();
 
     try {
-      const response = await fetch(url);
-      json = await response.json();
+      response = await fetch(url);
     } catch (error) {
       console.log(error);
     }
 
-    return json;
+    return response;
   }
 
-  async postRequest(url: string, data: {}): Promise<{}> {
-    let json = null;
+  async postRequest(url: string, data: {}): Promise<Response> {
+    let response: Response = new Response();
 
     try {
-      const response = await fetch(url, {
+      response = await fetch(url, {
         "method": "POST",
         headers: {
           'Accept': 'application/json',
@@ -29,19 +28,18 @@ export default class HttpMixin extends Vue {
         },
         body: JSON.stringify(data)
       });
-      json = await response.json();
     } catch (error) {
       console.log(error);
     }
 
-    return json;
+    return response;
   }
 
-  async putRequest(url: string, data: {}): Promise<{}> {
-    let json = null;
+  async putRequest(url: string, data: {}): Promise<Response> {
+    let response: Response = new Response();
 
     try {
-      const response = await fetch(url, {
+      response = await fetch(url, {
         "method": "PUT",
         headers: {
           'Accept': 'application/json',
@@ -49,11 +47,10 @@ export default class HttpMixin extends Vue {
         },
         body: JSON.stringify(data)
       });
-      json = await response.json();
     } catch (error) {
       console.log(error);
     }
 
-    return json;
+    return response;
   }
 };
