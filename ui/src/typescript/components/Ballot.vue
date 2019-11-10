@@ -143,6 +143,8 @@
             "user_id": user_id
           };
           ws.send(JSON.stringify(watchCmd));
+        }).catch((err: Error) => {
+          this.showError(err);
         });
       }
     }
@@ -226,30 +228,22 @@
     }
 
     startVote() {
-      const resp: Promise<Response> = this.putRequest(
+      this.putRequest(
           "/api/vote/start", {
             "session_id": this.session.id
           }
-      );
-
-      resp.then((res) => {
-        // TODO: handle errors for user who is trying to start the vote
-        // if (res.ok) {
-        // }
+      ).catch((err: Error) => {
+        this.showError(err);
       });
     }
 
     finishVote() {
-      const resp: Promise<Response> = this.putRequest(
+      this.putRequest(
           "/api/vote/finish", {
             "session_id": this.session.id
           }
-      );
-
-      resp.then((res) => {
-        // TODO: handle errors for user who is trying to end the vote
-        // if (res.ok) {
-        // }
+      ).catch((err: Error) => {
+        this.showError(err);
       });
     }
 
@@ -272,18 +266,21 @@
           "user_id": this.user.id
         };
         ws.send(JSON.stringify(watchCmd));
-
+      }).catch((err: Error) => {
+        this.showError(err);
       });
     }
 
     castVote(estimate: string) {
-      const resp: Promise<Response> = this.putRequest(
+      this.putRequest(
           "/api/vote/cast", {
             "session_id": this.session.id,
             "user_id": this.user.id,
             "estimate": estimate
           }
-      );
+      ).catch((err: Error) => {
+        this.showError(err);
+      });
     }
 
     copyJoinUrl() {
