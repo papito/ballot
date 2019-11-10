@@ -110,7 +110,9 @@ func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
 	session, err := p.service.CreateSession()
 	if err != nil {
 		log.Printf("%+v", err)
-		http.Error(w, "Error saving data", http.StatusInternalServerError)
+		err = errors.CriticalError{Message:"Error saving data"}
+		var data, _  = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
 		return
 	}
 
@@ -127,14 +129,18 @@ func (p server) StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
 	if err != nil {
 		log.Printf("%+v", err)
-		http.Error(w, "Error serializing request JSON", http.StatusBadRequest)
+		err = errors.CriticalError{Message:"Error serializing request JSON"}
+		var data, _  = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
 		return
 	}
 
 	err = p.service.StartVote(reqObj.SessionId)
 	if err != nil {
 		log.Printf("%+v", err)
-		http.Error(w, "Error starting vote", http.StatusBadRequest)
+		err = errors.CriticalError{Message:"Error starting vote"}
+		var data, _  = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
 		return
 	}
 
@@ -149,14 +155,18 @@ func (p server) FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 	err = json.Unmarshal([]byte(reqBody), &reqObj)
 	if err != nil {
 		log.Printf("%+v", err)
-		http.Error(w, "Error serializing request JSON", http.StatusBadRequest)
+		err = errors.CriticalError{Message:"Error serializing request JSON"}
+		var data, _  = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
 		return
 	}
 
 	err = p.service.FinishVote(reqObj.SessionId)
 	if err != nil {
 		log.Printf("%+v", err)
-		http.Error(w, "Error finishing vote", http.StatusBadRequest)
+		err = errors.CriticalError{Message:"Error finishing vote"}
+		var data, _  = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
 		return
 	}
 
@@ -172,7 +182,9 @@ func (p server) CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 
 	if err != nil {
 		log.Printf("%+v", err)
-		http.Error(w, "Error serializing request JSON", http.StatusBadRequest)
+		err = errors.CriticalError{Message:"Error serializing request JSON"}
+		var data, _  = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
 		return
 	}
 
@@ -180,7 +192,9 @@ func (p server) CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
 
 	if err != nil {
 		log.Printf("%+v", err)
-		http.Error(w, "Error casting vote", http.StatusInternalServerError)
+		err = errors.CriticalError{Message:"Error casting vote"}
+		var data, _  = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
 		return
 	}
 
@@ -197,7 +211,9 @@ func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("%+v", err)
-		http.Error(w, "Error serializing request JSON", http.StatusBadRequest)
+		err = errors.CriticalError{Message:"Error serializing request JSON"}
+		var data, _  = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
 		return
 	}
 
@@ -233,7 +249,9 @@ func (p server) GetUserHttpHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("%+v", err)
-		http.Error(w, "Error creating user", http.StatusInternalServerError)
+		err = errors.CriticalError{Message:"Error creating user"}
+		var data, _  = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
 		return
 	}
 

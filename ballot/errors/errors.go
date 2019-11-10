@@ -9,3 +9,11 @@ type ValidationError struct {
 func (e ValidationError) Error() string {
 	return e.ErrorStr
 }
+
+type CriticalError struct {
+	Message string `json:"message"`
+}
+
+func (e CriticalError) Error() string {
+	return e.Message
+}

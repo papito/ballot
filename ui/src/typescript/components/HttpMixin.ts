@@ -91,6 +91,11 @@ export default class HttpMixin extends Vue {
 
       throw new ValidationError(json);
     }
+
+    if (res.status == 500) {
+      const json = await res.json();
+      throw new Error(`Internal Server Error: ${json["message"]}`);
+    }
   }
 
   showError(err: Error) {
