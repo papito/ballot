@@ -4,8 +4,8 @@
       <div class="col-4 offset-4">
         <form @submit.prevent="goVote">
           <div class="form-group">
-            <label for="name"></label>
-            <input type="text" v-model="user.name" class="form-control" id="name" placeholder="Your name/alias">
+            <label for="this.user.name"></label>
+            <input type="text" v-model="user.name" class="form-control" id="this.user.name" placeholder="Your name/alias">
             <div class="invalid-feedback">
             </div>
           </div>
@@ -31,8 +31,8 @@
     }
 
     goVote() {
-      this.postRequest("/api/session", {}).then((sessionRes) => {
-        return sessionRes.json();
+      this.postRequest("/api/session", {}).then((resp) => {
+        return resp.json();
       }).then((json) => {
         this.sessionId = json['id'];
         return Promise.resolve(this.sessionId);
@@ -53,7 +53,9 @@
             sessionId: this.sessionId,
             userId: this.user.id
           }});
-      })
+      }).catch((err: Error) => {
+        this.showError(err);
+      });
     }
   }
 </script>

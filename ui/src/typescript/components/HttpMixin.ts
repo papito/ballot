@@ -1,56 +1,115 @@
 import Vue from "vue";
 import {Mixin} from 'vue-mixin-decorator';
+import {ValidationError} from "../errors";
 
 @Mixin
 export default class HttpMixin extends Vue {
 
-  async getRequest(url: string): Promise<Response> {
-    let response: Response = new Response();
+  afterCreate() {
+    this.clearErrorState();
+  }
 
-    try {
-      response = await fetch(url);
-    } catch (error) {
-      console.log(error);
+  clearErrorState() {
+    // critical error
+    let el: HTMLElement | null = document.getElementById(`criticalError`);
+    if (!el) {
+      console.log("Could not display error: 'criticalError' ID is missing");
+      return;
     }
+    el.textContent = "";
+    el.style.display = 'none';
 
-    return response;
+    // form errors
+    let errElementList = document.querySelectorAll('.is-invalid');
+    errElementList.forEach(function(el) {
+      el.classList.remove('.is-invalid');
+    });
+    errElementList = document.querySelectorAll('.invalid-feedback');
+    errElementList.forEach(function(el) {
+      el.textContent = '';
+    });
+  }
+
+  async getRequest(url: string): Promise<Response> {
+    this.clearErrorState();
+
+    const res: Response =  await fetch(url);
+    await this.processErrors(res);
+    return res;
   }
 
   async postRequest(url: string, data: {}): Promise<Response> {
-    let response: Response = new Response();
+    this.clearErrorState();
 
-    try {
-      response = await fetch(url, {
-        "method": "POST",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    const res: Response =  await fetch(url, {
+      "method": "POST",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
 
-    return response;
+    await this.processErrors(res);
+    return res;
   }
 
   async putRequest(url: string, data: {}): Promise<Response> {
-    let response: Response = new Response();
+    this.clearErrorState();
 
-    try {
-      response = await fetch(url, {
-        "method": "PUT",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-    } catch (error) {
-      console.log(error);
+    const res: Response =  await fetch(url, {
+      "method": "PUT",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    await this.processErrors(res);
+    return res;
+  }
+
+  async processErrors(res: Response) {
+    if (res.status == 400) {
+      let json = await res.json();
+      let fieldName = json['field'];
+      let errorStr = json['error'];
+
+      let targetEl: HTMLElement | null = document.getElementById(`this.${fieldName}`);
+      if (!targetEl) {
+        throw new Error(`Could not get element [this.${fieldName}] by ID`);
+      }
+
+      let errorStrEl: HTMLElement | null = <HTMLElement>targetEl.nextElementSibling;
+      if (!errorStrEl || !errorStrEl.classList.contains('invalid-feedback')) {
+        throw new Error(`Could not get element [.invalid-feedback] adjacent to [this.${fieldName}]`);
+      }
+
+      targetEl.classList.add('is-invalid');
+      errorStrEl.textContent = errorStr;
+
+      throw new ValidationError(json);
     }
+  }
 
-    return response;
+  showError(err: Error) {
+    if (err instanceof ValidationError) {
+      console.log("Validation error occurred: " + JSON.stringify(err.data));
+    }
+    else {
+      this.showCriticalError(err);
+    }
+  }
+
+  showCriticalError(err: Error) {
+    let el: HTMLElement | null = document.getElementById(`criticalError`);
+
+    if (!el) {
+      console.log("Could not display error: 'criticalError' ID is missing");
+      return;
+    }
+    el.textContent = err.message;
+    el.style.display = 'block';
   }
 };

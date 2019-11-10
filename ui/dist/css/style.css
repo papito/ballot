@@ -109,6 +109,17 @@ div.vote img {
   text-align: center;
 }
 
-span.noshow {
+.noshow {
   display: none;
+}
+
+#criticalError {
+  margin-top: .5em;
+  width: 100%;
+  display: none;
+}
+
+#criticalError.alert-danger {
+  background-color: #78100e;
+  color: #fff;
 }

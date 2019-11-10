@@ -110,7 +110,7 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 
 	if len(userName) < 1 {
 		valErr := errors.ValidationError{
-			Field: "name",
+			Field: "user.name",
 			ErrorStr: "This field cannot be empty"}
 		return model.User{}, valErr
 	}
