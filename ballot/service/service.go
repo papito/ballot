@@ -115,6 +115,19 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 		return model.User{}, valErr
 	}
 
+	// check for a duplicate user in this session
+	currentUsers, err := p.store.GetSessionUsers(sessionId)
+	if err != nil {log.Printf("%+v", err); return model.User{}, err}
+
+	for _, user := range currentUsers {
+		if strings.ToLower(user.Name) == strings.ToLower(userName) {
+			valErr := errors.ValidationError{
+				Field: "user.name",
+				ErrorStr: "This user name already taken for this session"}
+			return model.User{}, valErr
+		}
+	}
+
 	userUUID, _ := uuid.NewRandom()
 	userId := userUUID.String()
 	log.Printf("Creating user [%s] and id [%s]", userName, userId)
@@ -126,7 +139,7 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 	}
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
-	err := p.store.SetHashKey(
+	err = p.store.SetHashKey(
 		userKey,
 		"name", user.Name,
 		"id", user.UserId,
@@ -389,5 +402,4 @@ func(p *Service) processSubscriberEvent(sessionId string, data string) {
 			log.Printf("Error removnig user: %+v", err)
 		}
 	}
-
 }

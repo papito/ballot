@@ -164,6 +164,10 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 	c  := p.Pool.Get()
 	defer p.Close(c)
 
+	if len(userIds) == 0 {
+		return make([]model.User, 0), nil
+	}
+
 	for _, userId := range userIds {
 		key := fmt.Sprintf("user:%s", userId)
 		_ = c.Send("HGETALL", key)
@@ -172,7 +176,7 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 	res, err := redis.Values(c.Do(""))
 	if err != nil {return make([]model.User, 0), errorx.EnsureStackTrace(err)}
 
-	var users []model.User
+	var users = make([]model.User, 0)
 
 	for _, r := range res {
 		switch t := r.(type) {

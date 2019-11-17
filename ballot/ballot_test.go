@@ -429,3 +429,28 @@ func TestSessionClearAfterAllUsersLeave(t *testing.T) {
 	_, err = srv.Service().Store().GetInt(voteCountKey)
 	assert.NotNil(t, err)
 }
+
+func TestEmptyUsername(t *testing.T) {
+	session, err  := srv.Service().CreateSession()
+	if err != nil {t.Errorf("Could not create session: %s", err)}
+
+	_, err = srv.Service().CreateUser(session.SessionId, "")
+	assert.NotNil(t, err)
+
+	_, err = srv.Service().CreateUser(session.SessionId, "   ")
+	assert.NotNil(t, err)
+
+	_, err = srv.Service().CreateUser(session.SessionId, "  \n\n\t\t")
+	assert.NotNil(t, err)
+}
+
+func TestDuplicateUsername(t *testing.T) {
+	session, err  := srv.Service().CreateSession()
+	if err != nil {t.Errorf("Could not create session: %s", err)}
+	if err != nil {t.Error(err)}
+
+	_, err = srv.Service().CreateUser(session.SessionId, "username")
+	if err != nil {t.Error(err)}
+	_, err = srv.Service().CreateUser(session.SessionId, "username")
+	assert.NotNil(t, err)
+}
