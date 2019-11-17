@@ -60,8 +60,10 @@
             <div>
               <span v-show="errors.name">{{errors.name}}</span>
             </div>
-            <label for="name"></label>
-            <input type="text" v-model="user.name" class="form-control" id="name" placeholder="Your name/alias">
+            <label for="this.user.name"></label>
+            <input type="text" v-model="user.name" class="form-control" id="this.user.name" placeholder="Your name/alias">
+            <div class="invalid-feedback">
+            </div>
           </div>
           <button type="submit" class="btn btn-lg btn-warning">Join</button>
         </form>
