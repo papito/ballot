@@ -103,7 +103,6 @@ func TestCreateSessionEndpoint(t *testing.T) {
 	err = json.Unmarshal([]byte(rr.Body.String()), &session)
 	if err != nil {t.Errorf("%s. Recevied: %s", err, rr.Body.String())}
 
-	// FIXME: length can also be checked with a regex
 	match, _ := regexp.MatchString("[a-z0-9]", session.SessionId)
 
 	assert.True(t, match)

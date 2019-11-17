@@ -1,7 +1,6 @@
 package model
 
 type Session struct {
-	// FIXME: make this "session_id"
 	SessionId string `json:"id"`
 }
 
