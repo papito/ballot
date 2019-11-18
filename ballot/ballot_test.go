@@ -447,7 +447,6 @@ func TestEmptyUsername(t *testing.T) {
 func TestDuplicateUsername(t *testing.T) {
 	session, err  := srv.Service().CreateSession()
 	if err != nil {t.Errorf("Could not create session: %s", err)}
-	if err != nil {t.Error(err)}
 
 	_, err = srv.Service().CreateUser(session.SessionId, "username")
 	if err != nil {t.Error(err)}
