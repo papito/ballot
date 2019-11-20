@@ -268,7 +268,6 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 
    I can do this all day.
 */
-// FIXME: mock wiring in tests instead of making the service aware of the test ENV
 type VoidHub struct {
 	Emitted []string
 	LocalEmitted []string

@@ -150,6 +150,7 @@ func TestCreateUserEndpoint(t *testing.T) {
 	assert.Equal(t, "Player 1", user.Name)
 	assert.Equal(t, model.NoEstimate, user.Estimate)
 	assert.NotNil(t, user.UserId)
+	assert.NotNil(t, user.Joined)
 
 	msg := testHub.Emitted[0]
 	var userAddedWsEvent response.WsNewUser

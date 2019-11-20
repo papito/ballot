@@ -14,7 +14,9 @@ import (
 	"github.com/papito/ballot/ballot/model"
 	"github.com/papito/ballot/ballot/model/response"
 	"log"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Service struct  {
@@ -130,12 +132,14 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 
 	userUUID, _ := uuid.NewRandom()
 	userId := userUUID.String()
+	joined := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	log.Printf("Creating user [%s] and id [%s]", userName, userId)
 
 	user := model.User{
 		UserId:   userId,
 		Name:     userName,
 		Estimate: model.NoEstimate,
+	    Joined: joined,
 	}
 
 	userKey := fmt.Sprintf(db.Const.User, userId)
@@ -143,7 +147,8 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 		userKey,
 		"name", user.Name,
 		"id", user.UserId,
-		"estimate", user.Estimate,)
+		"estimate", user.Estimate,
+		"joined", user.Joined)
 
 	if err != nil {log.Printf("%+v", err); return model.User{}, err}
 

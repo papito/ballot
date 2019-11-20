@@ -6,6 +6,7 @@ import (
 	"github.com/joomcode/errorx"
 	"github.com/papito/ballot/ballot/model"
 	"log"
+	"sort"
 	"time"
 )
 
@@ -192,6 +193,7 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 				Name:     m["name"],
 				Estimate: estimate,
 				Voted:    estimate != model.NoEstimate,
+				Joined:  m["joined"],
 			}
 			users = append(users, user)
 		default:
@@ -199,6 +201,10 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
 				fmt.Errorf("unexpected type: %T", t))
 		}
 	}
+
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Joined < users[j].Joined
+	})
 
 	return users, nil
 }
