@@ -453,3 +453,32 @@ func TestDuplicateUsername(t *testing.T) {
 	_, err = srv.Service().CreateUser(session.SessionId, "username")
 	assert.NotNil(t, err)
 }
+
+/**
+A session is created before a first user. If there is a validation error or anything
+ */
+func TestCleanupSessionAfterError(t *testing.T) {
+	session, err := srv.Service().CreateSession()
+	if err != nil {
+		t.Errorf("Could not create session: %s", err)
+	}
+
+	_, err = srv.Service().CreateUser(session.SessionId, "")
+	assert.NotNil(t, err)
+
+	userCountKey := fmt.Sprintf(db.Const.UserCount, session.SessionId)
+	_, err = srv.Service().Store().GetInt(userCountKey)
+	assert.NotNil(t, err)
+
+	sessionUserIds, err := srv.Service().Store().GetSessionUserIds(session.SessionId)
+	if err != nil {t.Error(err)}
+	assert.Empty(t, sessionUserIds)
+
+	sessionStateKey := fmt.Sprintf(db.Const.SessionState, session.SessionId)
+	_, err = srv.Service().Store().GetInt(sessionStateKey)
+	assert.NotNil(t, err)
+
+	voteCountKey := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
+	_, err = srv.Service().Store().GetInt(voteCountKey)
+	assert.NotNil(t, err)
+}

@@ -111,6 +111,9 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 	userName = strings.TrimSpace(userName)
 
 	if len(userName) < 1 {
+		err := p.CleanSessionIfEmpty(sessionId)
+		if err != nil {log.Printf("%+v", err); return model.User{}, err}
+
 		valErr := errors.ValidationError{
 			Field: "user.name",
 			ErrorStr: "This field cannot be empty"}
@@ -196,6 +199,21 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 	err = p.store.Decr(userCountKey, 1)
 	if err != nil {log.Printf("%+v", err); return err}
 
+	err = p.CleanSessionIfEmpty(sessionId)
+	if err != nil {log.Printf("%+v", err); return err}
+
+	voteFinished, err := p.IsVoteFinished(sessionId)
+	if voteFinished == true {
+		err = p.FinishVote(sessionId)
+		if err != nil {log.Printf("%+v", err); return err}
+	}
+
+	return nil
+}
+
+func (p *Service) CleanSessionIfEmpty(sessionId string) error {
+	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
+
 	// if user count is 0, nuke the session to bits
 	userCount, err := p.store.GetInt(userCountKey)
 	if err != nil {log.Printf("%+v", err); return err}
@@ -204,12 +222,6 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 		err = p.DeleteSessionData(sessionId)
 		if err != nil {log.Printf("%+v", err); return err}
 		return nil
-	}
-
-	voteFinished, err := p.IsVoteFinished(sessionId)
-	if voteFinished == true {
-		err = p.FinishVote(sessionId)
-		if err != nil {log.Printf("%+v", err); return err}
 	}
 
 	return nil
