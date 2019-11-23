@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"github.com/joomcode/errorx"
+	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/model"
 	"log"
 	"sort"
@@ -60,9 +61,19 @@ func (p *Store) Connect(redisUrl string)  {
 	p.ServiceSubCon = redis.PubSubConn{Conn: p.Pool.Get()}
 }
 
+func (p *Store) ExpireKey(key string) error {
+	_, err := p.Pool.Get().Do("EXPIRE", key, config.SessionTtl)
+	if err != nil {return errorx.EnsureStackTrace(err)}
+	return nil
+}
+
 func (p *Store) Set(key string, val interface{}) error {
 	_, err := p.Pool.Get().Do("SET", key, val)
 	if err != nil {return errorx.EnsureStackTrace(err)}
+
+	err = p.ExpireKey(key)
+	if err != nil {return err}
+
 	return nil
 }
 
@@ -105,8 +116,11 @@ func (p *Store) SetHashKey(key string, args ...interface{}) error {
 	c  := p.Pool.Get()
 	defer p.Close(c)
 	_, err := c.Do("HSET", redisArgs[:]...)
-
 	if err != nil {return errorx.EnsureStackTrace(err)}
+
+	err = p.ExpireKey(key)
+	if err != nil {return err}
+
 	return nil
 }
 
@@ -146,6 +160,10 @@ func (p *Store) AddToSet(key string, args ...interface{}) error {
 	defer p.Close(c)
 	_, err :=c.Do("SADD", redisArgs[:]...)
 	if err != nil {return errorx.EnsureStackTrace(err)}
+
+	err = p.ExpireKey(key)
+	if err != nil {return err}
+
 	return nil
 }
 

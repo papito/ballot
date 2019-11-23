@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+const SessionTtl = 172800 // 48H
+
 const (
 	TEST = "test"
 	DEV = "development"

@@ -196,6 +196,11 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 	if err != nil {log.Printf("%+v", err); return err}
 
 	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
+
+	// if the session is dead, this will blow up
+	_, err = p.store.GetInt(userCountKey)
+	if err != nil {log.Printf("%+v", err); return err}
+
 	err = p.store.Decr(userCountKey, 1)
 	if err != nil {log.Printf("%+v", err); return err}
 
@@ -347,7 +352,7 @@ func (p *Service) StartVote(sessionId string) error {
 	for i := 0; i < len(userIds); i++ {
 		userId := userIds[i]
 		userKey := fmt.Sprintf(db.Const.User, userId)
-		err = p.store.SetHashKey(userKey, "estimate", model.NoEstimate)
+		err = p.store.SetHashKey(userKey,"estimate", model.NoEstimate)
 	}
 
 	session := response.WsVoteStarted{
