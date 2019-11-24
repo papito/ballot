@@ -42,7 +42,7 @@
     </div>
 
     <div id="voters" v-show="user.id">
-      <div v-for="user in session.users" class="vote" v-bind:class="{ voted: user.voted }">
+      <div v-for="user in session.users" class="card" v-bind:class="{ voted: user.voted }">
         {{ user.name }}
         <div>
           <img v-show="user.voted" src="/ui/img/v.png">

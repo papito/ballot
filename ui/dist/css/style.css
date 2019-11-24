@@ -36,7 +36,7 @@ body.no-bg {
   flex-wrap: wrap;
 }
 
-#voters div.vote {
+#voters div.card {
   margin: .2em;
   width: 18em;
   height: 9.5em;
@@ -60,7 +60,7 @@ body.no-bg {
   color: #fff;
 }
 
-div.vote img {
+div.card img {
   position: relative;
   top: .5em;
   height: 3em;
