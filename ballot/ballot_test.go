@@ -62,6 +62,9 @@ func createSessionAndUsers(numOfUsers int, t *testing.T) (session model.Session,
 	for i := 0; i < numOfUsers; i++ {
 		user, err := srv.Service().CreateUser(session.SessionId, RandString(20))
 		if err != nil {t.Errorf("Could not create user: %s", err)}
+
+		err = srv.Service().AddUserToSession(session.SessionId, user.UserId)
+		if err != nil {t.Errorf("Could not add user to session: %s", err)}
 		users[i] = user
 	}
 
@@ -122,8 +125,6 @@ func TestCreateSessionEndpoint(t *testing.T) {
 }
 
 func TestCreateUserEndpoint(t *testing.T) {
-	clearHubEvents()
-
 	session, err  := srv.Service().CreateSession()
 	if err != nil {t.Errorf("Could not create session: %s", err)}
 
@@ -152,15 +153,9 @@ func TestCreateUserEndpoint(t *testing.T) {
 	assert.NotNil(t, user.UserId)
 	assert.NotNil(t, user.Joined)
 
-	msg := testHub.Emitted[0]
-	var userAddedWsEvent response.WsNewUser
-	err = json.Unmarshal([]byte(msg), &userAddedWsEvent)
-	assert.Equal(t, response.UserAddedEvent, userAddedWsEvent.Event)
-	assert.Equal(t, user.Name, userAddedWsEvent.Name)
-
 	userCountKey := fmt.Sprintf(db.Const.UserCount, session.SessionId)
 	userCount, err := srv.Service().Store().GetInt(userCountKey)
-	assert.Equal(t, 1, userCount)
+	assert.Equal(t, 0, userCount)
 }
 
 func TestStartVoteEndpoint(t *testing.T) {
@@ -420,8 +415,11 @@ func TestDuplicateUsername(t *testing.T) {
 	session, err  := srv.Service().CreateSession()
 	if err != nil {t.Errorf("Could not create session: %s", err)}
 
-	_, err = srv.Service().CreateUser(session.SessionId, "username")
+	user, err := srv.Service().CreateUser(session.SessionId, "username")
 	if err != nil {t.Error(err)}
+	err = srv.Service().AddUserToSession(session.SessionId, user.UserId)
+	if err != nil {t.Error(err)}
+
 	_, err = srv.Service().CreateUser(session.SessionId, "username")
 	assert.NotNil(t, err)
 }

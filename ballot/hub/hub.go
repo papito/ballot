@@ -122,7 +122,6 @@ func (p* Hub) disassociateSocketWithUser(sock *glue.Socket) {
 	}
 }
 
-
 func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
 	log.Printf("Unsubscribing all from socket %s", sock.ID())
 	p.rwMutex.Lock()
@@ -224,8 +223,12 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 
 				sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 				log.Printf("Adding user [%s] to session [%s]", userId, sessionId)
-				err = p.store.AddToSet(sessionUserKey, userId)
-				if err != nil {log.Printf("%+v", err); return}
+				err := p.store.AddToSet(sessionUserKey, userId)
+				if err != nil {return}
+
+				userCountKey  := fmt.Sprintf(db.Const.UserCount, sessionId)
+				err = p.store.Incr(userCountKey, 1)
+				if err != nil {return}
 
 				user, err := p.store.GetUser(userId)
 				if err != nil {log.Printf("%+v", err); return}
@@ -235,6 +238,8 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 				wsUser.Name = user.Name
 				wsUser.UserId = user.UserId
 				wsUser.Estimate = user.Estimate
+				wsUser.Joined = user.Joined
+				wsUser.Voted = user.Voted
 
 				wsResp, err := json.Marshal(wsUser)
 				if err != nil {log.Printf("%+v", err); return}

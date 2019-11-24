@@ -242,6 +242,7 @@ func (p *Store) GetUser(userId string) (model.User, error) {
 		Name:     m["name"],
 		Estimate: estimate,
 		Voted:    estimate != model.NoEstimate,
+		Joined:   m["joined"],
 	}
 
 	return user, nil

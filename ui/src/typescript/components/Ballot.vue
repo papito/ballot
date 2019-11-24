@@ -79,7 +79,8 @@
 
     created () {
       this.session.id = this.$route.params["sessionId"];
-      console.log(`Voting for session ${this.session.id}`);
+      this.user.id = this.$route.params["userId"];
+      console.log(`Voting for session [${this.session.id}] as user [${this.user.id}]`);
 
       ws.socket.onMessage((data: string) => {
         console.log("onMessage: " + data);
@@ -114,31 +115,27 @@
         }
       });
 
-      let user_id = this.$route.params["userId"];
-      console.log(`Voting as user ID ${user_id}`);
-      if (user_id) {
-        this.user.id = user_id;
-        this.getRequest(`/api/user/${user_id}`).then((resp) => {
-          return resp.json();
-        }).then((json) => {
-          this.user = User.fromJson(json);
-          let watchCmd = {
-            "action": "WATCH",
-            "session_id": this.session.id,
-            "user_id": user_id
-          };
-          ws.send(JSON.stringify(watchCmd));
-        }).catch((err: Error) => {
-          this.showError(err);
-        });
-      }
+      this.getRequest(`/api/user/${this.user.id}`).then((resp) => {
+        return resp.json();
+      }).then((json) => {
+        this.user = User.fromJson(json);
+        let watchCmd = {
+          "action": "WATCH",
+          "session_id": this.session.id,
+          "user_id": this.user.id
+        };
+        ws.send(JSON.stringify(watchCmd));
+      }).catch((err: Error) => {
+        this.showError(err);
+      });
     }
 
     userAddedWsHandler(json: {[key:string]:string}) {
       let user = User.fromJson(json);
-      if (user.id != this.user.id) {
-        this.session.users.push(user);
+      if (user.id == this.user.id) { // do not re-add yourself
+        return;
       }
+      this.session.users.push(user);
     }
 
     userVotedHandler(json: {[key:string]:string}) {

@@ -152,11 +152,20 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 
 	if err != nil {log.Printf("%+v", err); return model.User{}, err}
 
+	return user, nil
+}
+
+func (p *Service) AddUserToSession(sessionId string, userId string) error {
+	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
+	log.Printf("Adding user [%s] to session [%s]", userId, sessionId)
+	err := p.store.AddToSet(sessionUserKey, userId)
+	if err != nil {return err}
+
 	userCountKey  := fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Incr(userCountKey, 1)
-	if err != nil {log.Printf("%+v", err); return model.User{}, err}
+	if err != nil {return err}
 
-	return user, nil
+	return nil
 }
 
 func (p *Service) RemoveUserFromSession(sessionId string, userId string) error {

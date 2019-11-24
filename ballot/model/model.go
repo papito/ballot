@@ -9,7 +9,7 @@ type User struct {
 	Name     string `json:"name"`
 	Estimate string `json:"estimate"`
 	Voted    bool   `json:"voted"`
-	Joined   string
+	Joined   string `json:"joined"`
 }
 
 type PendingVote struct {

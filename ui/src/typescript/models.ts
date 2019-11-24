@@ -10,6 +10,7 @@ export class User {
   name: string = "";
   estimate: string = NO_ESTIMATE;
   voted: boolean = false;
+  joined: string = "";
 
   static fromJson(json: {[key:string]:string}) {
     let user = new User();
@@ -17,6 +18,7 @@ export class User {
     user.name = json["name"];
     user.estimate = json["estimate"];
     user.voted = Boolean(json["voted"]);
+    user.joined = json["joined"];
     return user;
   }
 }
