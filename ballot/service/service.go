@@ -201,11 +201,19 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 	_, err = p.store.GetInt(userCountKey)
 	if err != nil {log.Printf("%+v", err); return err}
 
+	userCount, err := p.store.GetInt(userCountKey)
+	if err != nil {log.Printf("%+v", err); return err}
+
 	err = p.store.Decr(userCountKey, 1)
 	if err != nil {log.Printf("%+v", err); return err}
 
 	err = p.CleanSessionIfEmpty(sessionId)
 	if err != nil {log.Printf("%+v", err); return err}
+
+	// if it was the only user, the session is purged, bail here
+	if userCount == 1 {
+		return nil
+	}
 
 	voteFinished, err := p.IsVoteFinished(sessionId)
 	if voteFinished == true {
@@ -226,7 +234,6 @@ func (p *Service) CleanSessionIfEmpty(sessionId string) error {
 	if userCount == 0 {
 		err = p.DeleteSessionData(sessionId)
 		if err != nil {log.Printf("%+v", err); return err}
-		return nil
 	}
 
 	return nil
