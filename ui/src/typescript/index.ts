@@ -2,6 +2,8 @@ import Vue from "vue";
 // @ts-ignore
 import Ballot from "./components/Ballot.vue";
 // @ts-ignore
+import Join from "./components/Join.vue";
+// @ts-ignore
 import Landing from "./components/Landing.vue";
 import VueRouter from 'vue-router';
 import Websockets from "./websockets";
@@ -9,26 +11,19 @@ import {getUrlParameter} from "./util";
 
 const routes = [
   { path: '/', name: "landing", component: Landing },
-  { path: '/vote/:sessionId', name: "ballot", component: Ballot },
+  { path: '/vote/:sessionId/u/:userId', name: "ballot", component: Ballot },
+  { path: '/vote/:sessionId', name: "join", component: Join },
 ];
 
 export const ws: Websockets = new Websockets();
 
 const router = new VueRouter({
-  mode: 'history',
+  mode: 'hash',
   routes
 });
 
 Vue.use(VueRouter);
 
 new Vue({
-  router,
-  mounted: function () {
-    const sessionId: string = getUrlParameter("join");
-    if (sessionId) {
-      router.push({ name: 'ballot', params: { sessionId: sessionId } });
-    } else {
-      router.replace({name: 'landing'});
-    }
-  }
+  router
 },).$mount('#app');

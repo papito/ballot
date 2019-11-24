@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div id="ctrl-panels" class="row" v-show="user.id">
+    <div id="ctrl-panels" class="row">
       <div id="start-ctrl-panel" class="col-6">
-        <div v-show="user.id">
+        <div>
           <button v-if="isIdle" v-on:click="startVote" class="btn btn-outline-success">
             Start
           </button>
@@ -32,16 +32,16 @@
 
     </div>
 
-    <div id="choices" v-show="user.id && isVoting">
+    <div id="choices" v-show="isVoting">
       <div v-for="estimate in possibleEstimates" class="choice">
         <button :value="estimate" v-on:click="castVote(estimate)" class="btn btn-outline-warning">{{estimate}}</button>
       </div>
-      <div v-show="!user.id || !isVoting" v-for="estimate in possibleEstimates" class="choice">
+      <div v-show="!isVoting" v-for="estimate in possibleEstimates" class="choice">
         <button  class="btn btn-outline-warning">&nbsp;&nbsp;</button>
       </div>
     </div>
 
-    <div id="voters" v-show="user.id">
+    <div id="voters">
       <div v-for="user in session.users" class="card" v-bind:class="{ voted: user.voted }">
         {{ user.name }}
         <div>
@@ -50,23 +50,6 @@
         </div>
         <div class="estimate" v-show="user.estimate !== ''">{{ user.estimate }}</div>
         <div class="estimate" v-show="user.estimate === ''">--</div>
-      </div>
-    </div>
-
-    <div id="join-session" class="row" v-show="!user.id">
-      <div class="col-4 offset-4">
-        <form @submit.prevent="setUsername">
-          <div class="form-group">
-            <div>
-              <span v-show="errors.name">{{errors.name}}</span>
-            </div>
-            <label for="this.user.name"></label>
-            <input type="text" v-model="user.name" class="form-control" id="this.user.name" placeholder="Your name/alias">
-            <div class="invalid-feedback">
-            </div>
-          </div>
-          <button type="submit" class="btn btn-lg btn-warning">Join</button>
-        </form>
       </div>
     </div>
 
@@ -91,7 +74,7 @@
     };
 
     beforeCreate() {
-      //document.body.className = 'no-bg';
+      document.body.className = 'bg';
     }
 
     created () {
@@ -132,9 +115,9 @@
       });
 
       let user_id = this.$route.params["userId"];
-      // if we are joining as an existing user (creator), get user details and assign to current
-      // user object
+      console.log(`Voting as user ID ${user_id}`);
       if (user_id) {
+        this.user.id = user_id;
         this.getRequest(`/api/user/${user_id}`).then((resp) => {
           return resp.json();
         }).then((json) => {
@@ -153,7 +136,9 @@
 
     userAddedWsHandler(json: {[key:string]:string}) {
       let user = User.fromJson(json);
-      this.session.users.push(user);
+      if (user.id != this.user.id) {
+        this.session.users.push(user);
+      }
     }
 
     userVotedHandler(json: {[key:string]:string}) {
@@ -245,30 +230,6 @@
             "session_id": this.session.id
           }
       ).catch((err: Error) => {
-        this.showError(err);
-      });
-    }
-
-    setUsername() {
-      this.postRequest(
-          "/api/user", {
-            "name": this.user.name,
-            "session_id": this.session.id
-          }
-      ).then((resp) => {
-        return resp.json();
-      }).then((json) => {
-        this.user.id = json["id"];
-        this.user.name = json["name"];
-        console.log("setting user to", this.user);
-
-        let watchCmd = {
-          "action": "WATCH",
-          "session_id": this.session.id,
-          "user_id": this.user.id
-        };
-        ws.send(JSON.stringify(watchCmd));
-      }).catch((err: Error) => {
         this.showError(err);
       });
     }

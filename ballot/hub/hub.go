@@ -221,6 +221,26 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 
 			if userId, ok := jsonData["user_id"].(string); ok {
 				p.associateSocketWithUser(sock, userId)
+
+				sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
+				log.Printf("Adding user [%s] to session [%s]", userId, sessionId)
+				err = p.store.AddToSet(sessionUserKey, userId)
+				if err != nil {log.Printf("%+v", err); return}
+
+				user, err := p.store.GetUser(userId)
+				if err != nil {log.Printf("%+v", err); return}
+
+				wsUser := response.WsNewUser{}
+				wsUser.Event = response.UserAddedEvent
+				wsUser.Name = user.Name
+				wsUser.UserId = user.UserId
+				wsUser.Estimate = user.Estimate
+
+				wsResp, err := json.Marshal(wsUser)
+				if err != nil {log.Printf("%+v", err); return}
+
+				err = p.Emit(sessionId, string(wsResp))
+				if err != nil {log.Printf("%+v", err); return}
 			}
 
 			// get session state - voting, not voting

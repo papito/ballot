@@ -355,7 +355,7 @@ func TestStateUserLeft(t *testing.T) {
 	session, users := createSessionAndUsers(numOfUsers, t)
 	createdUser := users[0]
 
-	err := srv.Service().RemoveUser(session.SessionId, createdUser.UserId)
+	err := srv.Service().RemoveUserFromSession(session.SessionId, createdUser.UserId)
 	if err != nil {t.Error(err)}
 
 	newNumOfUsers := numOfUsers - 1
@@ -367,7 +367,7 @@ func TestStateUserLeft(t *testing.T) {
 	assert.Equal(t, newNumOfUsers, userCount)
 
 	user, err := srv.Service().GetUser(createdUser.UserId)
-	assert.Empty(t, user)
+	assert.NotEmpty(t, user) // user still in DB
 }
 
 func TestVoteFinishedAfterUserLeft(t *testing.T) {
@@ -386,7 +386,7 @@ func TestVoteFinishedAfterUserLeft(t *testing.T) {
 	if err != nil {t.Error(err)}
 
 	// flake user does not vote and bails or gets disconnected
-	err = srv.Service().RemoveUser(session.SessionId, flakeUser.UserId)
+	err = srv.Service().RemoveUserFromSession(session.SessionId, flakeUser.UserId)
 	if err != nil {t.Error(err)}
 
 	// vote should be finished
@@ -400,34 +400,6 @@ func TestVoteFinishedAfterUserLeft(t *testing.T) {
 	key := fmt.Sprintf(db.Const.SessionState, session.SessionId)
 	sessionState, err := srv.Service().Store().GetInt(key)
 	assert.Equal(t, sessionState, model.NotVoting)
-}
-
-func TestSessionClearAfterAllUsersLeave(t *testing.T) {
-	numOfUsers := 3
-	session, users := createSessionAndUsers(numOfUsers, t)
-
-	err := srv.Service().StartVote(session.SessionId)
-	if err != nil {t.Error(err)}
-
-	for i := 0; i < numOfUsers; i++ {
-		err = srv.Service().RemoveUser(session.SessionId, users[i].UserId)
-	}
-
-	userCountKey := fmt.Sprintf(db.Const.UserCount, session.SessionId)
-	_, err = srv.Service().Store().GetInt(userCountKey)
-	assert.NotNil(t, err)
-
-	sessionUserIds, err := srv.Service().Store().GetSessionUserIds(session.SessionId)
-	if err != nil {t.Error(err)}
-	assert.Empty(t, sessionUserIds)
-
-	sessionStateKey := fmt.Sprintf(db.Const.SessionState, session.SessionId)
-	_, err = srv.Service().Store().GetInt(sessionStateKey)
-	assert.NotNil(t, err)
-
-	voteCountKey := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
-	_, err = srv.Service().Store().GetInt(voteCountKey)
-	assert.NotNil(t, err)
 }
 
 func TestEmptyUsername(t *testing.T) {
@@ -451,34 +423,5 @@ func TestDuplicateUsername(t *testing.T) {
 	_, err = srv.Service().CreateUser(session.SessionId, "username")
 	if err != nil {t.Error(err)}
 	_, err = srv.Service().CreateUser(session.SessionId, "username")
-	assert.NotNil(t, err)
-}
-
-/**
-A session is created before a first user. If there is a validation error or anything
- */
-func TestCleanupSessionAfterError(t *testing.T) {
-	session, err := srv.Service().CreateSession()
-	if err != nil {
-		t.Errorf("Could not create session: %s", err)
-	}
-
-	_, err = srv.Service().CreateUser(session.SessionId, "")
-	assert.NotNil(t, err)
-
-	userCountKey := fmt.Sprintf(db.Const.UserCount, session.SessionId)
-	_, err = srv.Service().Store().GetInt(userCountKey)
-	assert.NotNil(t, err)
-
-	sessionUserIds, err := srv.Service().Store().GetSessionUserIds(session.SessionId)
-	if err != nil {t.Error(err)}
-	assert.Empty(t, sessionUserIds)
-
-	sessionStateKey := fmt.Sprintf(db.Const.SessionState, session.SessionId)
-	_, err = srv.Service().Store().GetInt(sessionStateKey)
-	assert.NotNil(t, err)
-
-	voteCountKey := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
-	_, err = srv.Service().Store().GetInt(voteCountKey)
 	assert.NotNil(t, err)
 }

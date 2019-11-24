@@ -52,6 +52,7 @@ func NewServer(config config.Config) Server {
 	// Handlers
 	r := mux.NewRouter()
 	r.HandleFunc("/", server.indexHttpHandler).Methods("GET")
+	r.HandleFunc("/vote/{sessionId}", server.gotoVoteHandler).Methods("GET")
 	r.HandleFunc("/health", server.HealthHttpHandler).Methods("GET")
 	r.HandleFunc("/api/session", server.CreateSessionHttpHandler).Methods("POST")
 	r.HandleFunc("/api/user/{id}", server.GetUserHttpHandler).Methods("GET")
@@ -86,7 +87,25 @@ func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Serving Index")
+	type TemplateParams struct {
+		NoCache int
+		Domain  string
+	}
+
+	templateParams := TemplateParams{
+		NoCache: rand.Intn(1000000),
+		Domain:  p.service.Config().HttpHost,
+	}
+
+	err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
+	if err != nil {
+		log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
+	}
+}
+
+func (p server) gotoVoteHandler(w http.ResponseWriter, r *http.Request) {
+	//vars := mux.Vars(r)
+	//sessionId := vars["sessionId"]
 
 	type TemplateParams struct {
 		NoCache int

@@ -46,6 +46,6 @@ export class Session {
       domain = el.textContent;
     }
 
-    return `${domain}/?join=${this.id}`;
+    return `${domain}/#/vote/${this.id}`;
   }
 }

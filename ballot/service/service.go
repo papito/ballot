@@ -111,9 +111,6 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 	userName = strings.TrimSpace(userName)
 
 	if len(userName) < 1 {
-		err := p.CleanSessionIfEmpty(sessionId)
-		if err != nil {log.Printf("%+v", err); return model.User{}, err}
-
 		valErr := errors.ValidationError{
 			Field: "user.name",
 			ErrorStr: "This field cannot be empty"}
@@ -155,44 +152,18 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
 
 	if err != nil {log.Printf("%+v", err); return model.User{}, err}
 
-	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
-	err = p.store.AddToSet(sessionUserKey, userId)
-	if err != nil {log.Printf("%+v", err); return model.User{}, err}
-
 	userCountKey  := fmt.Sprintf(db.Const.UserCount, sessionId)
 	err = p.store.Incr(userCountKey, 1)
 	if err != nil {log.Printf("%+v", err); return model.User{}, err}
 
-	wsUser := response.WsNewUser{}
-	wsUser.Event = response.UserAddedEvent
-	wsUser.Name = user.Name
-	wsUser.UserId = user.UserId
-	wsUser.Estimate = user.Estimate
-
-	wsResp, err := json.Marshal(wsUser)
-	if err != nil {
-		log.Printf("%+v", errorx.EnsureStackTrace(err))
-		return model.User{}, errorx.EnsureStackTrace(err)
-	}
-
-	err = p.hub.Emit(sessionId, string(wsResp))
-	if err != nil {
-		log.Printf("%+v", errorx.EnsureStackTrace(err))
-		return model.User{}, errorx.EnsureStackTrace(err)
-	}
-
 	return user, nil
 }
 
-func (p *Service) RemoveUser(sessionId string, userId string) error {
-	log.Printf("REMOVING USER [%s]", userId)
-
-	userKey := fmt.Sprintf(db.Const.User, userId)
-	err := p.store.Del(userKey)
-	if err != nil {log.Printf("%+v", err); return err}
+func (p *Service) RemoveUserFromSession(sessionId string, userId string) error {
+	log.Printf("Removing user [%s] from session [%s]", userId, sessionId)
 
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
-	err = p.store.RemoveFromSet(sessionUserKey, userId)
+	err := p.store.RemoveFromSet(sessionUserKey, userId)
 	if err != nil {log.Printf("%+v", err); return err}
 
 	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
@@ -201,67 +172,14 @@ func (p *Service) RemoveUser(sessionId string, userId string) error {
 	_, err = p.store.GetInt(userCountKey)
 	if err != nil {log.Printf("%+v", err); return err}
 
-	userCount, err := p.store.GetInt(userCountKey)
-	if err != nil {log.Printf("%+v", err); return err}
-
 	err = p.store.Decr(userCountKey, 1)
 	if err != nil {log.Printf("%+v", err); return err}
-
-	err = p.CleanSessionIfEmpty(sessionId)
-	if err != nil {log.Printf("%+v", err); return err}
-
-	// if it was the only user, the session is purged, bail here
-	if userCount == 1 {
-		return nil
-	}
 
 	voteFinished, err := p.IsVoteFinished(sessionId)
 	if voteFinished == true {
 		err = p.FinishVote(sessionId)
 		if err != nil {log.Printf("%+v", err); return err}
 	}
-
-	return nil
-}
-
-func (p *Service) CleanSessionIfEmpty(sessionId string) error {
-	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
-
-	// if user count is 0, nuke the session to bits
-	userCount, err := p.store.GetInt(userCountKey)
-	if err != nil {log.Printf("%+v", err); return err}
-
-	if userCount == 0 {
-		err = p.DeleteSessionData(sessionId)
-		if err != nil {log.Printf("%+v", err); return err}
-	}
-
-	return nil
-}
-
-func (p *Service) DeleteSessionData(sessionId string) error {
-	// don't have to delete users, they are all gone anyway
-	log.Printf("DELETING SESSION DATA for [%s]", sessionId)
-
-	sessionUsersKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
-	err := p.store.Del(sessionUsersKey)
-	if err != nil {log.Printf("%+v", err); return err}
-
-	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
-	err = p.store.Del(userCountKey)
-	if err != nil {log.Printf("%+v", err); return err}
-
-	sessionStateKey := fmt.Sprintf(db.Const.SessionState, sessionId)
-	err = p.store.Del(sessionStateKey)
-	if err != nil {log.Printf("%+v", err); return err}
-
-	voteCountKey := fmt.Sprintf(db.Const.VoteCount, sessionId)
-	err = p.store.Del(voteCountKey)
-	if err != nil {log.Printf("%+v", err); return err}
-
-	// now that we are done with all the events, unsub to this session for the service connection
-	err = p.store.ServiceSubCon.Unsubscribe(sessionId)
-	if err != nil {log.Printf("%+v", err); return err}
 
 	return nil
 }
@@ -426,7 +344,7 @@ func(p *Service) processSubscriberEvent(sessionId string, data string) {
 			return
 		}
 
-		err = p.RemoveUser(sessionId, userId)
+		err = p.RemoveUserFromSession(sessionId, userId)
 		if err != nil {
 			log.Printf("Error removnig user: %+v", err)
 		}
