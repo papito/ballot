@@ -136,6 +136,7 @@
         return;
       }
       this.session.users.push(user);
+      this.session.users.sort((a, b) => a.joined.localeCompare(b.joined))
     }
 
     userVotedHandler(json: {[key:string]:string}) {
