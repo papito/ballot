@@ -184,12 +184,6 @@ func (p *Service) RemoveUserFromSession(sessionId string, userId string) error {
 	err = p.store.Decr(userCountKey, 1)
 	if err != nil {log.Printf("%+v", err); return err}
 
-	voteFinished, err := p.IsVoteFinished(sessionId)
-	if voteFinished == true {
-		err = p.FinishVote(sessionId)
-		if err != nil {log.Printf("%+v", err); return err}
-	}
-
 	return nil
 }
 

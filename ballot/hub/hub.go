@@ -218,6 +218,16 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			err := p.Subscribe(sock, sessionId)
 			if err != nil {log.Printf("%+v", err); return}
 
+			// get session state - voting, not voting
+			key := fmt.Sprintf(db.Const.SessionState, sessionId)
+			isVoting, err := redis.Int(c.Do("GET", key))
+			if err != nil {log.Printf("%+v", err); return}
+
+			sessionState := model.NotVoting
+			if isVoting == 1 {
+				sessionState = model.Voting
+			}
+
 			if userId, ok := jsonData["user_id"].(string); ok {
 				p.associateSocketWithUser(sock, userId)
 
@@ -237,9 +247,13 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 				wsUser.Event = response.UserAddedEvent
 				wsUser.Name = user.Name
 				wsUser.UserId = user.UserId
-				wsUser.Estimate = user.Estimate
 				wsUser.Joined = user.Joined
 				wsUser.Voted = user.Voted
+
+				// only expose votes when not voting
+				if sessionState == model.NotVoting {
+					wsUser.Estimate = user.Estimate
+				}
 
 				wsResp, err := json.Marshal(wsUser)
 				if err != nil {log.Printf("%+v", err); return}
@@ -248,18 +262,15 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 				if err != nil {log.Printf("%+v", err); return}
 			}
 
-			// get session state - voting, not voting
-			key := fmt.Sprintf(db.Const.SessionState, sessionId)
-			isVoting, err := redis.Int(c.Do("GET", key))
-			if err != nil {log.Printf("%+v", err); return}
-
-			sessionState := model.NotVoting
-			if isVoting == 1 {
-				sessionState = model.Voting
-			}
-
 			users, err := p.store.GetSessionUsers(sessionId)
 			if err != nil {log.Printf("%+v", err); return}
+
+			// null out estimates if still voting
+			for idx, _ := range users {
+				if sessionState == model.Voting {
+					users[idx].Estimate = model.NoEstimate
+				}
+			}
 
 			session := response.WsSession{
 				Event: Event.Watching,

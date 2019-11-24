@@ -384,17 +384,10 @@ func TestVoteFinishedAfterUserLeft(t *testing.T) {
 	err = srv.Service().RemoveUserFromSession(session.SessionId, flakeUser.UserId)
 	if err != nil {t.Error(err)}
 
-	// vote should be finished
-	// get last event - it should be the vote results as we are done
-	msg := testHub.Emitted[len(testHub.Emitted) - 1]
-	var voteResultsWsEvent response.WsVoteFinished
-	err = json.Unmarshal([]byte(msg), &voteResultsWsEvent)
-	assert.Equal(t, response.VoteFinishedEvent, voteResultsWsEvent.Event)
-	assert.Equal(t, numOfUsers - 1, len(voteResultsWsEvent.Users))
-
+	// vote should NOT be finished (reloading a page would expose votes)
 	key := fmt.Sprintf(db.Const.SessionState, session.SessionId)
 	sessionState, err := srv.Service().Store().GetInt(key)
-	assert.Equal(t, sessionState, model.NotVoting)
+	assert.Equal(t, sessionState, model.Voting)
 }
 
 func TestEmptyUsername(t *testing.T) {

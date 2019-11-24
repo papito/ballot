@@ -195,8 +195,6 @@
     }
 
     userLeftWsHandler(json: {[key:string]:any}) {
-      console.log("user left");
-
       let userId = json['user_id'];
 
       this.session.users = this.session.users.filter(function (user: User) {
