@@ -38,16 +38,28 @@ body.no-bg {
 
 #voters div.card {
   margin: .2em;
-  width: 18em;
-  height: 9.5em;
+  width: 9em;
+  height: 11em;
   border-radius: 1em;
   color: #fff;
-  padding-top: .6em;
+  padding-top: .8em;
   text-align: center;
-  font-size: 1.2em;
+  font-size: .9em;
   font-weight: bold;
   border: 1px solid #676767;
   background-color: #424242;
+}
+
+#voters div.card .name {
+  height: 3em;
+  line-height: 3em;
+  display: table-cell;
+}
+
+#voters div.card .name-text {
+  display: inline-block;
+  line-height: normal;
+  vertical-align: middle;
 }
 
 #voters div.voted {
@@ -55,15 +67,15 @@ body.no-bg {
 }
 
 #voters div.estimate {
-  font-size: 2.5em;
-  margin-top: .1em;
+  font-size: 2em;
+  margin-top: .7em;
   color: #fff;
 }
 
 div.card img {
   position: relative;
-  top: .5em;
-  height: 3em;
+  top: .6em;
+  height: 2em;
 }
 
 #ctrl-panels {
@@ -77,10 +89,7 @@ div.card img {
 }
 
 #start-ctrl-panel button {
-  width: 10em;
-}
-
-#copy-ctrl-panel {
+  width: 8em;
 }
 
 #copy-ctrl-panel input {
@@ -88,29 +97,36 @@ div.card img {
   color: gray;
 }
 
-#copy-ctrl-panel button {
+#copy-ctrl-panel button.btn-sm{
+  margin-left: .5em;
 }
 
 #choices {
-  padding: .8em;
   background-color: #262606;
-  display: flex;
-  justify-content: center;
   border-top: 1px solid #424242;
   border-bottom: 1px solid #424242;
+  justify-content: center;
+  text-align: center;
 }
 
 #choices .choice {
-  padding-left: 1em;
-  padding-right: 1em;
+  display: inline-block;
+}
+
+#choices .choice button {
+  width: 4em;
+  margin: .5em;
 }
 
 #join-session {
   text-align: center;
 }
 
-.noshow {
-  display: none;
+.visible {
+  visibility: visible !important;
+}
+.invisible {
+  visibility: hidden !important;
 }
 
 #criticalError {

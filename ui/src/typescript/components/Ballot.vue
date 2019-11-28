@@ -1,49 +1,60 @@
 <template>
   <div>
-    <div id="ctrl-panels" class="row">
-      <div id="start-ctrl-panel" class="col-6">
-        <div>
-          <button v-if="isIdle" v-on:click="startVote" class="btn btn-outline-success">
-            Start
-          </button>
+    <div class="row">
+      <div class="col-12 text-center">
+        <div id="ctrl-panels" class="row">
+          <div id="start-ctrl-panel" class="col-6">
+            <div>
+              <button v-if="isIdle" v-on:click="startVote" class="btn btn-outline-success">
+                Start
+              </button>
 
-          <button v-if="isVoting" v-on:click="finishVote" class="btn btn-outline-danger">
-            End Vote Now
-          </button>
-        </div>
-      </div>
-
-
-        <div id="copy-ctrl-panel" class="col-6">
-          <form @submit.prevent="copyJoinUrl">
-          <div class="row">
-            <div class="col-8">
-              <label for="sessionUrl" class="sr-only"></label>
-              <input type="text" :value="session.url()" class="form-control form-control-sm" id="sessionUrl" readonly>
-            </div>
-            <div class="col-4">
-              <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm mb-2">
-                Copy session url
+              <button v-if="isVoting" v-on:click="finishVote" class="btn btn-outline-danger">
+                End Vote Now
               </button>
             </div>
           </div>
-          </form>
-        </div>
 
+          <div id="copy-ctrl-panel" class="col-6">
+            <form @submit.prevent="copyJoinUrl">
+              <div class="row no-gutters">
+                <div class="d-none d-md-block col-md-8 text-right">
+                  <label for="sessionUrl" class="sr-only"></label>
+                  <input type="text" :value="session.url()" class="form-control form-control-sm" id="sessionUrl" readonly>
+                </div>
+                <div class="d-none d-md-block col-md-4 text-left">
+                  <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm">
+                    Copy Session URL
+                  </button>
+                </div>
+                <div class="col-12 d-md-none">
+                  <button v-on:click="copyJoinUrl" class="btn btn-outline-light">
+                    Copy URL
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="choices" v-show="isVoting">
       <div v-for="estimate in possibleEstimates" class="choice">
-        <button :value="estimate" v-on:click="castVote(estimate)" class="btn btn-outline-warning">{{estimate}}</button>
+        <button :value="estimate" v-on:click="castVote(estimate)" class="btn btn-outline-warning btn-sm">{{estimate}}</button>
       </div>
       <div v-show="!isVoting" v-for="estimate in possibleEstimates" class="choice">
-        <button  class="btn btn-outline-warning">&nbsp;&nbsp;</button>
+        <button  class="btn btn-outline-warning btn-sm">&nbsp;&nbsp;</button>
       </div>
     </div>
 
     <div id="voters">
       <div v-for="user in session.users" class="card" v-bind:class="{ voted: user.voted }">
-        {{ user.name }}
+        <div class="name">
+          <span class="name-text">
+          {{ user.name }}
+          </span>
+        </div>
         <div>
           <img v-show="user.voted" src="/ui/img/v.png">
           <img v-show="!user.voted" src="/ui/img/x.png">
@@ -67,7 +78,7 @@
     session: Session = new Session();
     user: User = new User();
 
-    readonly possibleEstimates:string[] = Array('¯\\_(ツ)_/¯', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100');
+    readonly possibleEstimates:string[] = Array('?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100');
 
     errors = {
       'user.name': ''
