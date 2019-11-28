@@ -22,13 +22,11 @@ var Const = struct {
 	SessionState string
 	SessionUsers string
 	User         string
-	UserCount    string
 	VoteCount    string
 }{
 	"session:%s:voting",
 	"session:%s:users",
 	"user:%s",
-	"session:%s:user_count",
 	"session:%s:vote_count",
 }
 
@@ -75,6 +73,13 @@ func (p *Store) Set(key string, val interface{}) error {
 	if err != nil {return err}
 
 	return nil
+}
+
+func (p *Store) GetSetLength(key string) (int, error) {
+	size, err := redis.Int(p.Pool.Get().Do("SCARD", key))
+	if err != nil {return 0, errorx.EnsureStackTrace(err)}
+
+	return size, nil
 }
 
 func (p *Store) Del(key string) error {

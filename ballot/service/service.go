@@ -96,10 +96,6 @@ func (p *Service) CreateSession() (model.Session, error) {
 	err := p.store.Set(key, model.NotVoting)
 	if err != nil {log.Printf("%+v", err); return model.Session{}, err}
 
-	key = fmt.Sprintf(db.Const.UserCount, sessionId)
-	err = p.store.Set(key, 0)
-	if err != nil {log.Printf("%+v", err); return model.Session{}, err}
-
 	key = fmt.Sprintf(db.Const.VoteCount, sessionId)
 	err = p.store.Set(key, 0)
 	if err != nil {log.Printf("%+v", err); return model.Session{}, err}
@@ -161,10 +157,6 @@ func (p *Service) AddUserToSession(sessionId string, userId string) error {
 	err := p.store.AddToSet(sessionUserKey, userId)
 	if err != nil {return err}
 
-	userCountKey  := fmt.Sprintf(db.Const.UserCount, sessionId)
-	err = p.store.Incr(userCountKey, 1)
-	if err != nil {return err}
-
 	return nil
 }
 
@@ -174,16 +166,6 @@ func (p *Service) RemoveUserFromSession(sessionId string, userId string) error {
 	sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
 	err := p.store.RemoveFromSet(sessionUserKey, userId)
 	if err != nil {log.Printf("%+v", err); return err}
-
-	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
-
-	// if the session is dead, this will blow up
-	_, err = p.store.GetInt(userCountKey)
-	if err != nil {log.Printf("%+v", err); return err}
-
-	err = p.store.Decr(userCountKey, 1)
-	if err != nil {log.Printf("%+v", err); return err}
-
 	return nil
 }
 
@@ -323,8 +305,7 @@ func (p * Service) IsVoteFinished(sessionId string) (bool, error) {
 	voteCount, err := p.store.GetInt(voteCountKey)
 	if err != nil {log.Printf("%+v", err); return false, err}
 
-	userCountKey := fmt.Sprintf(db.Const.UserCount, sessionId)
-	userCount, err := p.store.GetInt(userCountKey)
+	userCount, err := p.store.GetSetLength(fmt.Sprintf(db.Const.SessionUsers, sessionId))
 	if err != nil {log.Printf("%+v", err); return false, err}
 
 	return voteCount == userCount, nil

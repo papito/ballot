@@ -28,10 +28,6 @@ User state for a session is stored here, and yes, this assumes that a user can o
 
 A set of users in this current session.
 
-#### session:{session_id}:user_count -> Integer
-
-Number of users in a session.
-
 #### session:{session_id}:vote_count -> Integer
 
 Number of users in a session who cast a vote.

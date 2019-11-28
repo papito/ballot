@@ -236,10 +236,6 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 				err := p.store.AddToSet(sessionUserKey, userId)
 				if err != nil {return}
 
-				userCountKey  := fmt.Sprintf(db.Const.UserCount, sessionId)
-				err = p.store.Incr(userCountKey, 1)
-				if err != nil {return}
-
 				user, err := p.store.GetUser(userId)
 				if err != nil {log.Printf("%+v", err); return}
 
@@ -266,7 +262,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 			if err != nil {log.Printf("%+v", err); return}
 
 			// null out estimates if still voting
-			for idx, _ := range users {
+			for idx := range users {
 				if sessionState == model.Voting {
 					users[idx].Estimate = model.NoEstimate
 				}

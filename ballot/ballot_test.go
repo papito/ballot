@@ -115,10 +115,6 @@ func TestCreateSessionEndpoint(t *testing.T) {
 	sessionState, err := srv.Service().Store().GetInt(key)
 	assert.Equal(t, sessionState, model.NotVoting)
 
-	key = fmt.Sprintf(db.Const.UserCount, session.SessionId)
-	userCount, err := srv.Service().Store().GetInt(key)
-	assert.Equal(t, 0, userCount)
-
 	key = fmt.Sprintf(db.Const.VoteCount, session.SessionId)
 	voteCount, err := srv.Service().Store().GetInt(key)
 	assert.Equal(t, 0, voteCount)
@@ -152,10 +148,6 @@ func TestCreateUserEndpoint(t *testing.T) {
 	assert.Equal(t, model.NoEstimate, user.Estimate)
 	assert.NotNil(t, user.UserId)
 	assert.NotNil(t, user.Joined)
-
-	userCountKey := fmt.Sprintf(db.Const.UserCount, session.SessionId)
-	userCount, err := srv.Service().Store().GetInt(userCountKey)
-	assert.Equal(t, 0, userCount)
 }
 
 func TestStartVoteEndpoint(t *testing.T) {
@@ -356,10 +348,6 @@ func TestStateUserLeft(t *testing.T) {
 	newNumOfUsers := numOfUsers - 1
 	userIds, err := srv.Service().Store().GetSessionUserIds(session.SessionId)
 	assert.Len(t, userIds, newNumOfUsers)
-
-	key := fmt.Sprintf(db.Const.UserCount, session.SessionId)
-	userCount, err := srv.Service().Store().GetInt(key)
-	assert.Equal(t, newNumOfUsers, userCount)
 
 	user, err := srv.Service().GetUser(createdUser.UserId)
 	assert.NotEmpty(t, user) // user still in DB
