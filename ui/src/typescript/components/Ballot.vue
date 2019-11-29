@@ -41,7 +41,12 @@
 
     <div id="choices" v-show="isVoting">
       <div v-for="estimate in possibleEstimates" class="choice">
-        <button :value="estimate" v-on:click="castVote(estimate)" class="btn btn-outline-warning btn-sm">{{estimate}}</button>
+        <button :value="estimate"
+                v-on:click="castVote(estimate)"
+                class="btn btn-outline-warning btn-sm"
+                v-bind:class="{ active: estimate === user.estimate }">
+          {{estimate}}
+        </button>
       </div>
       <div v-show="!isVoting" v-for="estimate in possibleEstimates" class="choice">
         <button  class="btn btn-outline-warning btn-sm">&nbsp;&nbsp;</button>
@@ -179,8 +184,8 @@
     }
 
     votingStartedWsHandler() {
-      console.log("updating session state");
       this.session.status = SessionState.VOTING;
+      this.user.estimate = NO_ESTIMATE;
 
       for (let user of this.session.users) {
         user.estimate = NO_ESTIMATE;
@@ -229,7 +234,9 @@
           "/api/vote/start", {
             "session_id": this.session.id
           }
-      ).catch((err: Error) => {
+      ).then(() => {
+        this.user.estimate = NO_ESTIMATE;
+      }).catch((err: Error) => {
         this.showError(err);
       });
     }
@@ -251,7 +258,10 @@
             "user_id": this.user.id,
             "estimate": estimate
           }
-      ).catch((err: Error) => {
+      ).then(() => {
+        // the server will not return the estimate but we need to store it for our own state
+        this.user.estimate = estimate;
+      }).catch((err: Error) => {
         this.showError(err);
       });
     }
