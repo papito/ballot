@@ -5,12 +5,16 @@
         <div class="row">
           <div class="col-6">
             <div id="start-ctrl-panel">
-              <button v-if="isIdle" v-on:click="startVote" class="btn btn-outline-success btn-block">
-                Start
+              <button v-if="isIdle"
+                      v-on:click="startVote"
+                      class="btn btn-outline-success btn-block">
+                <span class="oi oi-media-play icon" aria-hidden="true"></span>Start
               </button>
 
-              <button v-if="isVoting" v-on:click="finishVote" class="btn btn-outline-danger btn-block">
-                End Vote Now
+              <button v-if="isVoting"
+                      v-on:click="finishVote"
+                      class="btn btn-outline-danger btn-block">
+                <span class="oi oi-media-stop icon" aria-hidden="true"></span>End Vote Now
               </button>
             </div>
           </div>
@@ -25,7 +29,7 @@
                   </div>
                   <div class="d-none d-lg-block col-md-4 text-left">
                     <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm">
-                      Copy Session URL
+                      <span class="oi oi-clipboard icon" aria-hidden="true"></span>Copy Session URL
                     </button>
                   </div>
                   <div class="col-12 d-md-none">

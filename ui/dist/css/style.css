@@ -139,3 +139,7 @@ div.card img {
   background-color: #78100e;
   color: #fff;
 }
+
+button span.icon {
+  margin-right: .5em;
+}
