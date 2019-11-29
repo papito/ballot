@@ -49,18 +49,21 @@
     </div>
 
     <div id="voters">
-      <div v-for="user in session.users" class="card" v-bind:class="{ voted: user.voted }">
+      <div v-for="u in session.users" class="card" v-bind:class="{ voted: u.voted }">
         <div class="name">
-          <span class="name-text">
-          {{ user.name }}
+          <span class="name-text" v-show="u.id !== user.id">
+          {{ u.name }}
+          </span>
+          <span class="name-text" v-show="u.id === user.id">
+            [{{ u.name }}]
           </span>
         </div>
         <div>
-          <img v-show="user.voted" src="/ui/img/v.png">
-          <img v-show="!user.voted" src="/ui/img/x.png">
+          <img v-show="u.voted" src="/ui/img/v.png">
+          <img v-show="!u.voted" src="/ui/img/x.png">
         </div>
-        <div class="estimate" v-show="user.estimate !== ''">{{ user.estimate }}</div>
-        <div class="estimate" v-show="user.estimate === ''">--</div>
+        <div class="estimate" v-show="u.estimate !== ''">{{ u.estimate }}</div>
+        <div class="estimate" v-show="u.estimate === ''">--</div>
       </div>
     </div>
 
