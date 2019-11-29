@@ -88,8 +88,8 @@ div.card img {
   justify-content: center;
 }
 
-#start-ctrl-panel button {
-  width: 8em;
+#copy-ctrl-panel {
+  padding-top: .2em;
 }
 
 #copy-ctrl-panel input {

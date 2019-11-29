@@ -1,39 +1,41 @@
 <template>
   <div>
-    <div class="row">
-      <div class="col-12 text-center">
-        <div id="ctrl-panels" class="row">
-          <div id="start-ctrl-panel" class="col-6">
-            <div>
-              <button v-if="isIdle" v-on:click="startVote" class="btn btn-outline-success">
+    <div id="ctrl-panels" class="row no-gutters">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-6">
+            <div id="start-ctrl-panel">
+              <button v-if="isIdle" v-on:click="startVote" class="btn btn-outline-success btn-block">
                 Start
               </button>
 
-              <button v-if="isVoting" v-on:click="finishVote" class="btn btn-outline-danger">
+              <button v-if="isVoting" v-on:click="finishVote" class="btn btn-outline-danger btn-block">
                 End Vote Now
               </button>
             </div>
           </div>
 
-          <div id="copy-ctrl-panel" class="col-6">
-            <form @submit.prevent="copyJoinUrl">
-              <div class="row no-gutters">
-                <div class="d-none d-md-block col-md-8 text-right">
-                  <label for="sessionUrl" class="sr-only"></label>
-                  <input type="text" :value="session.url()" class="form-control form-control-sm" id="sessionUrl" readonly>
+          <div class="col-6">
+            <div id="copy-ctrl-panel">
+              <form @submit.prevent="copyJoinUrl">
+                <div class="row no-gutters">
+                  <div class="d-none d-lg-block col-md-8 text-right">
+                    <label for="sessionUrl" class="sr-only"></label>
+                    <input type="text" :value="session.url()" class="form-control form-control-sm" id="sessionUrl" readonly>
+                  </div>
+                  <div class="d-none d-lg-block col-md-4 text-left">
+                    <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm">
+                      Copy Session URL
+                    </button>
+                  </div>
+                  <div class="col-12 d-md-none">
+                    <button v-on:click="copyJoinUrl" class="btn btn-outline-light">
+                      Copy URL
+                    </button>
+                  </div>
                 </div>
-                <div class="d-none d-md-block col-md-4 text-left">
-                  <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm">
-                    Copy Session URL
-                  </button>
-                </div>
-                <div class="col-12 d-md-none">
-                  <button v-on:click="copyJoinUrl" class="btn btn-outline-light">
-                    Copy URL
-                  </button>
-                </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>
