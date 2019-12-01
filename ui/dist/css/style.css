@@ -88,17 +88,14 @@ div.card img {
   justify-content: center;
 }
 
-#copy-ctrl-panel {
-  padding-top: .2em;
-}
-
 #copy-ctrl-panel input {
   background-color: #1b1e21;
   color: gray;
 }
 
-#copy-ctrl-panel button.btn-sm{
+#copy-ctrl-panel button.btn-sm, #copy-ctrl-panel .form-control-sm {
   margin-left: .5em;
+  margin-top: .3em;
 }
 
 #choices {
