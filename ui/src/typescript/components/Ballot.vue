@@ -7,13 +7,13 @@
             <div id="start-ctrl-panel">
               <button v-if="isIdle"
                       v-on:click="startVote"
-                      class="btn btn-outline-success btn-block">
+                      class="btn btn-outline-success">
                 <span class="oi oi-media-play icon" aria-hidden="true"></span>Start
               </button>
 
               <button v-if="isVoting"
                       v-on:click="finishVote"
-                      class="btn btn-outline-danger btn-block">
+                      class="btn btn-outline-danger">
                 <span class="oi oi-media-stop icon" aria-hidden="true"></span>End Vote Now
               </button>
             </div>
