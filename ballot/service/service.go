@@ -14,6 +14,7 @@ import (
 	"github.com/papito/ballot/ballot/model"
 	"github.com/papito/ballot/ballot/model/response"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -256,6 +257,10 @@ func (p *Service) StartVote(sessionId string) error {
 	err = p.store.Set(key, 0)
 	if err != nil {log.Printf("%+v", err); return err}
 
+	key = fmt.Sprintf(db.Const.Tally, sessionId)
+	err = p.store.Set(key, "")
+	if err != nil {log.Printf("%+v", err); return err}
+
 	// reset user state
 	userIds, err := p.store.GetSessionUserIds(sessionId)
 
@@ -286,9 +291,23 @@ func (p *Service) FinishVote(sessionId string) error {
 	users, err := p.store.GetSessionUsers(sessionId)
 	if err != nil {log.Printf("%+v", err); return err}
 
+	estimates := make([]string, 0)
+
+	for _, user := range users {
+		estimates = append(estimates, user.Estimate)
+	}
+
+	tally, err := p.GetVoteResult(estimates)
+	if err != nil {return err}
+
+	key = fmt.Sprintf(db.Const.Tally, sessionId)
+	err = p.store.Set(key, tally)
+	if err != nil {log.Printf("%+v", err); return err}
+
 	session := response.WsVoteFinished{
 		Event: response.VoteFinishedEvent,
 		Users: users,
+		Tally: tally,
 	}
 
 	data, err := json.Marshal(session)
@@ -332,5 +351,65 @@ func(p *Service) processSubscriberEvent(sessionId string, data string) {
 		if err != nil {
 			log.Printf("Error removnig user: %+v", err)
 		}
+	}
+}
+
+func(p *Service) GetVoteResult(sInputs []string) (string, error) {
+	if len(sInputs) == 0 {
+		return "?", nil
+	}
+
+	inputs := make([]int, 0)
+
+	var counts = map[int]int{}
+
+	// convert to ints first
+	for _, sInput := range sInputs {
+		if sInput == "" || sInput == "?" {
+			continue
+		}
+
+		iInput, err := strconv.Atoi(sInput)
+		if err != nil {log.Printf("%+v", errorx.EnsureStackTrace(err)); return "", err}
+		inputs = append(inputs, iInput)
+	}
+
+	if len(inputs) == 0 {
+		return "?", nil
+	}
+
+	// group the same estimates, key is the estimate, value is the count
+	for _, input := range inputs {
+		counts[input] = counts[input] + 1
+	}
+
+	counters := make([]int, len(counts))
+
+	for _, count := range counts {
+		counters = append(counters, count)
+	}
+	sort.Ints(counters)
+
+	// and the highest count of same estimates is?
+	frequentEstimateCount := counters[len(counters) - 1]
+
+	// get the estimates with the same highest count, could be be 1 or more
+	mostFreqEstimates := make([]int, 0)
+
+	for estimate, count := range counts {
+		if count == frequentEstimateCount {
+			mostFreqEstimates = append(mostFreqEstimates, estimate)
+		}
+	}
+
+	sort.Ints(mostFreqEstimates)
+
+	// the end result is the range of the most frequent estimates
+	if len(mostFreqEstimates) == 1 {
+		return fmt.Sprintf("%d", mostFreqEstimates[0]), nil
+	} else if len(mostFreqEstimates) > 1 {
+		return fmt.Sprintf("%d - %d", mostFreqEstimates[0], mostFreqEstimates[len(mostFreqEstimates) - 1]), nil
+	} else {
+		return "?", nil
 	}
 }

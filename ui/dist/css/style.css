@@ -98,7 +98,7 @@ div.card img {
   margin-top: .3em;
 }
 
-#choices {
+#choices, #tally {
   background-color: #262606;
   border-top: 1px solid #424242;
   border-bottom: 1px solid #424242;

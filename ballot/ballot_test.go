@@ -277,11 +277,13 @@ func TestCastAllVotes(t *testing.T) {
 	key = fmt.Sprintf(db.Const.SessionState, session.SessionId)
 	sessionState, err := srv.Service().Store().GetInt(key)
 	assert.Equal(t, sessionState, model.NotVoting)
+
+	key = fmt.Sprintf(db.Const.Tally, session.SessionId)
+	tally, err := srv.Service().Store().GetStr(key)
+	assert.Equal(t, "3", tally)
 }
 
-/*
-We want to make sure that all users in the session start with a "clean record"
- */
+// We want to make sure that all users in the session start with a "clean record"
 func TestNewVoteState(t *testing.T) {
 	numOfUsers := 2
 	session, users := createSessionAndUsers(numOfUsers, t)
@@ -305,6 +307,9 @@ func TestNewVoteState(t *testing.T) {
 		assert.Equal(t, false, user.Voted)
 	}
 
+	key := fmt.Sprintf(db.Const.Tally, session.SessionId)
+	tally, err := srv.Service().Store().GetStr(key)
+	assert.Equal(t, "", tally)
 }
 
 func TestRepeatedVote(t *testing.T) {
@@ -361,8 +366,7 @@ func TestVoteFinishedAfterUserLeft(t *testing.T) {
 	err := srv.Service().StartVote(session.SessionId)
 	if err != nil {t.Error(err)}
 
-	/* Two users vote. Vote is not finished.
-	 */
+	//Two users vote. Vote is not finished.
 	_, err = srv.Service().CastVote(session.SessionId, users[1].UserId, "3")
 	if err != nil {t.Error(err)}
 	_, err = srv.Service().CastVote(session.SessionId, users[2].UserId, "8")
@@ -403,4 +407,29 @@ func TestDuplicateUsername(t *testing.T) {
 
 	_, err = srv.Service().CreateUser(session.SessionId, "username")
 	assert.NotNil(t, err)
+}
+
+func TestVoteResult(t *testing.T) {
+	type CaseT []string
+
+	// a test case is a list, where the FIRST element is the result
+	var cases []CaseT
+	cases = append(cases, CaseT{"20", "20"})
+	cases = append(cases, CaseT{"1", "1", "1"})
+	cases = append(cases, CaseT{"1", "1", "2", "1"})
+	cases = append(cases, CaseT{"2 - 8", "3", "3", "3", "1", "2", "2", "2", "8", "8", "8", "100"})
+	cases = append(cases, CaseT{"1 - 100", "1", "2", "100"})
+	cases = append(cases, CaseT{"3 - 5", "3", "5"})
+	cases = append(cases, CaseT{"3 - 5", "3", "3", "5", "5"})
+	cases = append(cases, CaseT{"?", "?"})
+	cases = append(cases, CaseT{"?", "?", "?"})
+	cases = append(cases, CaseT{"3", "1", "?", "?", "3", "3"})
+
+	for _, testCase := range cases {
+		expected := testCase[0]
+		inputs := testCase[1:]
+		result, err := srv.Service().GetVoteResult(inputs)
+		if err != nil {t.Error(err)}
+		assert.Equal(t, expected, result)
+	}
 }

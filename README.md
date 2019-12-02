@@ -32,6 +32,10 @@ A set of users in this current session.
 
 Number of users in a session who cast a vote.
 
+#### session:{session_id}:tally -> String
+
+Final vote tally.
+
 #### session:{session_id}:voting -> Flag
 
   * 0 - Not voting (idle before start, or vote finished) 

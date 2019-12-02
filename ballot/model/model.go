@@ -18,10 +18,6 @@ type PendingVote struct {
 	// Pending vote has no estimate since we are hiding it while the vote is going on
 }
 
-type VoteResults struct {
-	Votes[] User `json:"users"`
-}
-
 const (
 	NotVoting = iota
 	Voting

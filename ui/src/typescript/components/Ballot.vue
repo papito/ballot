@@ -55,8 +55,12 @@
         </button>
       </div>
       <div v-show="!isVoting" v-for="estimate in possibleEstimates" class="choice">
-        <button  class="btn btn-outline-warning btn-sm">&nbsp;&nbsp;</button>
+        <button class="btn btn-outline-warning btn-sm">&nbsp;&nbsp;</button>
       </div>
+    </div>
+
+    <div id="tally" v-show="isIdle">
+      <button class="btn btn-outline-warning btn-sm">{{session.tally}}</button>
     </div>
 
     <div id="voters">
@@ -155,6 +159,11 @@
       });
     }
 
+    clearState() {
+      this.user.estimate = NO_ESTIMATE;
+      this.session.tally = NO_ESTIMATE;
+    }
+
     userAddedWsHandler(json: {[key:string]:string}) {
       let user = User.fromJson(json);
       if (user.id == this.user.id) { // do not re-add yourself
@@ -181,6 +190,7 @@
 
     watchingSessionWsHandler(json: {[key:string]:any}) {
       this.session.status = json["session_state"];
+      this.session.tally = json["tally"];
 
       let users: any = json["users"] || [];
       for (let userJson of users) {
@@ -191,7 +201,7 @@
 
     votingStartedWsHandler() {
       this.session.status = SessionState.VOTING;
-      this.user.estimate = NO_ESTIMATE;
+      this.clearState();
 
       for (let user of this.session.users) {
         user.estimate = NO_ESTIMATE;
@@ -203,6 +213,7 @@
       console.log("vote finished");
       this.session.status = SessionState.IDLE;
       let usersJson: any = json["users"] || [];
+      let tally: string = json["tally"];
 
       for (let userJson of usersJson) {
         let user = User.fromJson(userJson);
@@ -216,6 +227,7 @@
         }
         sessionUser.voted = user.voted;
         sessionUser.estimate = user.estimate;
+        this.session.tally = tally;
       }
     }
 
@@ -241,7 +253,7 @@
             "session_id": this.session.id
           }
       ).then(() => {
-        this.user.estimate = NO_ESTIMATE;
+        this.clearState();
       }).catch((err: Error) => {
         this.showError(err);
       });

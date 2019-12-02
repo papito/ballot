@@ -12,6 +12,7 @@ type WsVoteStarted struct {
 
 type WsVoteFinished struct {
 	Users []model.User `json:"users"`
+	Tally string `json:"tally"`
 	Event string `json:"event"`
 }
 
@@ -29,6 +30,7 @@ type WsSession struct {
 	Event        string `json:"event"`
 	SessionState int    `json:"session_state"`
 	Users []model.User  `json:"users"`
+	Tally string        `json:"tally"`
 }
 
 type WsUserLeftEvent struct {

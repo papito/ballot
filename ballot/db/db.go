@@ -23,11 +23,13 @@ var Const = struct {
 	SessionUsers string
 	User         string
 	VoteCount    string
+	Tally        string
 }{
 	"session:%s:voting",
 	"session:%s:users",
 	"user:%s",
 	"session:%s:vote_count",
+	"session:%s:tally",
 }
 
 func newPool(server string) *redis.Pool {
@@ -111,6 +113,14 @@ func (p *Store) GetInt(key string) (int, error) {
 	defer p.Close(c)
 	val, err := redis.Int(c.Do("GET", key))
 	if err != nil {return 0, errorx.EnsureStackTrace(err)}
+	return val, nil
+}
+
+func (p *Store) GetStr(key string) (string, error) {
+	c  := p.Pool.Get()
+	defer p.Close(c)
+	val, err := redis.String(c.Do("GET", key))
+	if err != nil {return "", errorx.EnsureStackTrace(err)}
 	return val, nil
 }
 

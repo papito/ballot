@@ -268,10 +268,15 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 				}
 			}
 
+			key = fmt.Sprintf(db.Const.Tally, sessionId)
+			tally, err := p.store.GetStr(key)
+			if err != nil {log.Printf("%+v", err)}
+
 			session := response.WsSession{
 				Event: Event.Watching,
 				SessionState: sessionState,
 				Users: users,
+				Tally: tally,
 			}
 
 			data, err := json.Marshal(session)

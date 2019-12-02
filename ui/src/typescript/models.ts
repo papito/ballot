@@ -37,6 +37,7 @@ export class PendingVote {
 
 export class Session {
   id: string = "";
+  tally: string = "";
   status: SessionState = SessionState.IDLE;
   users: User[] = [];
 
