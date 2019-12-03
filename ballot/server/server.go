@@ -15,7 +15,6 @@ import (
 	"github.com/papito/ballot/ballot/service"
 	"html/template"
 	"log"
-	"math/rand"
 	"net/http"
 )
 
@@ -88,12 +87,10 @@ func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
 
 func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
 	type TemplateParams struct {
-		NoCache int
 		Domain  string
 	}
 
 	templateParams := TemplateParams{
-		NoCache: rand.Intn(1000000),
 		Domain:  p.service.Config().HttpHost,
 	}
 
@@ -108,12 +105,10 @@ func (p server) gotoVoteHandler(w http.ResponseWriter, r *http.Request) {
 	//sessionId := vars["sessionId"]
 
 	type TemplateParams struct {
-		NoCache int
 		Domain  string
 	}
 
 	templateParams := TemplateParams{
-		NoCache: rand.Intn(1000000),
 		Domain:  p.service.Config().HttpHost,
 	}
 
