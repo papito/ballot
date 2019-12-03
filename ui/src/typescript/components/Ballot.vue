@@ -169,6 +169,17 @@
       if (user.id == this.user.id) { // do not re-add yourself
         return;
       }
+
+      /* To address a race condition that might happen when a user
+         refreshes - check that this is not a duplicate.
+       */
+      let existingUser = this.session.users.find(function(u) {
+        return u.id == user.id;
+      });
+      if (existingUser) {
+        return;
+      }
+
       this.session.users.push(user);
       this.session.users.sort((a, b) => a.joined.localeCompare(b.joined))
     }
