@@ -2,6 +2,8 @@
 
 A web-based replacement for physical Scrum estimation cards, most useful for distributed teams. 
 
+![Ballot](img/snapshot.png)
+
 ## Integrations
 
 Ballot is not meant to be integrated with systems like Slack or JIRA. It is meant to be a frictionless voting tool, 
