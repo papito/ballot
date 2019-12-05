@@ -79,7 +79,7 @@ Note that this will install local Redis in the container, but that instance can 
 
 User state for a session is stored here, and yes, this assumes that a user can only vote in one session.
 
-| Field    | Type/Example          |
+| Field    | Type                  |
 |----------|-----------------------|
 | id       | UUID                  |
 | name     | String                |
