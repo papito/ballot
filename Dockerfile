@@ -27,4 +27,4 @@ COPY start.sh ./
 
 EXPOSE 8080
 WORKDIR /app
-CMD ["./start.sh"]
+CMD ["./entrypoint.sh"]
