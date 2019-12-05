@@ -125,9 +125,6 @@ func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p server) gotoVoteHandler(w http.ResponseWriter, r *http.Request) {
-	//vars := mux.Vars(r)
-	//sessionId := vars["sessionId"]
-
 	type TemplateParams struct {
 		Domain  string
 	}
