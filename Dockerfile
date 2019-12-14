@@ -7,7 +7,7 @@ RUN npm ci
 RUN ./node_modules/.bin/webpack --mode=production
 
 #----------------------------
-FROM golang:1.12 AS build_service
+FROM golang:1.13 AS build_service
 COPY . /app
 
 WORKDIR /app/ballot
@@ -23,7 +23,7 @@ RUN mkdir /app/server
 COPY --from=build_service /app/ballot/ballot /app/server/ballot
 COPY --from=build_ui /app/ui/dist/ ./ui/dist/
 COPY --from=build_ui /app/ui/templates/ ./ui/templates/
-COPY start.sh ./
+COPY entrypoint.sh ./
 
 EXPOSE 8080
 WORKDIR /app
