@@ -7,30 +7,30 @@ A web-based replacement for physical Scrum estimation cards, most useful for dis
 # Installing and running
 
 To just get it working out of the box:
-    
+
     docker pull papito/ballot:latest
     docker run -td --name ballot papito/ballot:latest
 
 With more options:
-    
+
     docker pull papito/ballot:latest
     docker run -td --name ballot -e"REDIS_URL=redis://your optional redis" -e"HTTP_HOST=http://your optional ballot host"  papito/ballot:latest
 
 
 ## Integrations
 
-Ballot is not meant to be integrated with systems like Slack or JIRA. It is meant to be a frictionless voting tool, 
+Ballot is not meant to be integrated with systems like Slack or JIRA. It is meant to be a frictionless voting tool,
 and any integration with 3rd-party systems is:
 
   * More unnecessary work
   * Extra clicks for a task that should be very simple
 
-Users in a voting session already *know* what story they are discussing. The voting cards don't need to know what it is. 
+Users in a voting session already *know* what story they are discussing. The voting cards don't need to know what it is.
 The group uses Ballot to take a vote, enter the result into whatever system they leverage, and that's it.
 
 ## Development setup
 
-### Prerequisites 
+### Prerequisites
   * Computer technology
   * Docker Compose
   * Node
@@ -66,8 +66,15 @@ Note that this will install local Redis in the container, but that instance can 
 
   * HTTP_PORT - dictates which port the application will run on.
   * HTTP_HOST - used to correctly display the session URL (does not affect the behavior).
-  * REDIS_URL - full Redis URL (with `redis://`). Otherwise will connect to Docker Redis on the default port.
+  * REDIS_URL - Redis URL (as in `localhost:6379`). Otherwise will connect to Docker Redis on the default port.
   * ENV - context environment. `test`, `development`, or `production`. You can ignore this.
+
+
+### Connecting to Redis on Docker host
+
+By default, the Docker container will have its own Redis instance, but you can have a persistent Redis running on Redis
+host, by using the `--network="host"` flag of Docker `run` command.
+
 
 ## Running tests
 
@@ -75,7 +82,7 @@ Note that this will install local Redis in the container, but that instance can 
 
 ### Redis schema
 
-#### user:{user_id} -> Hash 
+#### user:{user_id} -> Hash
 
 User state for a session is stored here, and yes, this assumes that a user can only vote in one session.
 
@@ -86,7 +93,7 @@ User state for a session is stored here, and yes, this assumes that a user can o
 | estimate | String                |
 | joined   | String (datetime)     |
 
-`estimate` is an empty string by default. 
+`estimate` is an empty string by default.
 
 `joined` is used to initially sort users in a session by the order in which they had joined.
 
@@ -104,5 +111,5 @@ Final vote tally.
 
 #### session:{session_id}:voting -> Int
 
-  * 0 - Not voting (idle before start, or vote finished) 
+  * 0 - Not voting (idle before start, or vote finished)
   * 1 - Voting
