@@ -14,7 +14,7 @@ To just get it working out of the box:
 With more options:
 
     docker pull papito/ballot:latest
-    docker run -td --name ballot -e"REDIS_URL=redis://your optional redis" -e"HTTP_HOST=http://your optional ballot host"  papito/ballot:latest
+    docker run -td --name ballot -e"REDIS_URL=[redis host]" -e"HTTP_HOST=http://your optional ballot host"  papito/ballot:latest
 
 
 ## Integrations
