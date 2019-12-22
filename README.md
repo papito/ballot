@@ -1,6 +1,6 @@
 # Ballot
 
-A web-based replacement for physical Scrum estimation cards, most useful for distributed teams. [Try it at ballot.renegadeotter.com](http://ballot.renegadeotter.com).
+A web-based replacement for physical Scrum estimation cards, most useful for distributed teams. Try it at [ballot.renegadeotter.com](https://ballot.renegadeotter.com).
 
 ![Ballot](img/snapshot.png)
 
