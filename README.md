@@ -72,11 +72,11 @@ Note that this will install local Redis in the container, but that instance can 
 
 ### Connecting to Redis on Docker host
 
-By default, the Docker container will have its own Redis instance, but you can have a persistent Redis running on Redis
+By default, the Docker container will have its own Redis instance, but you can have a persistent Redis running on Docker
 host, by using the `--network="host"` flag of Docker `run` command.
 
 
-## Running tests
+### Running tests
 
     make test
 
