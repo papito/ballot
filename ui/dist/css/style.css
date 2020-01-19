@@ -184,3 +184,26 @@ div.card img {
 button span.icon {
   margin-right: .5em;
 }
+
+footer
+{
+  padding-top: .4em;
+  clear: both;
+  border: 1px groove #262606;
+  background-color: #000;
+  color: #fff;
+  vertical-align: middle;
+  margin: 0;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+footer a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+footer .source {
+  text-align: right;
+}
