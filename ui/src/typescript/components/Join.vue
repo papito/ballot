@@ -39,7 +39,7 @@
           </div>
         </div>
         <button v-on:click="joinAsVoter" class="btn btn-lg btn-success">Join as a voter</button>
-        <button v-on:click="joinAsObserver" class="btn btn-lg btn-warning">Join as an innocent observer</button>
+        <button v-on:click="joinAsObserver" class="btn btn-lg btn-warning">Join as an innocent bystander</button>
       </div>
     </div>
   </div>
