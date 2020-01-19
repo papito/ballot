@@ -28,7 +28,8 @@
       <div class="col-sm-4 offset-sm-4">
         <div class="form-group">
           <label for="this.user.name"></label>
-          <input type="text"
+          <input v-focus
+                 type="text"
                  maxlength="60"
                  v-model="user.name"
                  class="form-control"

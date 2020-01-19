@@ -69,13 +69,8 @@ export class Session {
   observers: User[] = [];
 
   url(): string {
-    const el: HTMLElement | null = document.getElementById('paramDomain');
-    let domain: string | null  =  "";
-
-    if (el) {
-      domain = el.textContent;
-    }
-
+    let domain: string | null | undefined =
+        document.getElementById('paramDomain')?.textContent;
     return `${domain}/#/vote/${this.id}`;
   }
 }

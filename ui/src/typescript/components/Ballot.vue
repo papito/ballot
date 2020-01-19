@@ -240,7 +240,7 @@
       }
 
       this.session.observers.push(observer);
-      this.session.observers.sort((a, b) => a.joined.localeCompare(b.joined))
+      this.session.observers.sort((a, b) => a.joined.localeCompare(b.joined));
       this.observerNames = this.getObserverNames();
     }
 
