@@ -86,20 +86,26 @@ host, by using the `--network="host"` flag of Docker `run` command.
 
 User state for a session is stored here, and yes, this assumes that a user can only vote in one session.
 
-| Field    | Type                  |
-|----------|-----------------------|
-| id       | UUID                  |
-| name     | String                |
-| estimate | String                |
-| joined   | String (datetime)     |
+| Field       | Type                  |
+|-------------|-----------------------|
+| id          | UUID                  |
+| name        | String                |
+| estimate    | String                |
+| joined      | String (datetime)     |
+| is_observer | Flag                  |
 
 `estimate` is an empty string by default.
 
-`joined` is used to initially sort users in a session by the order in which they had joined.
+`joined` is used to sort users in a session by the order in which they had joined, 
+to make the order deterministic. 
 
 #### session:{session_id}:users -> Set
 
 A set of users in this current session.
+
+#### session:{session_id}:observers -> Set
+
+A set of observers in this current session.
 
 #### session:{session_id}:vote_count -> Int
 

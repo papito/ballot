@@ -35,6 +35,7 @@ export class User {
   estimate: string = NO_ESTIMATE;
   voted: boolean = false;
   joined: string = "";
+  is_observer: boolean = false;
 
   static fromJson(json: {[key:string]:string}) {
     let user = new User();
@@ -43,6 +44,7 @@ export class User {
     user.estimate = json["estimate"];
     user.voted = Boolean(json["voted"]);
     user.joined = json["joined"];
+    user.is_observer = Boolean(json["is_observer"]);
     return user;
   }
 }
@@ -64,8 +66,9 @@ export class Session {
   tally: string = "";
   status: SessionState = SessionState.IDLE;
   users: User[] = [];
+  observers: User[] = [];
 
-  url() {
+  url(): string {
     const el: HTMLElement | null = document.getElementById('paramDomain');
     let domain: string | null  =  "";
 

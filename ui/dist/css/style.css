@@ -101,12 +101,47 @@ div.card img {
   margin-left: .5em;
 }
 
-#choices, #tally {
+#choices {
   background-color: #262606;
   border-top: 1px solid #424242;
   border-bottom: 1px solid #424242;
   justify-content: center;
   text-align: center;
+}
+
+#tally.observer {
+  border-top: 1px solid #272727;
+  justify-content: center;
+  text-align: center;
+}
+
+#tally.observed {
+  background-color: #262606;
+  border-top: 1px solid #424242;
+  border-bottom: 1px solid #424242;
+  justify-content: center;
+  text-align: center;
+}
+
+#tally {
+  color: #fff;
+  font-size: 2em;
+  font-weight: bold;
+}
+
+#observers.observed {
+  color: #fff;
+  padding-top: .5em;
+  padding-bottom: .5em;
+  border-bottom: 1px solid #262606;
+}
+
+#observers.observer {
+  color: #fff;
+  padding: .5em;
+  background-color: #262606;
+  border-top: 1px solid #424242;
+  border-bottom: 1px solid #424242;
 }
 
 #choices .choice {
@@ -119,7 +154,13 @@ div.card img {
 }
 
 #join-session {
+  padding-top: 15%;
   text-align: center;
+}
+
+#join-session button {
+  width: 100%;
+  margin-top: 1em;
 }
 
 .visible {

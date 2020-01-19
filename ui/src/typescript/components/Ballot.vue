@@ -69,7 +69,7 @@
       </div>
     </div>
 
-    <div id="choices" v-show="isVoting">
+    <div id="choices" v-show="isVoting && !user.is_observer">
       <div v-for="estimate in possibleEstimates" class="choice">
         <button :value="estimate"
                 v-on:click="castVote(estimate)"
@@ -83,8 +83,13 @@
       </div>
     </div>
 
-    <div id="tally" v-show="isIdle">
-      <button class="btn btn-outline-warning btn-sm">{{session.tally}}</button>
+    <div id="tally" v-show="isIdle" v-bind:class="{ observer: user.is_observer, observed: !user.is_observer }">
+      {{session.tally}}
+    </div>
+
+    <div id="observers" v-show="session.observers.length > 0" v-bind:class="{ observer: user.is_observer, observed: !user.is_observer }">
+      <strong v-show="!user.is_observer">Watching you</strong>
+      <strong v-show="user.is_observer">Watchers</strong>: <span v-text="observerNames"/>
     </div>
 
     <div id="voters">
@@ -94,7 +99,7 @@
           {{ u.name }}
           </span>
           <span class="name-text" v-show="u.id === user.id">
-            [{{ u.name }}]
+            [&nbsp;{{ u.name }}&nbsp;]
           </span>
         </div>
         <div>
@@ -119,6 +124,7 @@
   export default class Ballot extends Mixins<HttpMixin>(HttpMixin)  {
     session: Session = new Session();
     user: User = new User();
+    observerNames: string = "";
 
     readonly possibleEstimates:string[] = Array('?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100');
 
@@ -145,6 +151,10 @@
             this.userAddedWsHandler(json);
             break;
           }
+          case "OBSERVER_ADDED": {
+            this.observerAddedWsHandler(json);
+            break;
+          }
           case "WATCHING": {
             this.watchingSessionWsHandler(json);
             break;
@@ -165,6 +175,10 @@
             this.userLeftWsHandler(json);
             break
           }
+          case "OBSERVER_LEFT": {
+            this.observerLeftWsHandler(json);
+            break
+          }
         }
       });
 
@@ -175,7 +189,8 @@
         let watchCmd = {
           "action": "WATCH",
           "session_id": this.session.id,
-          "user_id": this.user.id
+          "user_id": this.user.id,
+          "is_observer": this.user.is_observer
         };
         ws.send(JSON.stringify(watchCmd));
       }).catch((err: Error) => {
@@ -208,6 +223,27 @@
       this.session.users.sort((a, b) => a.joined.localeCompare(b.joined))
     }
 
+    observerAddedWsHandler(json: {[key:string]:string}) {
+      let observer = User.fromJson(json);
+      if (observer.id == this.user.id) { // do not re-add yourself
+        return;
+      }
+
+      /* To address a race condition that might happen when a user
+         refreshes - check that this is not a duplicate.
+       */
+      let existingUser = this.session.users.find(function(u) {
+        return u.id == observer.id;
+      });
+      if (existingUser) {
+        return;
+      }
+
+      this.session.observers.push(observer);
+      this.session.observers.sort((a, b) => a.joined.localeCompare(b.joined))
+      this.observerNames = this.getObserverNames();
+    }
+
     userVotedHandler(json: {[key:string]:string}) {
       let voteArg: PendingVote = PendingVote.fromJson(json);
 
@@ -232,6 +268,14 @@
         let user = User.fromJson(userJson);
         this.session.users.push(user);
       }
+
+      let observers: any = json["observers"] || [];
+      for (let observerJson of observers) {
+        let observer = User.fromJson(observerJson);
+        this.session.observers.push(observer);
+      }
+
+      this.observerNames = this.getObserverNames();
     }
 
     votingStartedWsHandler() {
@@ -268,10 +312,17 @@
 
     userLeftWsHandler(json: {[key:string]:any}) {
       let userId = json['user_id'];
-
       this.session.users = this.session.users.filter(function (user: User) {
         return user.id != userId;
       });
+    }
+
+    observerLeftWsHandler(json: {[key:string]:any}) {
+      let userId = json['user_id'];
+      this.session.observers = this.session.observers.filter(function (user: User) {
+        return user.id != userId;
+      });
+      this.observerNames = this.getObserverNames();
     }
 
     get isVoting() {
@@ -330,6 +381,15 @@
       }
 
       copyToClipboard(this.session.url());
+    }
+
+    getObserverNames(): string {
+      let userNames = new Array<String>();
+
+      for (let obs of this.session.observers) {
+        userNames.push(obs.name);
+      }
+      return userNames.join(", ");
     }
   }
 </script>

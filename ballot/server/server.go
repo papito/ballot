@@ -253,7 +253,7 @@ func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     var user model.User
-    user, err = p.service.CreateUser(reqObj.SessionId, reqObj.UserName)
+    user, err = p.service.CreateUser(reqObj.SessionId, reqObj.UserName, reqObj.IsObserver == 1)
 
     if err != nil {
         log.Printf("%+v", errorx.EnsureStackTrace(err))
