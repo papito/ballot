@@ -53,8 +53,9 @@ type WsUserVote struct {
 type WsSession struct {
 	Event        string `json:"event"`
 	SessionState int    `json:"session_state"`
-	Users []model.User  `json:"users"`
-	Tally string        `json:"tally"`
+	Users        []model.User  `json:"users"`
+	Observers    []model.User  `json:"observers"`
+	Tally        string        `json:"tally"`
 }
 
 type WsUserLeftEvent struct {
@@ -63,9 +64,15 @@ type WsUserLeftEvent struct {
 	UserId   string `json:"user_id"`
 }
 
+type WsObserverLeftEvent struct {
+	Event    string `json:"event"`
+	SessionId   string `json:"session_id"`
+	UserId   string `json:"user_id"`
+}
 
 const (
 	UserAddedEvent = "USER_ADDED"
+	ObserverAddedEvent = "OBSERVER_ADDED"
 	UserVotedEVent = "USER_VOTED"
 	VoteStartedEVent = "VOTING"
 	VoteFinishedEvent = "VOTE_FINISHED"

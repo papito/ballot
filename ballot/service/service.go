@@ -128,7 +128,7 @@ func (p *Service) CreateSession() (model.Session, error) {
     return session, nil
 }
 
-func (p *Service) CreateUser(sessionId string, userName string) (model.User, error) {
+func (p *Service) CreateUser(sessionId string, userName string, isObserver bool) (model.User, error) {
     userName = strings.TrimSpace(userName)
 
     if len(userName) < 1 {
@@ -139,7 +139,7 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
     }
 
     // check for a duplicate user in this session
-    currentUsers, err := p.store.GetSessionUsers(sessionId)
+    currentUsers, err := p.store.GetSessionVoters(sessionId)
     if err != nil {log.Printf("%+v", err); return model.User{}, err}
 
     for _, user := range currentUsers {
@@ -157,10 +157,11 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
     log.Printf("Creating user [%s] and id [%s]", userName, userId)
 
     user := model.User{
-        UserId:   userId,
-        Name:     userName,
-        Estimate: model.NoEstimate,
-        Joined: joined,
+        UserId:     userId,
+        Name:       userName,
+        Estimate:   model.NoEstimate,
+        Joined:     joined,
+        IsObserver: isObserver,
     }
 
     userKey := fmt.Sprintf(db.Const.User, userId)
@@ -169,7 +170,8 @@ func (p *Service) CreateUser(sessionId string, userName string) (model.User, err
         "name", user.Name,
         "id", user.UserId,
         "estimate", user.Estimate,
-        "joined", user.Joined)
+        "joined", user.Joined,
+        "is_observer", isObserver)
 
     if err != nil {log.Printf("%+v", err); return model.User{}, err}
 
@@ -190,6 +192,15 @@ func (p *Service) RemoveUserFromSession(sessionId string, userId string) error {
 
     sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
     err := p.store.RemoveFromSet(sessionUserKey, userId)
+    if err != nil {log.Printf("%+v", err); return err}
+    return nil
+}
+
+func (p *Service) RemoveObserver(sessionId string, userId string) error {
+    log.Printf("Removing observer [%s] from session [%s]", userId, sessionId)
+
+    sessionObserverKey := fmt.Sprintf(db.Const.SessionObservers, sessionId)
+    err := p.store.RemoveFromSet(sessionObserverKey, userId)
     if err != nil {log.Printf("%+v", err); return err}
     return nil
 }
@@ -286,7 +297,7 @@ func (p *Service) StartVote(sessionId string) error {
     if err != nil {log.Printf("%+v", err); return err}
 
     // reset user state
-    userIds, err := p.store.GetSessionUserIds(sessionId)
+    userIds, err := p.store.GetSessionVoterIds(sessionId)
 
     for i := 0; i < len(userIds); i++ {
         userId := userIds[i]
@@ -312,7 +323,7 @@ func (p *Service) FinishVote(sessionId string) error {
     err := p.store.Set(key, model.NotVoting)
     if err != nil {log.Printf("%+v", err); return err}
 
-    users, err := p.store.GetSessionUsers(sessionId)
+    users, err := p.store.GetSessionVoters(sessionId)
     if err != nil {log.Printf("%+v", err); return err}
 
     estimates := make([]string, 0)
@@ -374,6 +385,19 @@ func(p *Service) processSubscriberEvent(sessionId string, data string) {
         err = p.RemoveUserFromSession(sessionId, userId)
         if err != nil {
             log.Printf("Error removnig user: %+v", err)
+        }
+    }
+
+    if event == Event.ObserverLeft {
+        userId, ok := jsonData["user_id"].(string)
+        if !ok {
+            log.Printf("no user_id found in: %v", data)
+            return
+        }
+
+        err = p.RemoveObserver(sessionId, userId)
+        if err != nil {
+            log.Printf("Error removing observer: %+v", err)
         }
     }
 }

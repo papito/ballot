@@ -26,20 +26,19 @@
   <div>
     <div id="join-session" class="row">
       <div class="col-sm-4 offset-sm-4">
-        <form @submit.prevent="setUsername">
-          <div class="form-group">
-            <label for="this.user.name"></label>
-            <input type="text"
-                   maxlength="60"
-                   v-model="user.name"
-                   class="form-control"
-                   id="this.user.name"
-                   placeholder="Your name/alias">
-            <div class="invalid-feedback">
-            </div>
+        <div class="form-group">
+          <label for="this.user.name"></label>
+          <input type="text"
+                 maxlength="60"
+                 v-model="user.name"
+                 class="form-control"
+                 id="this.user.name"
+                 placeholder="Your name/alias">
+          <div class="invalid-feedback">
           </div>
-          <button type="submit" class="btn btn-lg btn-warning">Join</button>
-        </form>
+        </div>
+        <button v-on:click="joinAsVoter" class="btn btn-lg btn-success">Join as a voter</button>
+        <button v-on:click="joinAsObserver" class="btn btn-lg btn-warning">Join as an innocent observer</button>
       </div>
     </div>
   </div>
@@ -55,6 +54,7 @@
   export default class Ballot extends Mixins<HttpMixin>(HttpMixin)  {
     session: Session = new Session();
     user: User = new User();
+    is_observer = 0;
 
     errors = {
       'user.name': ''
@@ -69,11 +69,21 @@
       console.log(`Joining session ${this.session.id}`);
     }
 
-    setUsername() {
+    joinAsVoter() {
+      this.join();
+    }
+
+    joinAsObserver() {
+      this.is_observer = 1;
+      this.join();
+    }
+
+    join() {
       this.postRequest(
           "/api/user", {
             "name": this.user.name,
-            "session_id": this.session.id
+            "session_id": this.session.id,
+            "is_observer": this.is_observer
           }
       ).then((resp) => {
         return resp.json();

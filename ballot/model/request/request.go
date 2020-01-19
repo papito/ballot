@@ -25,8 +25,9 @@
 package request
 
 type CreateUserRequest struct {
-    UserName  string `json:"name"`
-    SessionId string `json:"session_id"`
+    UserName   string `json:"name"`
+    SessionId  string `json:"session_id"`
+    IsObserver int    `json:"is_observer"`
 }
 
 type StartVoteRequest struct {

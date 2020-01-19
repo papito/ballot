@@ -84,7 +84,7 @@ func createSessionAndUsers(numOfUsers int, t *testing.T) (session model.Session,
 
 	users := make([]model.User, numOfUsers)
 	for i := 0; i < numOfUsers; i++ {
-		user, err := srv.Service().CreateUser(session.SessionId, RandString(20))
+		user, err := srv.Service().CreateUser(session.SessionId, RandString(20), false)
 		if err != nil {t.Errorf("Could not create user: %s", err)}
 
 		err = srv.Service().AddUserToSession(session.SessionId, user.UserId)
@@ -257,7 +257,7 @@ func TestCastOneVote(t *testing.T) {
 	voteCount, err := srv.Service().Store().GetInt(voteCountKey)
 	assert.Equal(t, 1, voteCount)
 
-	storedUsers, err := srv.Service().Store().GetSessionUsers(session.SessionId)
+	storedUsers, err := srv.Service().Store().GetSessionVoters(session.SessionId)
 	if err != nil {t.Error(err)}
 
 	for i := 0; i < userCount; i++ {
@@ -307,6 +307,41 @@ func TestCastAllVotes(t *testing.T) {
 	assert.Equal(t, "3", tally)
 }
 
+func TestCastAllVotesWithAnObserver(t *testing.T) {
+	numOfUsers := 3
+	session, users := createSessionAndUsers(numOfUsers, t)
+
+	_, err := srv.Service().CreateUser(session.SessionId, RandString(20), true)
+	clearHubEvents()
+
+	err = srv.Service().StartVote(session.SessionId)
+	if err != nil {t.Error(err)}
+
+	for i := 0; i < numOfUsers; i++ {
+		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, "3")
+		if err != nil {t.Error(err)}
+	}
+
+	key := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
+	voteCount, err := srv.Service().Store().GetInt(key)
+	assert.Equal(t, numOfUsers, voteCount)
+
+	// get last event - it should be the vote results as we are done
+	msg := testHub.Emitted[len(testHub.Emitted) - 1]
+	var voteResultsWsEvent response.WsVoteFinished
+	err = json.Unmarshal([]byte(msg), &voteResultsWsEvent)
+	assert.Equal(t, response.VoteFinishedEvent, voteResultsWsEvent.Event)
+	assert.Equal(t, numOfUsers, len(voteResultsWsEvent.Users))
+
+	key = fmt.Sprintf(db.Const.SessionState, session.SessionId)
+	sessionState, err := srv.Service().Store().GetInt(key)
+	assert.Equal(t, sessionState, model.NotVoting)
+
+	key = fmt.Sprintf(db.Const.Tally, session.SessionId)
+	tally, err := srv.Service().Store().GetStr(key)
+	assert.Equal(t, "3", tally)
+}
+
 // We want to make sure that all users in the session start with a "clean record"
 func TestNewVoteState(t *testing.T) {
 	numOfUsers := 2
@@ -322,7 +357,7 @@ func TestNewVoteState(t *testing.T) {
 	err = srv.Service().StartVote(session.SessionId)
 	if err != nil {t.Error(err)}
 
-	usersForNewSession, err := srv.Service().Store().GetSessionUsers(session.SessionId)
+	usersForNewSession, err := srv.Service().Store().GetSessionVoters(session.SessionId)
 	if err != nil {t.Error(err)}
 
 	for i := 0; i < numOfUsers; i++ {
@@ -375,7 +410,7 @@ func TestStateUserLeft(t *testing.T) {
 	if err != nil {t.Error(err)}
 
 	newNumOfUsers := numOfUsers - 1
-	userIds, err := srv.Service().Store().GetSessionUserIds(session.SessionId)
+	userIds, err := srv.Service().Store().GetSessionVoterIds(session.SessionId)
 	assert.Len(t, userIds, newNumOfUsers)
 
 	user, err := srv.Service().GetUser(createdUser.UserId)
@@ -410,13 +445,13 @@ func TestEmptyUsername(t *testing.T) {
 	session, err  := srv.Service().CreateSession()
 	if err != nil {t.Errorf("Could not create session: %s", err)}
 
-	_, err = srv.Service().CreateUser(session.SessionId, "")
+	_, err = srv.Service().CreateUser(session.SessionId, "", false)
 	assert.NotNil(t, err)
 
-	_, err = srv.Service().CreateUser(session.SessionId, "   ")
+	_, err = srv.Service().CreateUser(session.SessionId, "   ", false)
 	assert.NotNil(t, err)
 
-	_, err = srv.Service().CreateUser(session.SessionId, "  \n\n\t\t")
+	_, err = srv.Service().CreateUser(session.SessionId, "  \n\n\t\t", false)
 	assert.NotNil(t, err)
 }
 
@@ -424,14 +459,15 @@ func TestDuplicateUsername(t *testing.T) {
 	session, err  := srv.Service().CreateSession()
 	if err != nil {t.Errorf("Could not create session: %s", err)}
 
-	user, err := srv.Service().CreateUser(session.SessionId, "username")
+	user, err := srv.Service().CreateUser(session.SessionId, "username", false)
 	if err != nil {t.Error(err)}
 	err = srv.Service().AddUserToSession(session.SessionId, user.UserId)
 	if err != nil {t.Error(err)}
 
-	_, err = srv.Service().CreateUser(session.SessionId, "username")
+	_, err = srv.Service().CreateUser(session.SessionId, "username", false)
 	assert.NotNil(t, err)
 }
+
 
 func TestVoteResult(t *testing.T) {
 	type CaseT []string

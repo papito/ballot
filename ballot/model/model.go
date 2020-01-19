@@ -34,6 +34,7 @@ type User struct {
     Estimate string `json:"estimate"`
     Voted    bool   `json:"voted"`
     Joined   string `json:"joined"`
+    IsObserver bool `json:"is_observer"`
 }
 
 type PendingVote struct {

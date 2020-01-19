@@ -50,12 +50,13 @@ type IHub interface {
 }
 
 var Event = struct{
-    Start    string
-    Restart  string
-    Vote     string
-    Watch    string
-    Watching string
-    UserLeft string
+    Start        string
+    Restart      string
+    Vote         string
+    Watch        string
+    Watching     string
+    UserLeft     string
+    ObserverLeft string
 }{
     "START",
     "RESTART",
@@ -63,6 +64,7 @@ var Event = struct{
     "WATCH",
     "WATCHING",
     "USER_LEFT",
+    "OBSERVER_LEFT",
 }
 
 type Hub struct {
@@ -162,13 +164,28 @@ func (p * Hub) unsubscribeAll(sock *glue.Socket) error {
         }
 
         userId, _ := p.userMap[sock]
-        event := response.WsUserLeftEvent{
-            Event:     Event.UserLeft,
-            SessionId: sessionId,
-            UserId:    userId,
+
+        user, err := p.store.GetUser(userId)
+        if err != nil {return errorx.EnsureStackTrace(err)}
+
+        var data []byte
+
+        if user.IsObserver {
+            event := response.WsObserverLeftEvent{
+                Event:     Event.ObserverLeft,
+                SessionId: sessionId,
+                UserId:    userId,
+            }
+            data, err = json.Marshal(event)
+        } else  {
+            event := response.WsUserLeftEvent{
+                Event:     Event.UserLeft,
+                SessionId: sessionId,
+                UserId:    userId,
+            }
+            data, err = json.Marshal(event)
         }
 
-        data, err := json.Marshal(event)
         if err != nil {return errorx.EnsureStackTrace(err)}
         err = p.Emit(sessionId, string(data))
         if err != nil {return errorx.EnsureStackTrace(err)}
@@ -255,20 +272,35 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
             if userId, ok := jsonData["user_id"].(string); ok {
                 p.associateSocketWithUser(sock, userId)
 
-                sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
-                log.Printf("Adding user [%s] to session [%s]", userId, sessionId)
-                err := p.store.AddToSet(sessionUserKey, userId)
-                if err != nil {return}
-
                 user, err := p.store.GetUser(userId)
                 if err != nil {log.Printf("%+v", err); return}
 
+                if user.IsObserver {
+                    sessionObserverKey := fmt.Sprintf(db.Const.SessionObservers, sessionId)
+                    log.Printf("Adding observer [%s] to session [%s]", userId, sessionId)
+                    err = p.store.AddToSet(sessionObserverKey, userId)
+                    if err != nil {return}
+
+                } else {
+                    sessionUserKey := fmt.Sprintf(db.Const.SessionUsers, sessionId)
+                    log.Printf("Adding voter [%s] to session [%s]", userId, sessionId)
+                    err = p.store.AddToSet(sessionUserKey, userId)
+                    if err != nil {return}
+                }
+
                 wsUser := response.WsNewUser{}
-                wsUser.Event = response.UserAddedEvent
+                if user.IsObserver {
+                    wsUser.Event = response.ObserverAddedEvent
+
+                } else {
+                    wsUser.Event = response.UserAddedEvent
+                }
+
                 wsUser.Name = user.Name
                 wsUser.UserId = user.UserId
                 wsUser.Joined = user.Joined
                 wsUser.Voted = user.Voted
+                wsUser.IsObserver = user.IsObserver
 
                 // only expose votes when not voting
                 if sessionState == model.NotVoting {
@@ -282,7 +314,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
                 if err != nil {log.Printf("%+v", err); return}
             }
 
-            users, err := p.store.GetSessionUsers(sessionId)
+            users, err := p.store.GetSessionVoters(sessionId)
             if err != nil {log.Printf("%+v", err); return}
 
             // null out estimates if still voting
@@ -292,6 +324,9 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
                 }
             }
 
+            observers, err := p.store.GetSessionObservers(sessionId)
+            if err != nil {log.Printf("%+v", err); return}
+
             key = fmt.Sprintf(db.Const.Tally, sessionId)
             tally, err := p.store.GetStr(key)
             if err != nil {log.Printf("%+v", err)}
@@ -300,6 +335,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
                 Event: Event.Watching,
                 SessionState: sessionState,
                 Users: users,
+                Observers: observers,
                 Tally: tally,
             }
 

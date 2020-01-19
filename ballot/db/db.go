@@ -32,6 +32,7 @@ import (
     "github.com/papito/ballot/ballot/model"
     "log"
     "sort"
+    "strconv"
     "time"
 )
 
@@ -43,14 +44,16 @@ type Store struct {
 }
 
 var Const = struct {
-    SessionState string
-    SessionUsers string
-    User         string
-    VoteCount    string
-    Tally        string
+    SessionState     string
+    SessionUsers     string
+    SessionObservers string
+    User             string
+    VoteCount        string
+    Tally            string
 }{
     "session:%s:voting",
     "session:%s:users",
+    "session:%s:observers",
     "user:%s",
     "session:%s:vote_count",
     "session:%s:tally",
@@ -179,10 +182,22 @@ func (p *Store) GetHashKey(key string, field string) (string, error) {
     return val, nil
 }
 
-func (p* Store) GetSessionUserIds(sessionId string) ([]string, error) {
+func (p* Store) GetSessionVoterIds(sessionId string) ([]string, error) {
     c  := p.Pool.Get()
     defer p.Close(c)
     key := fmt.Sprintf(Const.SessionUsers, sessionId)
+    userIds, err := redis.Strings(c.Do("SMEMBERS", key))
+    if err != nil {
+        return make([]string, 0), errorx.EnsureStackTrace(err)
+    }
+
+    return userIds, nil
+}
+
+func (p* Store) GetSessionObserverIds(sessionId string) ([]string, error) {
+    c  := p.Pool.Get()
+    defer p.Close(c)
+    key := fmt.Sprintf(Const.SessionObservers, sessionId)
     userIds, err := redis.Strings(c.Do("SMEMBERS", key))
     if err != nil {
         return make([]string, 0), errorx.EnsureStackTrace(err)
@@ -214,10 +229,29 @@ func (p *Store) RemoveFromSet(key string, val string) error {
     return nil
 }
 
-func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
-    userIds, err := p.GetSessionUserIds(sessionId)
-    if err != nil {return make([]model.User, 0), errorx.EnsureStackTrace(err)}
-    log.Printf("Session voters for [%s]: %s", sessionId, userIds)
+func (p *Store) GetSessionVoters(sessionId string) ([]model.User, error) {
+    return p.GetUsers(sessionId, false)
+}
+
+func (p *Store) GetSessionObservers(sessionId string) ([]model.User, error) {
+    return p.GetUsers(sessionId, true)
+}
+
+func (p *Store) GetUsers(sessionId string, isObserver bool) ([]model.User, error) {
+    var userIds = make([]string, 0)
+    var err error
+
+    if isObserver {
+        userIds, err = p.GetSessionObserverIds(sessionId)
+        if err != nil {return make([]model.User, 0), errorx.EnsureStackTrace(err)}
+
+    } else {
+        userIds, err = p.GetSessionVoterIds(sessionId)
+        if err != nil {return make([]model.User, 0), errorx.EnsureStackTrace(err)}
+
+    }
+
+    log.Printf("Session users for [%s]: %s", sessionId, userIds)
 
     c  := p.Pool.Get()
     defer p.Close(c)
@@ -244,13 +278,15 @@ func (p *Store) GetSessionUsers(sessionId string) ([]model.User, error) {
             m, _ := redis.StringMap(r, nil)
 
             estimate := m["estimate"]
+            isObserver, _ := strconv.Atoi(m["is_observer"])
 
             user := model.User{
-                UserId:   m["id"],
-                Name:     m["name"],
-                Estimate: estimate,
-                Voted:    estimate != model.NoEstimate,
-                Joined:  m["joined"],
+                UserId:     m["id"],
+                Name:       m["name"],
+                Estimate:   estimate,
+                Voted:      estimate != model.NoEstimate,
+                Joined:     m["joined"],
+                IsObserver: isObserver == 1,
             }
             users = append(users, user)
         default:
@@ -276,12 +312,15 @@ func (p *Store) GetUser(userId string) (model.User, error) {
 
     m, _ := redis.StringMap(resp, nil)
     estimate := m["estimate"]
+    isObserver, _ := strconv.Atoi(m["is_observer"])
+
     user := model.User{
         UserId:   m["id"],
         Name:     m["name"],
         Estimate: estimate,
         Voted:    estimate != model.NoEstimate,
         Joined:   m["joined"],
+        IsObserver: isObserver == 1,
     }
 
     return user, nil
