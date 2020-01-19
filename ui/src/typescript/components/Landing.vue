@@ -38,7 +38,7 @@
             <div class="invalid-feedback">
             </div>
           </div>
-          <button type="button" class="btn btn-lg btn-warning" v-on:click="goVote">New Voting Space</button>
+          <button type="button" class="btn btn-lg btn-success" v-on:click="goVote">New Voting Space</button>
         </form>
       </div>
     </div>
