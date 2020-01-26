@@ -1,20 +1,29 @@
-# Ballot
+# Ballot ![Publish Docker](https://github.com/papito/ballot/workflows/Publish%20Docker/badge.svg?branch=master)
 
 A web-based replacement for physical Scrum estimation cards, most useful for distributed teams. Try it at [ballot.renegadeotter.com](https://ballot.renegadeotter.com).
 
 ![Ballot](img/snapshot.png)
 
-# Installing and running
+## Features
+
+- A vote will end automatically when all votes are in
+- A vote can be finalized even if someone doesn't vote, because they are raiding the company fridge
+- Observers can join a vote
+- There is no admin - anyone can start/stop a vote
+- Fortified against foreign interference and social media trolls
+- Takes into account your actual estimate and your *feelings* about the estimate, using imitation AI
+
+## Installing and running
 
 To just get it working out of the box:
 
     docker pull papito/ballot:latest
-    docker run -td --name ballot papito/ballot:latest
+    docker run -td -p8080:8080 --name ballot papito/ballot:latest
 
 With more options:
 
     docker pull papito/ballot:latest
-    docker run -td --name ballot -e"REDIS_URL=[redis host]" -e"HTTP_HOST=http://your optional ballot host"  papito/ballot:latest
+    docker run -td -p8080:8080 --name ballot -e"REDIS_URL=[redis host]" -e"HTTP_HOST=http://your optional ballot host"  papito/ballot:latest
 
 
 ## Integrations
@@ -80,7 +89,7 @@ host, by using the `--network="host"` flag of Docker `run` command.
 
     make test
 
-### Redis schema
+## Redis schema
 
 #### user:{user_id} -> Hash
 
@@ -96,14 +105,14 @@ User state for a session is stored here, and yes, this assumes that a user can o
 
 `estimate` is an empty string by default.
 
-`joined` is used to sort users in a session by the order in which they had joined, 
-to make the order deterministic. 
+`joined` is used to sort users in a session by the order in which they had joined,
+to make the order deterministic.
 
-#### session:{session_id}:users -> Set
+#### session:{session_id}:users -> Set[String]
 
 A set of users in this current session.
 
-#### session:{session_id}:observers -> Set
+#### session:{session_id}:observers -> Set[String]
 
 A set of observers in this current session.
 
