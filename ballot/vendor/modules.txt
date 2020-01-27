@@ -5,15 +5,15 @@ github.com/davecgh/go-spew/spew
 # github.com/desertbit/glue v0.0.0-20190619185959-06de07e1e404
 github.com/desertbit/glue
 github.com/desertbit/glue/backend
-github.com/desertbit/glue/log
-github.com/desertbit/glue/utils
+github.com/desertbit/glue/backend/closer
 github.com/desertbit/glue/backend/global
 github.com/desertbit/glue/backend/sockets/ajaxsocket
 github.com/desertbit/glue/backend/sockets/websocket
-github.com/desertbit/glue/backend/closer
+github.com/desertbit/glue/log
+github.com/desertbit/glue/utils
 # github.com/gomodule/redigo v2.0.0+incompatible
-github.com/gomodule/redigo/redis
 github.com/gomodule/redigo/internal
+github.com/gomodule/redigo/redis
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
 # github.com/gorilla/mux v1.7.3
@@ -26,11 +26,21 @@ github.com/joomcode/errorx
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
+# github.com/shurcooL/httpgzip v0.0.0-20190720172056-320755c1c1b0
+github.com/shurcooL/httpgzip
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.4.0
 github.com/stretchr/testify/assert
+# golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa
+golang.org/x/net/http/httpguts
+golang.org/x/net/idna
 # golang.org/x/sys v0.0.0-20190422165155-953cdadca894
 golang.org/x/sys/unix
+# golang.org/x/text v0.3.0
+golang.org/x/text/secure/bidirule
+golang.org/x/text/transform
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
 # gopkg.in/yaml.v2 v2.2.2
 gopkg.in/yaml.v2
