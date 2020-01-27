@@ -1,6 +1,7 @@
 const { VueLoaderPlugin } = require('vue-loader');
-var path = require('path')
-var webpack = require('webpack')
+const path = require('path');
+const webpack = require('webpack');
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   mode: 'development',
@@ -10,6 +11,7 @@ module.exports = {
     publicPath: '/dist/',
     filename: 'app.js'
   },
+  externals: [ nodeExternals() ],
   module: {
     rules: [
       {
