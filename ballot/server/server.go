@@ -37,6 +37,7 @@ import (
     "github.com/papito/ballot/ballot/model/request"
     "github.com/papito/ballot/ballot/model/response"
     "github.com/papito/ballot/ballot/service"
+    "github.com/shurcooL/httpgzip"
     "html/template"
     "log"
     "net/http"
@@ -69,8 +70,12 @@ func NewServer(config config.Config) Server {
     }
 
     // Serve static files
-    fs := http.FileServer(http.Dir("../ui/dist/"))
-    http.Handle("/ui/",http.StripPrefix("/ui/", fs))
+    http.Handle("/ui/", http.StripPrefix("/ui/", httpgzip.FileServer(
+        http.Dir("../ui/dist/"),
+        httpgzip.FileServerOptions{
+            IndexHTML: true,
+        },
+        )))
 
     // Handlers
     r := mux.NewRouter()
