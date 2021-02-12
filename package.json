@@ -10,7 +10,7 @@
   "devDependencies": {
     "acorn": "^6.4.1",
     "css-loader": "^2.1.0",
-    "node-fetch": "^2.3.0",
+    "node-fetch": "^2.6.1",
     "ts-loader": "^5.3.3",
     "tslint": "^5.13.0",
     "typescript": "^3.7.5",
