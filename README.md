@@ -128,3 +128,5 @@ Final vote tally.
 
   * 0 - Not voting (idle before start, or vote finished)
   * 1 - Voting
+  
+TEST
