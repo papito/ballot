@@ -2,6 +2,8 @@
 
 A web-based replacement for physical Scrum estimation cards, most useful for distributed teams. 
 
+It's live - [try it here](https://ballot.renegadeotter.com/#/)
+
 ## Features
 
 - A vote will end automatically when all votes are in
