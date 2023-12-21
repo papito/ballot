@@ -34,7 +34,6 @@ const SessionTtl = 172800 // 48H
 const (
 	TEST = "test"
 	DEV  = "development"
-	PROD = "production"
 )
 
 type Config struct {

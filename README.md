@@ -108,23 +108,23 @@ User state for a session is stored here, and yes, this assumes that a user can o
 `joined` is used to sort users in a session by the order in which they had joined,
 to make the order deterministic.
 
-#### session:{session_id}:users -> Set[String]
+#### ballot:session:{session_id}:users -> Set[String]
 
 A set of users in this current session.
 
-#### session:{session_id}:observers -> Set[String]
+#### ballot:session:{session_id}:observers -> Set[String]
 
 A set of observers in this current session.
 
-#### session:{session_id}:vote_count -> Int
+#### ballot:session:{session_id}:vote_count -> Int
 
 Number of users in a session who cast a vote.
 
-#### session:{session_id}:tally -> String
+#### ballot:session:{session_id}:tally -> String
 
 Final vote tally.
 
-#### session:{session_id}:voting -> Int
+#### ballot:session:{session_id}:voting -> Int
 
   * 0 - Not voting (idle before start, or vote finished)
   * 1 - Voting
