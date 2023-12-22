@@ -11,9 +11,6 @@ It's live - [try it here](https://ballot.renegadeotter.com/#/)
 - A vote will end automatically when all votes are in
 - A vote can be finalized even if someone doesn't vote, because they are raiding the company fridge
 - Observers can join a vote
-- There is no admin - anyone can start/stop a vote
-- Fortified against foreign interference and social media trolls
-- Takes into account your actual estimate and your *feelings* about the estimate, using imitation AI
 
 ## Installing and running
 
