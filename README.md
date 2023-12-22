@@ -5,7 +5,7 @@ A web-based replacement for physical Scrum estimation cards, most useful for dis
 ![Ballot](img/snapshot.png)
 
 ## It's live
-[Try it here](https://ballot.renegadeotter.com/#/).
+[Try it here](https://ballot.renegadeotter.com/#/)
 
 ## Features
 
