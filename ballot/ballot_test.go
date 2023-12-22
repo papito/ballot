@@ -88,7 +88,7 @@ func createSessionAndUsers(numOfUsers int, t *testing.T) (session model.Session,
 
 	users := make([]model.User, numOfUsers)
 	for i := 0; i < numOfUsers; i++ {
-		user, err := srv.Service().CreateUser(session.SessionId, RandString(20), false)
+		user, err := srv.Service().CreateUser(session.SessionId, RandString(20), i == 0, false)
 		if err != nil {
 			t.Errorf("Could not create user: %s", err)
 		}
@@ -349,7 +349,7 @@ func TestCastAllVotesWithAnObserver(t *testing.T) {
 	numOfUsers := 3
 	session, users := createSessionAndUsers(numOfUsers, t)
 
-	_, err := srv.Service().CreateUser(session.SessionId, RandString(20), true)
+	_, err := srv.Service().CreateUser(session.SessionId, RandString(20), false, true)
 	clearHubEvents()
 
 	err = srv.Service().StartVote(session.SessionId)
@@ -445,7 +445,7 @@ func TestRepeatedVote(t *testing.T) {
 
 }
 
-func TestGetUserById(t *testing.T) {
+func TestGetAdminUserById(t *testing.T) {
 	_, users := createSessionAndUsers(1, t)
 	createdUser := users[0]
 	user, err := srv.Service().GetUser(createdUser.UserId)
@@ -456,6 +456,22 @@ func TestGetUserById(t *testing.T) {
 	assert.Equal(t, createdUser.UserId, user.UserId)
 	assert.Equal(t, createdUser.Name, user.Name)
 	assert.Equal(t, false, user.Voted)
+	assert.Equal(t, createdUser.IsAdmin, true)
+	assert.Equal(t, model.NoEstimate, user.Estimate)
+}
+
+func TestGetUserById(t *testing.T) {
+	_, users := createSessionAndUsers(2, t)
+	createdUser := users[1]
+	user, err := srv.Service().GetUser(createdUser.UserId)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, createdUser.UserId, user.UserId)
+	assert.Equal(t, createdUser.Name, user.Name)
+	assert.Equal(t, false, user.Voted)
+	assert.Equal(t, createdUser.IsAdmin, false)
 	assert.Equal(t, model.NoEstimate, user.Estimate)
 }
 
@@ -515,13 +531,13 @@ func TestEmptyUsername(t *testing.T) {
 		t.Errorf("Could not create session: %s", err)
 	}
 
-	_, err = srv.Service().CreateUser(session.SessionId, "", false)
+	_, err = srv.Service().CreateUser(session.SessionId, "", false, false)
 	assert.NotNil(t, err)
 
-	_, err = srv.Service().CreateUser(session.SessionId, "   ", false)
+	_, err = srv.Service().CreateUser(session.SessionId, "   ", false, false)
 	assert.NotNil(t, err)
 
-	_, err = srv.Service().CreateUser(session.SessionId, "  \n\n\t\t", false)
+	_, err = srv.Service().CreateUser(session.SessionId, "  \n\n\t\t", false, false)
 	assert.NotNil(t, err)
 }
 
@@ -531,7 +547,7 @@ func TestDuplicateUsername(t *testing.T) {
 		t.Errorf("Could not create session: %s", err)
 	}
 
-	user, err := srv.Service().CreateUser(session.SessionId, "username", false)
+	user, err := srv.Service().CreateUser(session.SessionId, "username", false, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -540,7 +556,7 @@ func TestDuplicateUsername(t *testing.T) {
 		t.Error(err)
 	}
 
-	_, err = srv.Service().CreateUser(session.SessionId, "username", false)
+	_, err = srv.Service().CreateUser(session.SessionId, "username", false, false)
 	assert.NotNil(t, err)
 }
 
