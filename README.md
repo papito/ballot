@@ -24,18 +24,6 @@ With more options:
     docker pull papito/ballot:latest
     docker run -td -p8080:8080 --name ballot -e"REDIS_URL=[redis host]" -e"HTTP_HOST=http://your optional ballot host"  papito/ballot:latest
 
-
-## Integrations
-
-Ballot is not meant to be integrated with systems like Slack or JIRA. It is meant to be a frictionless voting tool,
-and any integration with 3rd-party systems is:
-
-  * More unnecessary work
-  * Extra clicks for a task that should be very simple
-
-Users in a voting session already *know* what story they are discussing. The voting cards don't need to know what it is.
-The group uses Ballot to take a vote, enter the result into whatever system they leverage, and that's it.
-
 ## Development setup
 
 ### Prerequisites
