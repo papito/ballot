@@ -356,6 +356,7 @@ func (p *Store) GetUser(userId string) (model.User, error) {
 	m, _ := redis.StringMap(resp, nil)
 	estimate := m["estimate"]
 	isObserver, _ := strconv.Atoi(m["is_observer"])
+	IsAdmin, _ := strconv.Atoi(m["is_admin"])
 
 	user := model.User{
 		UserId:     m["id"],
@@ -364,6 +365,7 @@ func (p *Store) GetUser(userId string) (model.User, error) {
 		Voted:      estimate != model.NoEstimate,
 		Joined:     m["joined"],
 		IsObserver: isObserver == 1,
+		IsAdmin:    IsAdmin == 1,
 	}
 
 	return user, nil

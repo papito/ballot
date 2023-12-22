@@ -75,7 +75,7 @@ Note that this will install local Redis in the container, but that instance can 
 
   * HTTP_PORT - dictates which port the application will run on.
   * HTTP_HOST - used to correctly display the session URL (does not affect the behavior).
-  * REDIS_URL - Redis URL (as in `localhost:6379`). Otherwise will connect to Docker Redis on the default port.
+  * REDIS_URL - Redis URL. Otherwise will connect to Docker Redis on the default port.
   * ENV - context environment. `test`, `development`, or `production`. You can ignore this.
 
 
@@ -102,6 +102,7 @@ User state for a session is stored here, and yes, this assumes that a user can o
 | estimate    | String                |
 | joined      | String (datetime)     |
 | is_observer | Flag                  |
+| is_admin    | Flag                  |
 
 `estimate` is an empty string by default.
 

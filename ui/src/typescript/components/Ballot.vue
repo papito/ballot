@@ -28,7 +28,7 @@
       <div class="col-12">
         <div class="row">
           <div class="col-7 text-center">
-            <div id="start-ctrl-panel">
+            <div v-show="isAdmin" id="start-ctrl-panel">
               <button v-if="isIdle"
                       v-on:click="startVote"
                       class="btn btn-outline-success">
@@ -190,7 +190,8 @@
           "action": "WATCH",
           "session_id": this.session.id,
           "user_id": this.user.id,
-          "is_observer": this.user.is_observer
+          "is_observer": this.user.is_observer,
+          "is_admin": this.user.is_admin
         };
         ws.send(JSON.stringify(watchCmd));
       }).catch((err: Error) => {
@@ -331,6 +332,12 @@
 
     get isIdle() {
       return this.session.status == SessionState.IDLE;
+    }
+
+    get isAdmin() {
+      console.log("!!!!");
+      console.log(this.user.is_admin);
+      return this.user.is_admin;
     }
 
     startVote() {
