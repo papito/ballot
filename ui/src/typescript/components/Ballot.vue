@@ -27,7 +27,7 @@
     <div id="ctrl-panels" class="row no-gutters">
       <div class="col-12">
         <div class="row">
-          <div class="col-7 text-center">
+          <div class="col-6 text-center">
             <div v-show="isAdmin" id="start-ctrl-panel">
               <button v-if="isIdle"
                       v-on:click="startVote"
@@ -38,32 +38,17 @@
               <button v-if="isVoting"
                       v-on:click="finishVote"
                       class="btn btn-outline-danger">
-                <span class="oi oi-media-stop icon" aria-hidden="true"></span>End Vote Now
+                <span class="oi oi-media-stop icon" aria-hidden="true"></span>Stop & see results
               </button>
             </div>
           </div>
 
-          <div class="col-5">
-            <div id="copy-ctrl-panel">
+          <div class="col-6 text-center">
               <form @submit.prevent="copyJoinUrl">
-                <div class="row no-gutters">
-                  <div class="d-none d-lg-block col-md-8 text-right">
-                    <label for="sessionUrl" class="sr-only"></label>
-                    <input type="text" :value="session.url()" class="form-control form-control-sm" id="sessionUrl" readonly>
-                  </div>
-                  <div class="d-none d-lg-block col-md-4 text-left">
-                    <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm">
-                      <span class="oi oi-clipboard icon" aria-hidden="true"></span>Copy URL
-                    </button>
-                  </div>
-                  <div class="col-12 d-lg-none text-center">
-                    <button v-on:click="copyJoinUrl" class="btn btn-outline-light">
-                      Copy URL
-                    </button>
-                  </div>
-                </div>
+                  <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm">
+                    <span class="oi oi-clipboard icon" aria-hidden="true"></span>Copy Voting URL
+                  </button>
               </form>
-            </div>
           </div>
         </div>
       </div>
