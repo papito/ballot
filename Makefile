@@ -2,7 +2,7 @@ SHELL=/bin/sh
 CONTAINER_NAME=test_redis
 
 define up_if_down
-@if [ ! `docker ps -q -f name=$(CONTAINER_NAME)` ]; then echo "Bringing up containers\n--------" && docker-compose up -d; fi
+@if [ ! `docker ps -q -f name=$(CONTAINER_NAME)` ]; then echo "Bringing up containers\n--------" && docker-compose up; fi
 endef
 
 define compile
@@ -41,7 +41,7 @@ down:
 test:
 	$(call up_if_down)
 	$(call compile)
-	@cd ballot && REDIS_URL=localhost:6380 go test -v
+	@cd ballot && REDIS_URL=redis://localhost:6380 go test -v
 	@echo "-------\nRun 'make down' to stop test containers..."
 
 ps:
@@ -49,4 +49,3 @@ ps:
 
 logs:
 	@docker-compose logs -f
-

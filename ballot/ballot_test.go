@@ -53,7 +53,9 @@ var testHub *hub.VoidHub
 // setup/teardown
 func TestMain(m *testing.M) {
 	err := os.Setenv("ENV", config.TEST)
-	if err != nil {panic(err)}
+	if err != nil {
+		panic(err)
+	}
 
 	// remove logs in test
 	log.SetOutput(ioutil.Discard)
@@ -79,16 +81,22 @@ func RandString(n int) string {
 }
 
 func createSessionAndUsers(numOfUsers int, t *testing.T) (session model.Session, userIds []model.User) {
-	session, err  := srv.Service().CreateSession()
-	if err != nil {t.Errorf("Could not create session: %s", err)}
+	session, err := srv.Service().CreateSession()
+	if err != nil {
+		t.Errorf("Could not create session: %s", err)
+	}
 
 	users := make([]model.User, numOfUsers)
 	for i := 0; i < numOfUsers; i++ {
 		user, err := srv.Service().CreateUser(session.SessionId, RandString(20), false)
-		if err != nil {t.Errorf("Could not create user: %s", err)}
+		if err != nil {
+			t.Errorf("Could not create user: %s", err)
+		}
 
 		err = srv.Service().AddUserToSession(session.SessionId, user.UserId)
-		if err != nil {t.Errorf("Could not add user to session: %s", err)}
+		if err != nil {
+			t.Errorf("Could not add user to session: %s", err)
+		}
 		users[i] = user
 	}
 
@@ -102,13 +110,15 @@ func clearHubEvents() {
 
 func TestHealthEndpoint(t *testing.T) {
 	req, err := http.NewRequest("GET", "/health", nil)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(srv.HealthHttpHandler)
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t,  http.StatusOK, rr.Code)
+	assert.Equal(t, http.StatusOK, rr.Code)
 
 	var health = response.HealthResponse{Status: "OK"}
 	var data, _ = json.Marshal(health)
@@ -119,16 +129,20 @@ func TestHealthEndpoint(t *testing.T) {
 
 func TestCreateSessionEndpoint(t *testing.T) {
 	req, err := http.NewRequest("GET", "/health", nil)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(srv.CreateSessionHttpHandler)
 	handler.ServeHTTP(rr, req)
-	assert.Equal(t,  http.StatusOK, rr.Code)
+	assert.Equal(t, http.StatusOK, rr.Code)
 
 	var session model.Session
 	err = json.Unmarshal([]byte(rr.Body.String()), &session)
-	if err != nil {t.Errorf("%s. Recevied: %s", err, rr.Body.String())}
+	if err != nil {
+		t.Errorf("%s. Recevied: %s", err, rr.Body.String())
+	}
 
 	match, _ := regexp.MatchString("[a-z0-9]", session.SessionId)
 
@@ -145,8 +159,10 @@ func TestCreateSessionEndpoint(t *testing.T) {
 }
 
 func TestCreateUserEndpoint(t *testing.T) {
-	session, err  := srv.Service().CreateSession()
-	if err != nil {t.Errorf("Could not create session: %s", err)}
+	session, err := srv.Service().CreateSession()
+	if err != nil {
+		t.Errorf("Could not create session: %s", err)
+	}
 
 	userName := "  Player 1  "
 	reqObj := request.CreateUserRequest{
@@ -155,10 +171,14 @@ func TestCreateUserEndpoint(t *testing.T) {
 	}
 
 	body, err := json.Marshal(reqObj)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	req, err := http.NewRequest("POST", "/api/user", bytes.NewBufferString(string(body)))
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(srv.CreateUserHttpHandler)
@@ -184,15 +204,19 @@ func TestStartVoteEndpoint(t *testing.T) {
 	reqObj := request.StartVoteRequest{SessionId: session.SessionId}
 
 	body, err := json.Marshal(reqObj)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	req, err := http.NewRequest("PUT", "/api/vote/start", bytes.NewBufferString(string(body)))
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(srv.StartVoteHttpHandler)
 	handler.ServeHTTP(rr, req)
-	assert.Equal(t,  http.StatusOK, rr.Code)
+	assert.Equal(t, http.StatusOK, rr.Code)
 
 	sessionStateKey := fmt.Sprintf(db.Const.SessionState, session.SessionId)
 	sessionState, err := srv.Service().Store().GetInt(sessionStateKey)
@@ -204,7 +228,7 @@ func TestStartVoteEndpoint(t *testing.T) {
 	assert.Equal(t, response.VoteStartedEVent, voteStartedWsEvent.Event)
 
 	voteCount, err := srv.Service().Store().GetInt(voteCountKey)
-	assert.Equal(t,0, voteCount)
+	assert.Equal(t, 0, voteCount)
 }
 
 func TestFinishVoteEndpoint(t *testing.T) {
@@ -213,18 +237,22 @@ func TestFinishVoteEndpoint(t *testing.T) {
 	reqObj := request.FinishVoteRequest{SessionId: session.SessionId}
 
 	body, err := json.Marshal(reqObj)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	req, err := http.NewRequest("PUT", "/api/vote/finish", bytes.NewBufferString(string(body)))
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(srv.FinishVoteHttpHandler)
 	handler.ServeHTTP(rr, req)
-	assert.Equal(t,  http.StatusOK, rr.Code)
+	assert.Equal(t, http.StatusOK, rr.Code)
 
 	// get last event - it should be the vote results as we are done
-	msg := testHub.Emitted[len(testHub.Emitted) - 1]
+	msg := testHub.Emitted[len(testHub.Emitted)-1]
 	var voteResultsWsEvent response.WsVoteFinished
 	err = json.Unmarshal([]byte(msg), &voteResultsWsEvent)
 	assert.Equal(t, response.VoteFinishedEvent, voteResultsWsEvent.Event)
@@ -245,12 +273,16 @@ func TestCastOneVote(t *testing.T) {
 	userCount := 3
 	session, users := createSessionAndUsers(userCount, t)
 	err := srv.Service().StartVote(session.SessionId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	clearHubEvents()
 
 	vote, err := srv.Service().CastVote(session.SessionId, users[0].UserId, "8")
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Equal(t, vote.UserId, users[0].UserId)
 
 	voteCountKey := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
@@ -258,7 +290,9 @@ func TestCastOneVote(t *testing.T) {
 	assert.Equal(t, 1, voteCount)
 
 	storedUsers, err := srv.Service().Store().GetSessionVoters(session.SessionId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	for i := 0; i < userCount; i++ {
 		user := storedUsers[i]
@@ -280,11 +314,15 @@ func TestCastAllVotes(t *testing.T) {
 	numOfUsers := 3
 	session, users := createSessionAndUsers(numOfUsers, t)
 	err := srv.Service().StartVote(session.SessionId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	for i := 0; i < numOfUsers; i++ {
 		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, "3")
-		if err != nil {t.Error(err)}
+		if err != nil {
+			t.Error(err)
+		}
 	}
 
 	key := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
@@ -292,7 +330,7 @@ func TestCastAllVotes(t *testing.T) {
 	assert.Equal(t, numOfUsers, voteCount)
 
 	// get last event - it should be the vote results as we are done
-	msg := testHub.Emitted[len(testHub.Emitted) - 1]
+	msg := testHub.Emitted[len(testHub.Emitted)-1]
 	var voteResultsWsEvent response.WsVoteFinished
 	err = json.Unmarshal([]byte(msg), &voteResultsWsEvent)
 	assert.Equal(t, response.VoteFinishedEvent, voteResultsWsEvent.Event)
@@ -315,11 +353,15 @@ func TestCastAllVotesWithAnObserver(t *testing.T) {
 	clearHubEvents()
 
 	err = srv.Service().StartVote(session.SessionId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	for i := 0; i < numOfUsers; i++ {
 		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, "3")
-		if err != nil {t.Error(err)}
+		if err != nil {
+			t.Error(err)
+		}
 	}
 
 	key := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
@@ -327,7 +369,7 @@ func TestCastAllVotesWithAnObserver(t *testing.T) {
 	assert.Equal(t, numOfUsers, voteCount)
 
 	// get last event - it should be the vote results as we are done
-	msg := testHub.Emitted[len(testHub.Emitted) - 1]
+	msg := testHub.Emitted[len(testHub.Emitted)-1]
 	var voteResultsWsEvent response.WsVoteFinished
 	err = json.Unmarshal([]byte(msg), &voteResultsWsEvent)
 	assert.Equal(t, response.VoteFinishedEvent, voteResultsWsEvent.Event)
@@ -347,18 +389,26 @@ func TestNewVoteState(t *testing.T) {
 	numOfUsers := 2
 	session, users := createSessionAndUsers(numOfUsers, t)
 	err := srv.Service().StartVote(session.SessionId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	for i := 0; i < numOfUsers; i++ {
 		_, err := srv.Service().CastVote(session.SessionId, users[i].UserId, "3")
-		if err != nil {t.Error(err)}
+		if err != nil {
+			t.Error(err)
+		}
 	}
 
 	err = srv.Service().StartVote(session.SessionId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	usersForNewSession, err := srv.Service().Store().GetSessionVoters(session.SessionId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	for i := 0; i < numOfUsers; i++ {
 		user := usersForNewSession[i]
@@ -375,12 +425,18 @@ func TestRepeatedVote(t *testing.T) {
 	numOfUsers := 2
 	session, users := createSessionAndUsers(numOfUsers, t)
 	err := srv.Service().StartVote(session.SessionId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, "3")
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 	_, err = srv.Service().CastVote(session.SessionId, users[0].UserId, "3")
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	// vote count should still be 1 - one user voted
 	key := fmt.Sprintf(db.Const.VoteCount, session.SessionId)
@@ -393,7 +449,9 @@ func TestGetUserById(t *testing.T) {
 	_, users := createSessionAndUsers(1, t)
 	createdUser := users[0]
 	user, err := srv.Service().GetUser(createdUser.UserId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	assert.Equal(t, createdUser.UserId, user.UserId)
 	assert.Equal(t, createdUser.Name, user.Name)
@@ -407,7 +465,9 @@ func TestStateUserLeft(t *testing.T) {
 	createdUser := users[0]
 
 	err := srv.Service().RemoveUserFromSession(session.SessionId, createdUser.UserId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	newNumOfUsers := numOfUsers - 1
 	userIds, err := srv.Service().Store().GetSessionVoterIds(session.SessionId)
@@ -423,17 +483,25 @@ func TestVoteFinishedAfterUserLeft(t *testing.T) {
 	flakeUser := users[0]
 
 	err := srv.Service().StartVote(session.SessionId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	//Two users vote. Vote is not finished.
 	_, err = srv.Service().CastVote(session.SessionId, users[1].UserId, "3")
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 	_, err = srv.Service().CastVote(session.SessionId, users[2].UserId, "8")
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	// flake user does not vote and bails or gets disconnected
 	err = srv.Service().RemoveUserFromSession(session.SessionId, flakeUser.UserId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	// vote should NOT be finished (reloading a page would expose votes)
 	key := fmt.Sprintf(db.Const.SessionState, session.SessionId)
@@ -442,8 +510,10 @@ func TestVoteFinishedAfterUserLeft(t *testing.T) {
 }
 
 func TestEmptyUsername(t *testing.T) {
-	session, err  := srv.Service().CreateSession()
-	if err != nil {t.Errorf("Could not create session: %s", err)}
+	session, err := srv.Service().CreateSession()
+	if err != nil {
+		t.Errorf("Could not create session: %s", err)
+	}
 
 	_, err = srv.Service().CreateUser(session.SessionId, "", false)
 	assert.NotNil(t, err)
@@ -456,18 +526,23 @@ func TestEmptyUsername(t *testing.T) {
 }
 
 func TestDuplicateUsername(t *testing.T) {
-	session, err  := srv.Service().CreateSession()
-	if err != nil {t.Errorf("Could not create session: %s", err)}
+	session, err := srv.Service().CreateSession()
+	if err != nil {
+		t.Errorf("Could not create session: %s", err)
+	}
 
 	user, err := srv.Service().CreateUser(session.SessionId, "username", false)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 	err = srv.Service().AddUserToSession(session.SessionId, user.UserId)
-	if err != nil {t.Error(err)}
+	if err != nil {
+		t.Error(err)
+	}
 
 	_, err = srv.Service().CreateUser(session.SessionId, "username", false)
 	assert.NotNil(t, err)
 }
-
 
 func TestVoteResult(t *testing.T) {
 	type CaseT []string
@@ -489,7 +564,9 @@ func TestVoteResult(t *testing.T) {
 		expected := testCase[0]
 		inputs := testCase[1:]
 		result, err := srv.Service().GetVoteResult(inputs)
-		if err != nil {t.Error(err)}
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, expected, result)
 	}
 }
