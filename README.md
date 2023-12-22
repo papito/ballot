@@ -79,7 +79,7 @@ host, by using the `--network="host"` flag of Docker `run` command.
 
 ## Redis schema
 
-#### user:{user_id} -> Hash
+#### ballot:user:{user_id} -> Hash
 
 User state for a session is stored here, and yes, this assumes that a user can only vote in one session.
 
