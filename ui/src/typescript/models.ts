@@ -36,6 +36,7 @@ export class User {
   voted: boolean = false;
   joined: string = "";
   is_observer: boolean = false;
+  is_admin: boolean = false;
 
   static fromJson(json: {[key:string]:string}) {
     let user = new User();
@@ -45,6 +46,7 @@ export class User {
     user.voted = Boolean(json["voted"]);
     user.joined = json["joined"];
     user.is_observer = Boolean(json["is_observer"]);
+    user.is_admin = Boolean(json["is_admin"]);
     return user;
   }
 }

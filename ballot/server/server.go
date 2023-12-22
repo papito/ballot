@@ -25,276 +25,280 @@
 package server
 
 import (
-    "encoding/json"
-    "fmt"
-    "github.com/gorilla/mux"
-    "github.com/joomcode/errorx"
-    "github.com/papito/ballot/ballot/config"
-    "github.com/papito/ballot/ballot/errors"
-    "github.com/papito/ballot/ballot/jsonutil"
-    "github.com/papito/ballot/ballot/logutil"
-    "github.com/papito/ballot/ballot/model"
-    "github.com/papito/ballot/ballot/model/request"
-    "github.com/papito/ballot/ballot/model/response"
-    "github.com/papito/ballot/ballot/service"
-    "github.com/shurcooL/httpgzip"
-    "html/template"
-    "log"
-    "net/http"
+	"encoding/json"
+	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/joomcode/errorx"
+	"github.com/papito/ballot/ballot/config"
+	"github.com/papito/ballot/ballot/errors"
+	"github.com/papito/ballot/ballot/jsonutil"
+	"github.com/papito/ballot/ballot/logutil"
+	"github.com/papito/ballot/ballot/model"
+	"github.com/papito/ballot/ballot/model/request"
+	"github.com/papito/ballot/ballot/model/response"
+	"github.com/papito/ballot/ballot/service"
+	"github.com/shurcooL/httpgzip"
+	"html/template"
+	"log"
+	"net/http"
 )
 
 type Server interface {
-    Release()
-    HealthHttpHandler(w http.ResponseWriter, r *http.Request)
-    CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
-    CreateUserHttpHandler(w http.ResponseWriter, r *http.Request)
-    GetUserHttpHandler(w http.ResponseWriter, r *http.Request)
-    StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)
-    FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request)
-    CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)
-    Service() *service.Service
+	Release()
+	HealthHttpHandler(w http.ResponseWriter, r *http.Request)
+	CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request)
+	CreateUserHttpHandler(w http.ResponseWriter, r *http.Request)
+	GetUserHttpHandler(w http.ResponseWriter, r *http.Request)
+	StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)
+	FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request)
+	CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)
+	Service() *service.Service
 }
 
 type server struct {
-    service *service.Service
-    templates *template.Template
+	service   *service.Service
+	templates *template.Template
 }
 
 func NewServer(config config.Config) Server {
-    log.Println("Creating server")
-    ballotService := service.NewService(config)
+	log.Println("Creating server")
+	ballotService := service.NewService(config)
 
-    server := server{
-        service: &ballotService,
-        templates: template.Must(template.ParseGlob("../ui/templates/*")),
-    }
+	server := server{
+		service:   &ballotService,
+		templates: template.Must(template.ParseGlob("../ui/templates/*")),
+	}
 
-    // Serve static files
-    http.Handle("/ui/", http.StripPrefix("/ui/", httpgzip.FileServer(
-        http.Dir("../ui/dist/"),
-        httpgzip.FileServerOptions{
-            IndexHTML: true,
-        },
-        )))
+	// Serve static files
+	http.Handle("/ui/", http.StripPrefix("/ui/", httpgzip.FileServer(
+		http.Dir("../ui/dist/"),
+		httpgzip.FileServerOptions{
+			IndexHTML: true,
+		},
+	)))
 
-    // Handlers
-    r := mux.NewRouter()
-    r.HandleFunc("/", server.indexHttpHandler).Methods("GET")
-    r.HandleFunc("/vote/{sessionId}", server.gotoVoteHandler).Methods("GET")
-    r.HandleFunc("/health", server.HealthHttpHandler).Methods("GET")
-    r.HandleFunc("/api/session", server.CreateSessionHttpHandler).Methods("POST")
-    r.HandleFunc("/api/user/{id}", server.GetUserHttpHandler).Methods("GET")
-    r.HandleFunc("/api/user", server.CreateUserHttpHandler).Methods("POST")
-    r.HandleFunc("/api/vote/start", server.StartVoteHttpHandler).Methods("PUT")
-    r.HandleFunc("/api/vote/finish", server.FinishVoteHttpHandler).Methods("PUT")
-    r.HandleFunc("/api/vote/cast", server.CastVoteHttpHandler).Methods("PUT")
-    http.Handle("/", r)
+	// Handlers
+	r := mux.NewRouter()
+	r.HandleFunc("/", server.indexHttpHandler).Methods("GET")
+	r.HandleFunc("/vote/{sessionId}", server.gotoVoteHandler).Methods("GET")
+	r.HandleFunc("/health", server.HealthHttpHandler).Methods("GET")
+	r.HandleFunc("/api/session", server.CreateSessionHttpHandler).Methods("POST")
+	r.HandleFunc("/api/user/{id}", server.GetUserHttpHandler).Methods("GET")
+	r.HandleFunc("/api/user", server.CreateUserHttpHandler).Methods("POST")
+	r.HandleFunc("/api/vote/start", server.StartVoteHttpHandler).Methods("PUT")
+	r.HandleFunc("/api/vote/finish", server.FinishVoteHttpHandler).Methods("PUT")
+	r.HandleFunc("/api/vote/cast", server.CastVoteHttpHandler).Methods("PUT")
+	http.Handle("/", r)
 
-    server.service.Hub().HandleWebSockets("/glue/ws")
+	server.service.Hub().HandleWebSockets("/glue/ws")
 
-    return server
+	return server
 }
 
 func (p server) Service() *service.Service {
-    return p.service
+	return p.service
 }
 
 func (p server) Release() {
-    log.Print("Releasing server resources")
-    p.service.Release()
-    log.Print("Server done")
+	log.Print("Releasing server resources")
+	p.service.Release()
+	log.Print("Server done")
 }
 
 func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 
-    var health = response.HealthResponse{Status: "OK"}
-    var data, _ = json.Marshal(health)
+	var health = response.HealthResponse{Status: "OK"}
+	var data, _ = json.Marshal(health)
 
-    logutil.Logger(fmt.Fprintf(w, "%s", data))
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
-    type TemplateParams struct {
-        Domain  string
-    }
+	type TemplateParams struct {
+		Domain string
+	}
 
-    templateParams := TemplateParams{
-        Domain:  p.service.Config().HttpHost,
-    }
+	templateParams := TemplateParams{
+		Domain: p.service.Config().HttpHost,
+	}
 
-    err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
-    if err != nil {
-        log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
-    }
+	err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
+	if err != nil {
+		log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
+	}
 }
 
 func (p server) gotoVoteHandler(w http.ResponseWriter, r *http.Request) {
-    type TemplateParams struct {
-        Domain  string
-    }
+	type TemplateParams struct {
+		Domain string
+	}
 
-    templateParams := TemplateParams{
-        Domain:  p.service.Config().HttpHost,
-    }
+	templateParams := TemplateParams{
+		Domain: p.service.Config().HttpHost,
+	}
 
-    err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
-    if err != nil {
-        log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
-    }
+	err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
+	if err != nil {
+		log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
+	}
 }
 
 func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 
-    session, err := p.service.CreateSession()
-    if err != nil {
-        log.Printf("%+v", err)
-        err = errors.CriticalError{Message:"Error saving data"}
-        var data, _  = json.Marshal(err)
-        http.Error(w, string(data), http.StatusInternalServerError)
-        return
-    }
+	session, err := p.service.CreateSession()
+	if err != nil {
+		log.Printf("%+v", err)
+		err = errors.CriticalError{Message: "Error saving data"}
+		var data, _ = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
+		return
+	}
 
-    var data, _  = json.Marshal(session)
-    log.Printf("API session with %+v", session)
-    logutil.Logger(fmt.Fprintf(w, "%s", data))
+	var data, _ = json.Marshal(session)
+	log.Printf("API session with %+v", session)
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
-func (p server) StartVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
-    w.Header().Set("Content-Type", "application/json")
+func (p server) StartVoteHttpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
-    reqBody, err := jsonutil.GetRequestBody(r)
-    var reqObj request.StartVoteRequest
-    err = json.Unmarshal([]byte(reqBody), &reqObj)
-    if err != nil {
-        log.Printf("%+v", err)
-        err = errors.CriticalError{Message:"Error serializing request JSON"}
-        var data, _  = json.Marshal(err)
-        http.Error(w, string(data), http.StatusInternalServerError)
-        return
-    }
+	reqBody, err := jsonutil.GetRequestBody(r)
+	var reqObj request.StartVoteRequest
+	err = json.Unmarshal([]byte(reqBody), &reqObj)
+	if err != nil {
+		log.Printf("%+v", err)
+		err = errors.CriticalError{Message: "Error serializing request JSON"}
+		var data, _ = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
+		return
+	}
 
-    err = p.service.StartVote(reqObj.SessionId)
-    if err != nil {
-        log.Printf("%+v", err)
-        err = errors.CriticalError{Message:"Error starting vote"}
-        var data, _  = json.Marshal(err)
-        http.Error(w, string(data), http.StatusInternalServerError)
-        return
-    }
+	err = p.service.StartVote(reqObj.SessionId)
+	if err != nil {
+		log.Printf("%+v", err)
+		err = errors.CriticalError{Message: "Error starting vote"}
+		var data, _ = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
+		return
+	}
 
-    logutil.Logger(fmt.Fprint(w, "{}"))
+	logutil.Logger(fmt.Fprint(w, "{}"))
 }
 
-func (p server) FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
-    w.Header().Set("Content-Type", "application/json")
+func (p server) FinishVoteHttpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
-    reqBody, err := jsonutil.GetRequestBody(r)
-    var reqObj request.StartVoteRequest
-    err = json.Unmarshal([]byte(reqBody), &reqObj)
-    if err != nil {
-        log.Printf("%+v", err)
-        err = errors.CriticalError{Message:"Error serializing request JSON"}
-        var data, _  = json.Marshal(err)
-        http.Error(w, string(data), http.StatusInternalServerError)
-        return
-    }
+	reqBody, err := jsonutil.GetRequestBody(r)
+	var reqObj request.StartVoteRequest
+	err = json.Unmarshal([]byte(reqBody), &reqObj)
+	if err != nil {
+		log.Printf("%+v", err)
+		err = errors.CriticalError{Message: "Error serializing request JSON"}
+		var data, _ = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
+		return
+	}
 
-    err = p.service.FinishVote(reqObj.SessionId)
-    if err != nil {
-        log.Printf("%+v", err)
-        err = errors.CriticalError{Message:"Error finishing vote"}
-        var data, _  = json.Marshal(err)
-        http.Error(w, string(data), http.StatusInternalServerError)
-        return
-    }
+	err = p.service.FinishVote(reqObj.SessionId)
+	if err != nil {
+		log.Printf("%+v", err)
+		err = errors.CriticalError{Message: "Error finishing vote"}
+		var data, _ = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
+		return
+	}
 
-    logutil.Logger(fmt.Fprint(w, "{}"))
+	logutil.Logger(fmt.Fprint(w, "{}"))
 }
 
-func (p server) CastVoteHttpHandler(w http.ResponseWriter, r *http.Request)  {
-    w.Header().Set("Content-Type", "application/json")
+func (p server) CastVoteHttpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
-    reqBody, err := jsonutil.GetRequestBody(r)
-    var reqObj request.CastVoteRequest
-    err = json.Unmarshal([]byte(reqBody), &reqObj)
+	reqBody, err := jsonutil.GetRequestBody(r)
+	var reqObj request.CastVoteRequest
+	err = json.Unmarshal([]byte(reqBody), &reqObj)
 
-    if err != nil {
-        log.Printf("%+v", err)
-        err = errors.CriticalError{Message:"Error serializing request JSON"}
-        var data, _  = json.Marshal(err)
-        http.Error(w, string(data), http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		log.Printf("%+v", err)
+		err = errors.CriticalError{Message: "Error serializing request JSON"}
+		var data, _ = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
+		return
+	}
 
-    vote, err := p.service.CastVote(reqObj.SessionId, reqObj.UserId, reqObj.Estimate)
+	vote, err := p.service.CastVote(reqObj.SessionId, reqObj.UserId, reqObj.Estimate)
 
-    if err != nil {
-        log.Printf("%+v", err)
-        err = errors.CriticalError{Message:"Error casting vote"}
-        var data, _  = json.Marshal(err)
-        http.Error(w, string(data), http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		log.Printf("%+v", err)
+		err = errors.CriticalError{Message: "Error casting vote"}
+		var data, _ = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
+		return
+	}
 
-    data, _  := json.Marshal(vote)
-    logutil.Logger(fmt.Fprintf(w, "%s", data))
+	data, _ := json.Marshal(vote)
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
 func (p server) CreateUserHttpHandler(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 
-    reqBody, err := jsonutil.GetRequestBody(r)
-    var reqObj request.CreateUserRequest
-    err = json.Unmarshal([]byte(reqBody), &reqObj)
+	reqBody, err := jsonutil.GetRequestBody(r)
+	var reqObj request.CreateUserRequest
+	err = json.Unmarshal([]byte(reqBody), &reqObj)
 
-    if err != nil {
-        log.Printf("%+v", err)
-        err = errors.CriticalError{Message:"Error serializing request JSON"}
-        var data, _  = json.Marshal(err)
-        http.Error(w, string(data), http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		log.Printf("%+v", err)
+		err = errors.CriticalError{Message: "Error serializing request JSON"}
+		var data, _ = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
+		return
+	}
 
-    var user model.User
-    user, err = p.service.CreateUser(reqObj.SessionId, reqObj.UserName, reqObj.IsObserver == 1)
+	var user model.User
+	user, err = p.service.CreateUser(
+		reqObj.SessionId,
+		reqObj.UserName,
+		reqObj.IsAdmin == 1,
+		reqObj.IsObserver == 1)
 
-    if err != nil {
-        log.Printf("%+v", errorx.EnsureStackTrace(err))
+	if err != nil {
+		log.Printf("%+v", errorx.EnsureStackTrace(err))
 
-        switch err.(type) {
-        case errors.ValidationError:
-            data, _ := json.Marshal(err)
-            http.Error(w, string(data), http.StatusBadRequest)
-        default:
-            http.Error(w, "{}", http.StatusInternalServerError)
-        }
+		switch err.(type) {
+		case errors.ValidationError:
+			data, _ := json.Marshal(err)
+			http.Error(w, string(data), http.StatusBadRequest)
+		default:
+			http.Error(w, "{}", http.StatusInternalServerError)
+		}
 
-        return
-    }
+		return
+	}
 
-    var httpResp, _  = json.Marshal(user)
-    w.Header().Set("Content-Type", "application/json")
-    logutil.Logger(fmt.Fprintf(w, "%s", httpResp))
+	var httpResp, _ = json.Marshal(user)
+	w.Header().Set("Content-Type", "application/json")
+	logutil.Logger(fmt.Fprintf(w, "%s", httpResp))
 }
 
 func (p server) GetUserHttpHandler(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 
-    vars := mux.Vars(r)
-    userId := vars["id"]
+	vars := mux.Vars(r)
+	userId := vars["id"]
 
-    user, err := p.service.GetUser(userId)
+	user, err := p.service.GetUser(userId)
 
-    if err != nil {
-        log.Printf("%+v", err)
-        err = errors.CriticalError{Message:"Error creating user"}
-        var data, _  = json.Marshal(err)
-        http.Error(w, string(data), http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		log.Printf("%+v", err)
+		err = errors.CriticalError{Message: "Error creating user"}
+		var data, _ = json.Marshal(err)
+		http.Error(w, string(data), http.StatusInternalServerError)
+		return
+	}
 
-    data, _  := json.Marshal(user)
-    logutil.Logger(fmt.Fprintf(w, "%s", data))
+	data, _ := json.Marshal(user)
+	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }

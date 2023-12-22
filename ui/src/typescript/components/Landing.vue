@@ -68,6 +68,7 @@
       }).then(() => {
         return this.postRequest("/api/user", {
           'name': this.user.name,
+          'is_admin': 1,
           'session_id': this.sessionId
         });
       }).then((resp) => {
