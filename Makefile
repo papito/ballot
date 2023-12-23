@@ -6,7 +6,7 @@ define up_if_down
 endef
 
 define compile
-	cd ballot && go build -mod=vendor -o ../bin/ballot
+	cd ballot && go build -o ../bin/ballot
 endef
 
 rebuild:

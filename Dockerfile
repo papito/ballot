@@ -7,7 +7,7 @@ RUN npm ci
 RUN ./node_modules/.bin/webpack --optimize-minimize --mode=production
 
 #----------------------------
-FROM golang:1.13 AS build_service
+FROM golang:1.21 AS build_service
 COPY . /app
 
 WORKDIR /app/ballot
