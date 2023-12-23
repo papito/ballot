@@ -81,7 +81,7 @@ func NewService(config config.Config) Service {
 				service.processSubscriberEvent(v.Channel, string(v.Data))
 
 			case error:
-				log.Print(v)
+				panic(v)
 			}
 		}
 	}()
