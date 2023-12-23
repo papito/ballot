@@ -11,7 +11,7 @@ FROM golang:1.21 AS build_service
 COPY . /app
 
 WORKDIR /app/ballot
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -mod=vendor -o ballot
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ballot
 
 #----------------------------
 FROM alpine:latest AS runtime
