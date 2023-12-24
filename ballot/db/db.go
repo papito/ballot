@@ -62,7 +62,7 @@ var Const = struct {
 func newPool(server string) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     3,
-		IdleTimeout: 60 * time.Second,
+		IdleTimeout: 30 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.DialURL(server)
 			if err != nil {
