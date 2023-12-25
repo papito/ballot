@@ -69,20 +69,26 @@ func NewService(config config.Config) Service {
 		config: config,
 	}
 
-	service.store.Connect(config.RedisUrl)
+	service.store.Pool = db.NewPool(config.RedisUrl)
+	service.store.SubConn = redis.PubSubConn{Conn: service.store.Pool.Get()}
+	service.store.ServiceSubCon = redis.PubSubConn{Conn: service.store.Pool.Get()}
 
 	go func() {
 		for {
-			switch v := service.store.ServiceSubCon.Receive().(type) {
-			case redis.Message:
-				log.Printf(
-					"Service subscriber connection received [%s] on channel [%s]", v.Data, v.Channel)
-
-				service.processSubscriberEvent(v.Channel, string(v.Data))
-
-			case error:
-				panic(v)
+			for service.store.SubConn.Conn.Err() == nil {
+				switch v := service.store.SubConn.Receive().(type) {
+				case redis.Message:
+					log.Printf(
+						"Service subscriber connection received [%s] on channel [%s]", v.Data, v.Channel)
+					service.processSubscriberEvent(v.Channel, string(v.Data))
+				case error:
+					fmt.Printf(service.store.Conn.Err().Error())
+				}
 			}
+			_ = service.store.Conn.Close()
+
+			service.store.SubConn = redis.PubSubConn{Conn: service.store.Pool.Get()}
+			service.store.ServiceSubCon = redis.PubSubConn{Conn: service.store.Pool.Get()}
 		}
 	}()
 

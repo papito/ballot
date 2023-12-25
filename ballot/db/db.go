@@ -38,6 +38,7 @@ import (
 
 type Store struct {
 	Pool          *redis.Pool
+	Conn          redis.Conn
 	SubConn       redis.PubSubConn
 	ServiceSubCon redis.PubSubConn
 	redisUrl      string
@@ -59,10 +60,10 @@ var Const = struct {
 	"ballot:session:%s:tally",
 }
 
-func newPool(server string) *redis.Pool {
+func NewPool(server string) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     3,
-		IdleTimeout: 30 * time.Second,
+		IdleTimeout: 120 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.DialURL(server)
 			if err != nil {
@@ -82,12 +83,6 @@ func (p *Store) Close(c redis.Conn) {
 	if err != nil {
 		fmt.Printf("Error closing connection: %+v", errorx.EnsureStackTrace(err))
 	}
-}
-
-func (p *Store) Connect(redisUrl string) {
-	p.Pool = newPool(redisUrl)
-	p.SubConn = redis.PubSubConn{Conn: p.Pool.Get()}
-	p.ServiceSubCon = redis.PubSubConn{Conn: p.Pool.Get()}
 }
 
 func (p *Store) ExpireKey(key string) error {
