@@ -82,11 +82,13 @@ func NewService(config config.Config) Service {
 						"Service subscriber connection received [%s] on channel [%s]", v.Data, v.Channel)
 					service.processSubscriberEvent(v.Channel, string(v.Data))
 				case error:
+					log.Print("PubSub err...or?")
 					fmt.Printf(service.store.Conn.Err().Error())
 				}
 			}
 			_ = service.store.Conn.Close()
 
+			log.Print("Heroically getting new connections!")
 			service.store.SubConn = redis.PubSubConn{Conn: service.store.Pool.Get()}
 			service.store.ServiceSubCon = redis.PubSubConn{Conn: service.store.Pool.Get()}
 		}
