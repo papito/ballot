@@ -23,7 +23,7 @@ To just get it working out of the box:
 With more options:
 
     docker pull papito/ballot:latest
-    docker run -td -p8080:8080 --name ballot -e"REDIS_URL=[redis host]" -e"HTTP_HOST=http://your optional ballot host"  papito/ballot:latest
+    docker run -td -p8080:8080 --name ballot -e"REDIS_URL=..." -e"HTTP_HOST=http://your.optional.domain"  papito/ballot:latest
 
 ## Development setup
 
@@ -64,7 +64,6 @@ Note that this will install local Redis in the container, but that instance can 
   * HTTP_PORT - dictates which port the application will run on.
   * HTTP_HOST - used to correctly display the session URL (does not affect the behavior).
   * REDIS_URL - Redis URL. Otherwise will connect to Docker Redis on the default port.
-  * ENV - context environment. `test`, `development`, or `production`. You can ignore this.
 
 
 ### Connecting to Redis on Docker host
@@ -81,7 +80,7 @@ host, by using the `--network="host"` flag of Docker `run` command.
 
 #### ballot:user:{user_id} -> Hash
 
-User state for a session is stored here, and yes, this assumes that a user can only vote in one session.
+User state for a session is stored here. User can only vote in one session.
 
 | Field       | Type                  |
 |-------------|-----------------------|
@@ -94,8 +93,7 @@ User state for a session is stored here, and yes, this assumes that a user can o
 
 `estimate` is an empty string by default.
 
-`joined` is used to sort users in a session by the order in which they had joined,
-to make the order deterministic.
+`joined` is used to sort users in a session by the order in which they had joined.
 
 #### ballot:session:{session_id}:users -> Set[String]
 
