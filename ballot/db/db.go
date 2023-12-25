@@ -38,7 +38,6 @@ import (
 
 type Store struct {
 	Pool          *redis.Pool
-	Conn          redis.Conn
 	SubConn       redis.PubSubConn
 	ServiceSubCon redis.PubSubConn
 	redisUrl      string
