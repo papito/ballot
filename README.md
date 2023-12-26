@@ -31,7 +31,7 @@ With more options:
   * Computer technology
   * Docker Compose
   * Node
-  * Go 1.13
+  * Go 1.21
 
 ### Build for development
 
