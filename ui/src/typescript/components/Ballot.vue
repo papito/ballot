@@ -44,8 +44,8 @@
           </div>
 
           <div class="col-6 text-center">
-              <form @submit.prevent="copyJoinUrl">
-                  <button v-on:click="copyJoinUrl" class="btn btn-outline-light btn-sm">
+              <form @submit.prevent="copyJoinUrl" id="copy-ctrl-panel">
+                  <button v-on:click="copyJoinUrl" class="btn btn-sm" id="copyButton">
                     <span class="oi oi-clipboard icon" aria-hidden="true"></span>Copy Voting URL
                   </button>
               </form>
@@ -76,6 +76,12 @@
       <strong v-show="!user.is_observer">Watching you</strong>
       <strong v-show="user.is_observer">Watchers</strong>: <span v-text="observerNames"/>
     </div>
+
+    <div id="startMessage" v-show="session.users.length === 1">
+      Looks like you are the only one here! <a v-bind:href="session.url()" target="_blank">Join this session</a>
+      in a different tab to test with more than one user.
+    </div>
+
 
     <div id="voters">
       <div v-for="u in session.users" class="card" v-bind:class="{ voted: u.voted }">
@@ -221,6 +227,7 @@
       let existingUser = this.session.users.find(function(u) {
         return u.id == observer.id;
       });
+
       if (existingUser) {
         return;
       }
@@ -238,9 +245,10 @@
         return u.id == voteArg.user_id;
       });
 
-      if (user == undefined) {
+      if (!user) {
         throw new Error(`Could not find user by ID ${voteArg.user_id}`);
       }
+
       user.voted = true;
       console.log("USER VOTED " + user.id)
     }
@@ -320,8 +328,6 @@
     }
 
     get isAdmin() {
-      console.log("!!!!");
-      console.log(this.user.is_admin);
       return this.user.is_admin;
     }
 
@@ -355,7 +361,7 @@
             "estimate": estimate
           }
       ).then(() => {
-        // the server will not return the estimate but we need to store it for our own state
+        // the server will not return the estimate, but we need to store it for our own state
         this.user.estimate = estimate;
       }).catch((err: Error) => {
         this.showError(err);
@@ -373,6 +379,17 @@
       }
 
       copyToClipboard(this.session.url());
+
+      const copyEl = document.getElementById("copyButton");
+
+      if (copyEl) {
+        copyEl.style.background = 'orange';
+
+        setTimeout(function () {
+          copyEl.style.background = 'dimgrey';
+          },
+            2000);
+      }
     }
 
     getObserverNames(): string {
