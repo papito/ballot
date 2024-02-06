@@ -22,9 +22,9 @@
  * THE SOFTWARE.
  */
 
-import Vue from "vue";
+import Vue from 'vue';
 import {Mixin} from 'vue-mixin-decorator';
-import {ValidationError} from "../errors";
+import {ValidationError} from '../errors';
 
 @Mixin
 export default class HttpMixin extends Vue {
@@ -33,28 +33,31 @@ export default class HttpMixin extends Vue {
     this.clearErrorState();
   }
 
-  clearErrorState() {
+  public clearErrorState() {
     // critical error
-    let el: HTMLElement | null = document.getElementById(`criticalError`);
+    const el: HTMLElement | null = document.getElementById(`criticalError`);
     if (!el) {
-      console.log("Could not display error: 'criticalError' ID is missing");
+      // tslint:disable-next-line:no-console
+      console.log('Could not display error: \'criticalError\' ID is missing');
       return;
     }
-    el.textContent = "";
+    el.textContent = '';
     el.style.display = 'none';
 
     // form errors
     let errElementList = document.querySelectorAll('.is-invalid');
-    errElementList.forEach(function(el) {
+    // tslint:disable-next-line:no-shadowed-variable
+    errElementList.forEach(el => {
       el.classList.remove('.is-invalid');
     });
     errElementList = document.querySelectorAll('.invalid-feedback');
-    errElementList.forEach(function(el) {
+    // tslint:disable-next-line:no-shadowed-variable
+    errElementList.forEach(el => {
       el.textContent = '';
     });
   }
 
-  async getRequest(url: string): Promise<Response> {
+  public async getRequest(url: string): Promise<Response> {
     this.clearErrorState();
 
     const res: Response =  await fetch(url);
@@ -62,50 +65,51 @@ export default class HttpMixin extends Vue {
     return res;
   }
 
-  async postRequest(url: string, data: {}): Promise<Response> {
+  public async postRequest(url: string, data: {}): Promise<Response> {
     this.clearErrorState();
 
     const res: Response =  await fetch(url, {
-      "method": "POST",
+      method: 'POST',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     await this.processErrors(res);
     return res;
   }
 
-  async putRequest(url: string, data: {}): Promise<Response> {
+  public async putRequest(url: string, data: {}): Promise<Response> {
     this.clearErrorState();
 
     const res: Response =  await fetch(url, {
-      "method": "PUT",
+      method: 'PUT',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     await this.processErrors(res);
     return res;
   }
 
-  async processErrors(res: Response) {
+  public async processErrors(res: Response) {
+    // tslint:disable-next-line:triple-equals
     if (res.status == 400) {
-      let json = await res.json();
-      let fieldName = json['field'];
-      let errorStr = json['error'];
+      const json = await res.json();
+      const fieldName = json.field;
+      const errorStr = json.error;
 
-      let targetEl: HTMLElement | null = document.getElementById(`this.${fieldName}`);
+      const targetEl: HTMLElement | null = document.getElementById(`this.${fieldName}`);
       if (!targetEl) {
         throw new Error(`Could not get element [this.${fieldName}] by ID`);
       }
 
-      let errorStrEl: HTMLElement | null = <HTMLElement>targetEl.nextElementSibling;
+      const errorStrEl: HTMLElement | null = targetEl.nextElementSibling as HTMLElement;
       if (!errorStrEl || !errorStrEl.classList.contains('invalid-feedback')) {
         throw new Error(`Could not get element [.invalid-feedback] adjacent to [this.${fieldName}]`);
       }
@@ -116,29 +120,31 @@ export default class HttpMixin extends Vue {
       throw new ValidationError(json);
     }
 
+    // tslint:disable-next-line:triple-equals
     if (res.status == 500) {
       const json = await res.json();
-      throw new Error(`Internal Server Error: ${json["message"]}`);
+      throw new Error(`Internal Server Error: ${json.message}`);
     }
   }
 
-  showError(err: Error) {
+  public showError(err: Error) {
     if (err instanceof ValidationError) {
-      console.log("Validation error occurred: " + JSON.stringify(err.data));
-    }
-    else {
+      // tslint:disable-next-line:no-console
+      console.log('Validation error occurred: ' + JSON.stringify(err.data));
+    } else {
       this.showCriticalError(err);
     }
   }
 
-  showCriticalError(err: Error) {
-    let el: HTMLElement | null = document.getElementById(`criticalError`);
+  public showCriticalError(err: Error) {
+    const el: HTMLElement | null = document.getElementById(`criticalError`);
 
     if (!el) {
-      console.log("Could not display error: 'criticalError' ID is missing");
+      // tslint:disable-next-line:no-console
+      console.log('Could not display error: \'criticalError\' ID is missing');
       return;
     }
     el.textContent = err.message;
     el.style.display = 'block';
   }
-};
+}
