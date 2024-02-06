@@ -27,51 +27,57 @@ export enum SessionState {
   VOTING = 1
 }
 
-export const NO_ESTIMATE: string= '';
+export const NO_ESTIMATE: string = '';
 
 export class User {
-  id: string = "";
-  name: string = "";
-  estimate: string = NO_ESTIMATE;
-  voted: boolean = false;
-  joined: string = "";
-  is_observer: boolean = false;
-  is_admin: boolean = false;
 
-  static fromJson(json: {[key:string]:string}) {
-    let user = new User();
-    user.id = json["id"];
-    user.name = json["name"];
-    user.estimate = json["estimate"];
-    user.voted = Boolean(json["voted"]);
-    user.joined = json["joined"];
-    user.is_observer = Boolean(json["is_observer"]);
-    user.is_admin = Boolean(json["is_admin"]);
+  public static fromJson(json: {[key: string]: string}) {
+    const user = new User();
+    user.id = json.id;
+    user.name = json.name;
+    user.estimate = json.estimate;
+    user.voted = Boolean(json.voted);
+    user.joined = json.joined;
+    user.is_observer = Boolean(json.is_observer);
+    user.is_admin = Boolean(json.is_admin);
     return user;
   }
+  public id: string = '';
+  public name: string = '';
+  public estimate: string = NO_ESTIMATE;
+  public voted: boolean = false;
+  public joined: string = '';
+  // tslint:disable-next-line:variable-name
+  public is_observer: boolean = false;
+  // tslint:disable-next-line:variable-name
+  public is_admin: boolean = false;
 }
 
+// tslint:disable-next-line:max-classes-per-file
 export class PendingVote {
-  user_id: string = "";
-  session_id: string = "";
 
-  static fromJson(json: {[key:string]:string}) {
-    let vote = new PendingVote();
-    vote.user_id = json["user_id"];
-    vote.session_id = json["session_id"];
+  public static fromJson(json: {[key: string]: string}) {
+    const vote = new PendingVote();
+    vote.user_id = json.user_id;
+    vote.session_id = json.session_id;
     return vote;
   }
+  // tslint:disable-next-line:variable-name
+  public user_id: string = '';
+  // tslint:disable-next-line:variable-name
+  public session_id: string = '';
 }
 
+// tslint:disable-next-line:max-classes-per-file
 export class Session {
-  id: string = "";
-  tally: string = "";
-  status: SessionState = SessionState.IDLE;
-  users: User[] = [];
-  observers: User[] = [];
+  public id: string = '';
+  public tally: string = '';
+  public status: SessionState = SessionState.IDLE;
+  public users: User[] = [];
+  public observers: User[] = [];
 
-  url(): string {
-    let domain: string | null | undefined =
+  public url(): string {
+    const domain: string | null | undefined =
         document.getElementById('paramDomain')?.textContent;
     return `${domain}/#/vote/${this.id}`;
   }
