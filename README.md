@@ -63,7 +63,8 @@ Note that this will install local Redis in the container, but that instance can 
 
   * HTTP_PORT - dictates which port the application will run on.
   * HTTP_HOST - used to correctly display the session URL (does not affect the behavior).
-  * REDIS_URL - Redis URL. Otherwise will connect to Docker Redis on the default port.
+  * REDIS_URL - Redis URL. If not provided, will connect to Docker Redis on the port 6380.
+  * ENV - context environment. `test`, `development`, or `production`. You can ignore this.
 
 
 ### Connecting to Redis on Docker host
@@ -80,7 +81,7 @@ host, by using the `--network="host"` flag of Docker `run` command.
 
 #### ballot:user:{user_id} -> Hash
 
-User state for a session is stored here. User can only vote in one session.
+User state for a session is stored here, and yes, this assumes that a user can only vote in one session.
 
 | Field       | Type                  |
 |-------------|-----------------------|
