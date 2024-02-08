@@ -5,19 +5,11 @@ html {
 }
 
 body.bg {
-  height: 100%;
   margin: 0;
-  background: #272b30 url("/ui/img/bg.jpg") no-repeat fixed center;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-}
-
-body.no-bg {
-  height: 100%;
-  margin: 0;
-  background-color: #272b30;
+  background-color: #2d2d2d;
+  display: grid;
+  grid-template-rows: 1fr;
+  height: 100vh;
 }
 
 a {
@@ -199,14 +191,10 @@ button span.icon {
 footer
 {
   padding-top: .4em;
-  clear: both;
   border: 1px groove #262606;
   background-color: #000;
   color: #fff;
-  vertical-align: middle;
-  margin: 0;
-  position: absolute;
-  bottom: 0;
+  margin: 20px 0 0 0;
   width: 100%;
 }
 
