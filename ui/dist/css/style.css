@@ -1,208 +1,31 @@
+:root {
+  color-scheme: dark;
+
+  --background-color: #272b30;
+
+  /* Larger spacing for larger app areas, like panels and page paddings */
+  --section-vertical-space: 35px;
+
+  /* Standard spacing for individual elements and lists */
+  --control-vertical-space: 15px;
+  --control-horizontal-space: 25px;
+
+  --success-font-color: #82da5f;
+  --success-background-color: #377a1c;
+  --warning-font-color: #dca051;
+  --warning-background-color: #7c4802;
+  --error-font-color: #fc1e1e;
+  --error-background-color: #a80404;
+  --error-color: #fc1e1e;
+
+  --font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"
+}
+
+* {
+  box-sizing: border-box;
+}
+
 html {
-  height: 100%;
-  margin: 0;
   background-color: #272b30;
-}
-
-body.bg {
-  margin: 0;
-  background-color: #2d2d2d;
-  display: grid;
-  grid-template-rows: 1fr;
-  height: 100vh;
-}
-
-a {
-  color: deepskyblue;
-}
-
-#app .navbar-brand {
-  letter-spacing: .2em;
-}
-
-#landing {
-  padding-top: 15%;
-  text-align: center;
-}
-
-#copyButton {
-  background-color: dimgrey;
-  color: white;
-}
-
-#copyButton:hover {
-  background-color: white;
-  color: black;
-}
-
-#voters {
-  margin-top: 1.5em;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-#voters div.card {
-  margin: .2em;
-  width: 9em;
-  height: 11em;
-  border-radius: 1em;
-  color: #fff;
-  padding-top: .8em;
-  text-align: center;
-  font-size: .9em;
-  font-weight: bold;
-  border: 1px solid #676767;
-  background-color: #424242;
-}
-
-#voters div.card .name {
-  height: 3em;
-  line-height: 3em;
-  display: table-cell;
-}
-
-#voters div.card .name-text {
-  display: inline-block;
-  line-height: normal;
-  vertical-align: middle;
-}
-
-#voters div.voted {
-  background-color: #0f3b07;
-}
-
-#voters div.estimate {
-  font-size: 2em;
-  margin-top: .7em;
-  color: #fff;
-}
-
-div.card img {
-  position: relative;
-  top: .6em;
-  height: 2em;
-}
-
-#ctrl-panels {
-  margin-top: .8em;
-  padding-bottom: .8em;
-}
-
-#start-ctrl-panel {
-  display: flex;
-  justify-content: center;
-}
-
-#choices {
-  background-color: #262606;
-  border-top: 1px solid #424242;
-  border-bottom: 1px solid #424242;
-  justify-content: center;
-  text-align: center;
-}
-
-#tally.observer {
-  border-top: 1px solid #272727;
-  justify-content: center;
-  text-align: center;
-}
-
-#tally.observed {
-  background-color: #262606;
-  border-top: 1px solid #424242;
-  border-bottom: 1px solid #424242;
-  justify-content: center;
-  text-align: center;
-}
-
-#tally {
-  color: #fff;
-  font-size: 2em;
-  font-weight: bold;
-}
-
-#observers.observed {
-  color: #fff;
-  padding-top: .5em;
-  padding-bottom: .5em;
-  border-bottom: 1px solid #262606;
-}
-
-#observers.observer {
-  color: #fff;
-  padding: .5em;
-  background-color: #262606;
-  border-top: 1px solid #424242;
-  border-bottom: 1px solid #424242;
-}
-
-#choices .choice {
-  display: inline-block;
-}
-
-#choices .choice button {
-  width: 3em;
-  margin: .5em;
-}
-
-#join-session {
-  padding-top: 15%;
-  text-align: center;
-}
-
-#join-session button {
-  width: 100%;
-  margin-top: 1em;
-}
-
-#startMessage {
-  width: 100%;
-  text-align: center;
-  color: white;
-  margin-top: 2em;
-  background-color: rgba(0, 0, 0, 0.30);
-  border: 1px dotted grey;
-  padding: .5em;
-}
-
-.visible {
-  visibility: visible !important;
-}
-.invisible {
-  visibility: hidden !important;
-}
-
-#criticalError {
-  margin-top: .5em;
-  width: 100%;
-  display: none;
-}
-
-#criticalError.alert-danger {
-  background-color: #78100e;
-  color: #fff;
-}
-
-button span.icon {
-  margin-right: .5em;
-}
-
-footer
-{
-  padding-top: .4em;
-  border: 1px groove #262606;
-  background-color: #000;
-  color: #fff;
-  margin: 20px 0 0 0;
-  width: 100%;
-}
-
-footer a {
-  color: #fff;
-  text-decoration: underline;
-}
-
-footer .source {
-  text-align: right;
+  font-family: var(--font);
 }
