@@ -19,7 +19,7 @@ function MainContent() {
     )
 }
 
-function App() {
+function Index() {
     return (
         <div>
             <Navbar/>
@@ -28,4 +28,4 @@ function App() {
     )
 }
 
-export default App;
+export default Index;
