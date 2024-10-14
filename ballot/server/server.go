@@ -65,15 +65,21 @@ func NewServer(config config.Config) Server {
 	ballotService := service.NewService(config)
 
 	server := server{
-		service:   &ballotService,
-		templates: template.Must(template.ParseGlob("../ui/templates/*")),
+		service: &ballotService,
 	}
 
 	// Serve static files
-	http.Handle("/ui/", http.StripPrefix("/ui/", httpgzip.FileServer(
-		http.Dir("../ui/dist/"),
+	http.Handle("/static/", http.StripPrefix("/static/", httpgzip.FileServer(
+		http.Dir("../ballot-ui/dist/"),
 		httpgzip.FileServerOptions{
 			IndexHTML: true,
+		},
+	)))
+
+	http.Handle("/assets/", http.StripPrefix("/assets/", httpgzip.FileServer(
+		http.Dir("../ballot-ui/dist/assets"),
+		httpgzip.FileServerOptions{
+			IndexHTML: false,
 		},
 	)))
 
@@ -115,18 +121,7 @@ func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
-	type TemplateParams struct {
-		Domain string
-	}
-
-	templateParams := TemplateParams{
-		Domain: p.service.Config().HttpHost,
-	}
-
-	err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
-	if err != nil {
-		log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
-	}
+	http.Redirect(w, r, "/static/", http.StatusPermanentRedirect)
 }
 
 func (p server) gotoVoteHandler(w http.ResponseWriter, r *http.Request) {

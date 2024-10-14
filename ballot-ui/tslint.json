@@ -1,0 +1,8 @@
+{
+  "jsRules": {},
+  "rules": {
+    "quotemark": [
+      true,
+      "single"
+    ]}
+}
