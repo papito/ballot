@@ -35,14 +35,9 @@ With more options:
 
 ### Build for development
 
-To invoke NPM and transpile Typescript:
 ```bash
 make build
-```
-
-To run the app on port `8080`:
-
-```bash
+make db
 make run
 ```
 

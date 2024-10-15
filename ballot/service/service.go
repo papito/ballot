@@ -125,7 +125,9 @@ func (p *Service) CreateSession() (model.Session, error) {
 	session := model.Session{SessionId: sessionId}
 
 	key := fmt.Sprintf(db.Const.SessionState, sessionId)
+	println("1")
 	err := p.store.Set(key, model.NotVoting)
+	println("2")
 	if err != nil {
 		log.Printf("%+v", err)
 		return model.Session{}, err

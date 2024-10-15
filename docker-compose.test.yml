@@ -1,14 +1,15 @@
 version: '3'
 
 services:
-  ballot-redis:
+  ballot-redis-test:
     image: "redis:alpine"
     container_name:
-      ballot_dev_redis
+      ballot_test_redis
     ports:
-      - 6380:6379
+      - 6381:6379
     networks:
       - db
+
 networks:
   db:
     driver: bridge
