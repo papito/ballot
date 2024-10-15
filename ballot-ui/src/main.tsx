@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import Index from './Index.tsx'
+import Landing from './Landing.tsx'
 import Vote from './Vote.tsx';
 
 import './index.css'
@@ -13,7 +13,7 @@ import {
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <Index />
+        element: <Landing />
     },
     {
         path: "/vote",
