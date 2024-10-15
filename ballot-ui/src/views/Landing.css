@@ -1,37 +1,3 @@
-.brand {
-    display: grid;
-    background-color: #343a40;
-    grid-auto-columns: max-content auto;
-}
-
-.brand span {
-    display: grid;
-    place-items: center;
-    font-size: 1.5em;
-    padding-left: var(--control-horizontal-space);
-    letter-spacing: .2em;
-    font-weight: bold;
-}
-
-.footer {
-    display: grid;
-    background-color: #343a40;
-    grid-template-columns: max-content 1fr max-content;
-}
-
-.footer .renegade {
-    display: grid;
-    padding-left: var(--control-horizontal-space);
-    align-items: center;
-}
-
-.footer .sauce {
-    display: grid;
-    align-items: center;
-    grid-column: 3;
-    padding-right: var(--control-horizontal-space);
-}
-
 #Landing {
     display: grid;
     grid-template-rows: 40px 1fr 30px;

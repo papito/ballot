@@ -1,12 +1,13 @@
 import './Landing.css'
-
+import '../components/Brand.tsx'
+import Brand from '../components/Brand.tsx';
+import Footer from '../components/Footer.tsx';
 
 function MainContent() {
     return (
         <div id="Landing">
-            <div className="brand">
-                <span>Ballot</span>
-            </div>
+            <Brand/>
+
             <div className="form">
                 <form>
                     <label htmlFor=""></label>
@@ -17,10 +18,8 @@ function MainContent() {
                     </button>
                 </form>
             </div>
-            <div className="footer">
-                <div className="renegade">Renegade Otter</div>
-                <div className="sauce">Open Sauce</div>
-            </div>
+
+            <Footer/>
         </div>
     )
 }

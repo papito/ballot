@@ -1,0 +1,14 @@
+.brand {
+    display: grid;
+    background-color: #343a40;
+    grid-auto-columns: max-content auto;
+}
+
+.brand span {
+    display: grid;
+    place-items: center;
+    font-size: 1.5em;
+    padding-left: var(--control-horizontal-space);
+    letter-spacing: .2em;
+    font-weight: bold;
+}

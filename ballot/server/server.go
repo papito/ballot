@@ -69,7 +69,14 @@ func NewServer(config config.Config) Server {
 	}
 
 	// Serve static files
-	http.Handle("/static/", http.StripPrefix("/static/", httpgzip.FileServer(
+	http.Handle("/p/", http.StripPrefix("/p/", httpgzip.FileServer(
+		http.Dir("../ballot-ui/dist/"),
+		httpgzip.FileServerOptions{
+			IndexHTML: true,
+		},
+	)))
+
+	http.Handle("/p/vote", http.StripPrefix("/p/vote", httpgzip.FileServer(
 		http.Dir("../ballot-ui/dist/"),
 		httpgzip.FileServerOptions{
 			IndexHTML: true,
@@ -121,7 +128,7 @@ func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/static/", http.StatusPermanentRedirect)
+	http.Redirect(w, r, "/p/", http.StatusPermanentRedirect)
 }
 
 func (p server) gotoVoteHandler(w http.ResponseWriter, r *http.Request) {
