@@ -1,21 +1,22 @@
-import './Landing.css'
-import '../components/Brand.tsx'
-import {useState} from 'react';
-import Brand from '../components/Brand.tsx';
-import Footer from '../components/Footer.tsx';
+import './landing.css'
+import '../components/brand.tsx'
+import Brand from '../components/brand.tsx';
+import Footer from '../components/footer.tsx';
 import axios from 'axios';
 
 
 function Landing() {
-    let [sessionId, setSessionId] = useState('')
+    let sessionId: string | null = null
 
-    function createNewSession() {
+    async function createNewSession() {
         axios
             .post("/api/session")
             .then((response) => {
-                setSessionId(response.data.id)
-                console.log("session id: " + sessionId)
-            })
+                sessionId = response.data.id
+            }).
+            then(() => {
+                console.log(sessionId)
+        })
             .catch((error) => console.error(error))
     }
 
@@ -31,7 +32,7 @@ function Landing() {
                                placeholder="Your name/alias"/>
                         <button
                             type="button"
-                        onClick={createNewSession}>New Voting Space
+                            onClick={createNewSession}>New Voting Space
                         </button>
                     </form>
                 </div>

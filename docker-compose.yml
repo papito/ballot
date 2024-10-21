@@ -11,4 +11,4 @@ services:
       - db
 networks:
   db:
-    driver: bridge
+    driver: host
