@@ -1,18 +1,15 @@
+import React from 'react'
 
-function MainContent() {
+function MainContent(): React.JSX.Element {
+    return <div>Vote</div>
+}
+
+function Vote(): React.JSX.Element {
     return (
         <div>
-            Vote
+            <MainContent />
         </div>
     )
 }
 
-function Vote() {
-    return (
-        <div>
-            <MainContent/>
-        </div>
-    )
-}
-
-export default Vote;
+export default Vote

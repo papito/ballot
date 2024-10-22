@@ -1,11 +1,12 @@
 import './brand.css'
+import React from 'react'
 
-function Brand() {
-  return (
-    <div className="brand">
-      <span>Ballot</span>
-    </div>
-  );
+function Brand(): React.JSX.Element {
+    return (
+        <div className="brand">
+            <span>Ballot</span>
+        </div>
+    )
 }
 
-export default Brand;
+export default Brand

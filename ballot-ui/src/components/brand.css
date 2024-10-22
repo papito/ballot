@@ -9,6 +9,6 @@
     place-items: center;
     font-size: 1.5em;
     padding-left: var(--control-horizontal-space);
-    letter-spacing: .2em;
+    letter-spacing: 0.2em;
     font-weight: bold;
 }
