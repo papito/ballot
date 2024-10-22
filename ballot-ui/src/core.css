@@ -16,11 +16,9 @@
     --warning-background-color: #7c4802;
     --error-font-color: #fc1e1e;
     --error-background-color: #a80404;
-    --error-color: #fc1e1e;
 
-    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-        'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji',
-        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 * {
@@ -34,4 +32,8 @@ html {
 
 body {
     margin: 0;
+}
+
+.hidden {
+    display: none;
 }
