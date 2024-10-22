@@ -28,24 +28,35 @@ With more options:
 ## Development setup
 
 ### Prerequisites
-  * Computer technology
   * Docker Compose
   * Node
   * Go 1.21
 
-### Build for development
+### Starting up development
 
+#### Server
 ```bash
-make build
+# Start database (in a different window)
 make db
-make run
+# Compile & run Go
+make start
 ```
 
-Dev and test Redis containers will be brought up when running `make run` or `make up`. Run `make down` to stop the containers. You do NOT need to have local Redis running - the `run` command will bring up a Redis container.
+#### Client
+```bash
+cd ballot-ui
+make install
+make start
+```
 
-### IntelliJ IDEA
+### PRE-COMMIT HOOK
 
-Checked in at the top level is `watchers.xml`. The config can be imported into your IDEA file watcher settings to detect Typescript file changes and automatically transpile to Javascript.
+In `.git/hooks/pre-commit `:
+
+    #!/bin/sh
+    cd ballot-ui
+    make format
+    make lint
 
 
 ### Build with Docker
