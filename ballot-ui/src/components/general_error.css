@@ -1,0 +1,5 @@
+#generalError {
+    color: white;
+    padding: 8px;
+    background-color: var(--error-background-color);
+}
