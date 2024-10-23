@@ -6,6 +6,9 @@ install:
 start:
 	npm run start
 
+test:
+	npm run test
+
 format:
 	npm run format
 

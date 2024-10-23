@@ -9,7 +9,7 @@ describe('Login component tests', () => {
 
     afterEach(() => {})
 
-    it('Landing page renders correctly', async () => {
+    it('loads the landing page without much drama', async () => {
         render(<Landing />)
         const newVotingSpaceBtnTxt = screen.getByText('New Voting Space')
         expect(newVotingSpaceBtnTxt).toBeInTheDocument()

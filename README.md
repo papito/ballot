@@ -79,9 +79,18 @@ By default, the Docker container will have its own Redis instance, but you can h
 host, by using the `--network="host"` flag of Docker `run` command.
 
 
-### Running tests
+### Running server tests
 
     make test
+
+### Running UI test`
+
+    cd ballot-ui
+    make test
+
+```
+NOTE: Both Jest and Vitest are configured, but Vitest is used as the runner.
+```
 
 ## Redis schema
 
