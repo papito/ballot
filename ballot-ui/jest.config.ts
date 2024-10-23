@@ -2,6 +2,9 @@ export {}
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
     preset: 'ts-jest',
+    transform: {
+        '^.+\\.tsx?$': 'ts-jest',
+    },
     moduleNameMapper: {
         // if your using tsconfig.paths thers is no harm in telling jest
         '@components/(.*)$': '<rootDir>/src/components/$1',

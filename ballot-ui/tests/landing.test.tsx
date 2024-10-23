@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 
 import '@testing-library/jest-dom'
+// @ts-ignore
 import Landing from '../src/views/landing.tsx'
 
 describe('Login component tests', () => {
