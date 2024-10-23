@@ -72,7 +72,7 @@ function Landing(): React.JSX.Element {
         }
 
         await axios.put(`/api/vote/start`, { session_id: sessionId }).then(() => {
-            window.location.href = `/p/vote?session_id=${sessionId}&user_id=${userId}`
+            window.location.assign(`/p/vote?session_id=${sessionId}&user_id=${userId}`)
         })
     }
 
