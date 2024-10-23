@@ -13,6 +13,7 @@
 *.test
 
 bin/ballot
+coverage/
 
 # Frontend build artifacts
 ui/src/gen/js/**/*.js
