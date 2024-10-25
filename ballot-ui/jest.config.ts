@@ -6,6 +6,9 @@ module.exports = {
         '^.+\\.tsx?$': 'ts-jest',
     },
     moduleNameMapper: {
+        // Force module uuid to resolve with the CJS entry point, because Jest does not support package.json.exports.
+        // See https://github.com/uuidjs/uuid/issues/451
+        uuid: require.resolve('uuid'),
         // if your using tsconfig.paths thers is no harm in telling jest
         '@components/(.*)$': '<rootDir>/src/components/$1',
         '@/(.*)$': '<rootDir>/src/$1',
@@ -22,5 +25,10 @@ module.exports = {
 
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     modulePaths: ['<rootDir>'],
-    testEnvironment: 'jsdom',
+    testEnvironment: 'jest-fixed-jsdom',
+
+    // https://github.com/mswjs/msw/issues/1786
+    testEnvironmentOptions: {
+        customExportConditions: [''],
+    },
 }
