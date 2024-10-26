@@ -25,7 +25,6 @@ describe('Landing page tests', () => {
     it('creates a new voting space like it is nothing', async () => {
         const sessionId = uuidv4()
         const userId = uuidv4()
-        console.log(sessionId)
 
         const handlers = [
             http.post('/api/session', () => {
