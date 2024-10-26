@@ -61,7 +61,7 @@ describe('Landing page tests', () => {
         })
     })
 
-    it('gets crabby if name/alias provided', async () => {
+    it('gets crabby if no name/alias provided', async () => {
         const formErrorText = "A scrub is a guy who can't get no love from me"
 
         const handlers = [
@@ -88,6 +88,30 @@ describe('Landing page tests', () => {
         await waitFor(() => {
             const errorContainer: HTMLElement = screen.getByTestId('formError')
             expect(errorContainer).toHaveTextContent(formErrorText)
+        })
+    })
+
+    it('displays server error if it all goes to bloody hell', async () => {
+        const handlers = [
+            http.post('/api/session', () => {
+                return new HttpResponse(null, { status: 500 })
+            }),
+        ]
+
+        mockServer.use(...handlers)
+
+        render(<Landing />)
+
+        const newVotingSpaceBtn = screen.getByRole('button')
+
+        jest.spyOn(console, 'error').mockImplementation()
+        await userEvent.click(newVotingSpaceBtn)
+
+        await waitFor(() => {
+            expect(console.error).toHaveBeenCalled()
+
+            const errorContainer: HTMLElement = screen.getByTestId('generalError')
+            expect(errorContainer).toHaveTextContent('Internal Server Error')
         })
     })
 })

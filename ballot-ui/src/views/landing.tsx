@@ -19,11 +19,11 @@ function Landing(): React.JSX.Element {
         if (isAxiosError(error)) {
             const axiosError = error as AxiosError
             const msg = `An error occurred: <b>${axiosError.response?.statusText}</b>. See server logs.`
-            console.error(msg)
+            console.error(error)
             setGeneralError(msg)
         } else {
             console.error(error)
-            setGeneralError(`Unknown error: ${error}`)
+            setGeneralError(`${error}`)
         }
     }
 
@@ -43,7 +43,6 @@ function Landing(): React.JSX.Element {
             // console.log(response.data)
             sessionId = response.data.id
         } catch (error) {
-            console.log(error)
             setError(error)
             return
         }

@@ -7,7 +7,11 @@ export interface GeneralErrorProps {
 }
 
 function GeneralError({ error }: GeneralErrorProps): React.JSX.Element {
-    return error ? <div id="generalError" dangerouslySetInnerHTML={{ __html: error }}></div> : <div id="noError"></div>
+    return error ? (
+        <div data-testid="generalError" id="generalError" dangerouslySetInnerHTML={{ __html: error }}></div>
+    ) : (
+        <div id="noError"></div>
+    )
 }
 
 export default GeneralError
