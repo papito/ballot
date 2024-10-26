@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { userEvent } from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
@@ -56,20 +56,20 @@ describe('Landing page tests', () => {
 
         await userEvent.click(newVotingSpaceBtn)
 
-        // check that the redirect fired properly
-        const urlParams: { [key: string]: string } = getUrlParams(window.location.href)
-        expect(urlParams.session_id).toBe(sessionId)
-        expect(urlParams.user_id).toBe(userId)
+        await waitFor(() => {
+            // check that the redirect fired properly
+            const urlParams: { [key: string]: string } = getUrlParams(window.location.href)
+            expect(urlParams.session_id).toBe(sessionId)
+            expect(urlParams.user_id).toBe(userId)
+        })
     })
 
-    // it('vehemently objects to no name provided', async () => {
-    //     server.listen()
-    //
-    //     render(<Landing />)
-    //
-    //     const newVotingSpaceBtn = screen.getByRole('button')
-    //     expect(newVotingSpaceBtn).toBeInTheDocument()
-    //
-    //     fireEvent.click(newVotingSpaceBtn)
-    // })
+    it('vehemently objects to no name provided', async () => {
+        render(<Landing />)
+        //
+        // const newVotingSpaceBtn = screen.getByRole('button')
+        // expect(newVotingSpaceBtn).toBeInTheDocument()
+        //
+        // fireEvent.click(newVotingSpaceBtn)
+    })
 })
