@@ -1,0 +1,5 @@
+#Vote {
+    display: grid;
+    grid-template-rows: 40px auto 1fr 30px;
+    height: 100vh;
+}

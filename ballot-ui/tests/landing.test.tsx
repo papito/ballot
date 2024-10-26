@@ -55,9 +55,7 @@ describe('Landing page tests', () => {
 
         await waitFor(() => {
             // check that the redirect fired properly
-            const urlParams: { [key: string]: string } = getUrlParams(window.location.href)
-            expect(urlParams.session_id).toBe(sessionId)
-            expect(urlParams.user_id).toBe(userId)
+            expect(window.location.href).toContain(`/p/vote/s/${sessionId}/u/${userId}`)
         })
     })
 

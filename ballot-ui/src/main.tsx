@@ -18,7 +18,7 @@ const router = createBrowserRouter([
         element: <Landing />,
     },
     {
-        path: '/p/vote',
+        path: '/p/vote/s/:sessionId/u/:userId',
         element: <Vote />,
     },
 ])
