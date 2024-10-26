@@ -6,7 +6,7 @@ import GeneralError from '../components/general_error.tsx'
 
 // https://github.com/axios/axios/discussions/5859
 // eslint-disable-next-line import/named
-import axios, { AxiosResponse, isAxiosError } from 'axios'
+import axios, { AxiosError, AxiosResponse, isAxiosError } from 'axios'
 
 function Landing(): React.JSX.Element {
     let sessionId: string | null = null
@@ -16,11 +16,13 @@ function Landing(): React.JSX.Element {
     const [generalError, setGeneralError] = useState<string | null>(null)
 
     function setError(error: unknown): void {
-        if (isAxiosError(error) && error.response) {
-            const msg = `An error occurred: <b>${error.response.statusText}</b>. See server logs.`
+        if (isAxiosError(error)) {
+            const axiosError = error as AxiosError
+            const msg = `An error occurred: <b>${axiosError.response?.statusText}</b>. See server logs.`
             console.error(msg)
             setGeneralError(msg)
         } else {
+            console.error(error)
             setGeneralError(`Unknown error: ${error}`)
         }
     }
@@ -41,6 +43,7 @@ function Landing(): React.JSX.Element {
             // console.log(response.data)
             sessionId = response.data.id
         } catch (error) {
+            console.log(error)
             setError(error)
             return
         }
@@ -54,13 +57,14 @@ function Landing(): React.JSX.Element {
             // console.log(response.data)
             userId = response.data.id
         } catch (error) {
-            if (isAxiosError(error) && error.response) {
-                switch (error.response.status) {
+            if (isAxiosError(error)) {
+                const axiosError = error as AxiosError
+                switch (axiosError.response?.status) {
                     case 400:
-                        setFormError(error.response.data.error)
+                        setFormError(error.response?.data.error)
                         break
                     default:
-                        setFormError(error.response.statusText)
+                        setFormError(error.response?.statusText)
                 }
             } else {
                 setUnknownError(`An error occurred: ${error}`)
@@ -87,7 +91,9 @@ function Landing(): React.JSX.Element {
             <div className="form">
                 <form>
                     <label htmlFor=""></label>
-                    <div className={formError ? 'error' : 'hidden'}>{formError}</div>
+                    <div data-testid="formError" id="formError" className={formError ? 'error' : 'hidden'}>
+                        {formError}
+                    </div>
                     <input
                         className={formError ? 'error' : ''}
                         type="text"

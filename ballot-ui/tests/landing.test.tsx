@@ -12,6 +12,9 @@ import { getUrlParams, mockServer } from './utils.ts'
 mockServer.listen()
 
 describe('Landing page tests', () => {
+    const sessionId = uuidv4()
+    const userId = uuidv4()
+
     beforeEach(() => {
         Object.defineProperty(window, 'assign', jest.fn)
     })
@@ -22,10 +25,7 @@ describe('Landing page tests', () => {
         expect(newVotingSpaceBtnTxt).toBeInTheDocument()
     })
 
-    it('creates a new voting space like it is nothing', async () => {
-        const sessionId = uuidv4()
-        const userId = uuidv4()
-
+    it('creates a new voting space like a boss', async () => {
         const handlers = [
             http.post('/api/session', () => {
                 return HttpResponse.json({
@@ -42,15 +42,12 @@ describe('Landing page tests', () => {
             http.put('/api/vote/start', () => {
                 return HttpResponse.json({})
             }),
-
-            // http.post('/api/session', () => {
-            //     return HttpResponse.json({ err: 'lol' }, { status: 400 })
-            // }),
         ]
 
         mockServer.use(...handlers)
 
         render(<Landing />)
+
         const newVotingSpaceBtn = screen.getByRole('button')
         expect(newVotingSpaceBtn).toBeInTheDocument()
 
@@ -64,12 +61,33 @@ describe('Landing page tests', () => {
         })
     })
 
-    it('vehemently objects to no name provided', async () => {
+    it('gets crabby if name/alias provided', async () => {
+        const formErrorText = "A scrub is a guy who can't get no love from me"
+
+        const handlers = [
+            http.post('/api/session', () => {
+                return HttpResponse.json({
+                    id: sessionId,
+                })
+            }),
+            http.post('/api/user', () => {
+                return HttpResponse.json({ error: formErrorText }, { status: 400 })
+            }),
+        ]
+
+        mockServer.use(...handlers)
+
         render(<Landing />)
-        //
-        // const newVotingSpaceBtn = screen.getByRole('button')
-        // expect(newVotingSpaceBtn).toBeInTheDocument()
-        //
-        // fireEvent.click(newVotingSpaceBtn)
+
+        const newVotingSpaceBtn = screen.getByRole('button')
+
+        // jest.spyOn(console, 'error').mockImplementation()
+        // expect(console.error).toHaveBeenCalled()
+        await userEvent.click(newVotingSpaceBtn)
+
+        await waitFor(() => {
+            const errorContainer: HTMLElement = screen.getByTestId('formError')
+            expect(errorContainer).toHaveTextContent(formErrorText)
+        })
     })
 })

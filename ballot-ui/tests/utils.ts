@@ -2,6 +2,9 @@ import { setupServer } from 'msw/node'
 
 export const mockServer = setupServer()
 
+/**
+ * Extracts URL parameters from a string into a hash map.
+ */
 export function getUrlParams(url: string): { [key: string]: string } {
     const params: { [key: string]: string } = {}
     const queryString = url.split('?')[1]

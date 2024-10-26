@@ -23,7 +23,7 @@ To just get it working out of the box:
 With more options:
 
     docker pull papito/ballot:latest
-    docker run -td -p8080:8080 --name ballot -e"REDIS_URL=..." -e"HTTP_HOST=http://your.optional.domain"  papito/ballot:latest
+    docker run -td -p8080:8080 --name ballot -e"REDIS_URL=..." -e"HTTP_HOST=http://your.optional.domain" papito/ballot:latest
 
 ## Development setup
 
@@ -35,10 +35,11 @@ With more options:
 ### Starting up development
 
 #### Server
+
 ```bash
 # Start database (in a different window)
 make db
-# Compile & run Go
+# Compile & run the Go server
 make start
 ```
 
@@ -48,6 +49,21 @@ cd ballot-ui
 make install
 make start
 ```
+
+`NOTE`: The React app will connect to the dev server (so both must be running, but going to the dev
+Go server will run the **build** version of the React app, not the development one.
+
+### Running server tests
+
+    make test
+
+### Running UI test`
+
+    cd ballot-ui
+    make test
+    # run a specific test
+    npx jest -t '<partial test name to match>'
+
 
 ### PRE-COMMIT HOOK
 
@@ -77,20 +93,6 @@ Note that this will install local Redis in the container, but that instance can 
 
 By default, the Docker container will have its own Redis instance, but you can have a persistent Redis running on Docker
 host, by using the `--network="host"` flag of Docker `run` command.
-
-
-### Running server tests
-
-    make test
-
-### Running UI test`
-
-    cd ballot-ui
-    make test
-
-```
-NOTE: Both Jest and Vitest are configured, but Vitest is used as the runner.
-```
 
 ## Redis schema
 
