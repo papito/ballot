@@ -1,6 +1,6 @@
 :root {
     color-scheme: dark;
-
+    --text-color: #f8f9fa;
     --background-color: #272b30;
 
     /* Larger spacing for larger app areas, like panels and page paddings */

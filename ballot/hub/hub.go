@@ -30,12 +30,14 @@ import (
 	"github.com/desertbit/glue"
 	"github.com/gomodule/redigo/redis"
 	"github.com/joomcode/errorx"
+	"github.com/papito/ballot/ballot/config"
 	"github.com/papito/ballot/ballot/db"
 	"github.com/papito/ballot/ballot/jsonutil"
 	"github.com/papito/ballot/ballot/model"
 	"github.com/papito/ballot/ballot/model/response"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 )
 
@@ -106,8 +108,12 @@ func (p *Hub) Connect(store *db.Store) {
 	}()
 
 	/* Create the Glue server */
+	env := os.Getenv("ENV")
 	p.glueSrv = glue.NewServer(glue.Options{
 		HTTPSocketType: glue.HTTPSocketTypeNone,
+		CheckOrigin: func(r *http.Request) bool {
+			return env == config.DEV
+		},
 	})
 
 	p.glueSrv.OnNewSocket(p.handleSocket)

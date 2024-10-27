@@ -11,6 +11,12 @@ export default defineConfig({
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api/, ''),
             },
+            '/glue/ws': {
+                target: 'ws://localhost:8080',
+                ws: true,
+                secure: false,
+                rewriteWsOrigin: true,
+            },
         },
     },
 })
