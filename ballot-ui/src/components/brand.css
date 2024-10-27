@@ -1,14 +1,19 @@
-.brand {
+#Brand {
     display: grid;
     background-color: #343a40;
     grid-auto-columns: max-content auto;
 }
 
-.brand span {
+#Brand span {
     display: grid;
     place-items: center;
     font-size: 1.5em;
     padding-left: var(--control-horizontal-space);
     letter-spacing: 0.2em;
     font-weight: bold;
+}
+
+#Brand a {
+    text-decoration: none;
+    color: var(--text-color);
 }
