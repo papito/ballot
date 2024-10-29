@@ -1,4 +1,4 @@
-import { NO_ESTIMATE, SessionState } from './constants.ts'
+import { NO_ESTIMATE } from './constants.ts'
 
 export class User {
     public static fromJson(json: { [key: string]: string }): User {
@@ -30,17 +30,4 @@ export class PendingVote {
     }
     public user_id: string = ''
     public session_id: string = ''
-}
-
-export class Session {
-    public id: string = ''
-    public tally: string = ''
-    public status: SessionState = SessionState.IDLE
-    public users: User[] = []
-    public observers: User[] = []
-
-    public url(): string {
-        const domain: string | null | undefined = document.getElementById('paramDomain')?.textContent
-        return `${domain}/#/vote/${this.id}`
-    }
 }

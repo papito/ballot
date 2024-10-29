@@ -4,38 +4,84 @@ import { useParams } from 'react-router-dom'
 import Brand from '../components/brand.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
+import { NO_ESTIMATE, SessionState } from '../constants.ts'
 
 // https://github.com/axios/axios/discussions/5859
 // eslint-disable-next-line import/named
 import axios, { AxiosResponse } from 'axios'
+import StartStop from '../components/start_stop.tsx'
 import { User } from '../models.ts'
 import Websockets from '../websockets.ts'
 
+export interface ISessionState {
+    id: string | undefined
+    status: SessionState
+    tally: { [key: string]: number }
+    users: User[]
+    observers: User[]
+}
+
+export interface IUserState {
+    id: string | undefined
+    name: string
+    estimate: string
+    voted: boolean
+    is_observer: boolean
+    is_admin: boolean
+}
+
 function Vote(): React.JSX.Element {
-    const [generalError, setGeneralError] = useState<string | null>(null)
-    const [user, setUser] = useState<User | null>(null)
-
     const params = useParams()
-    // const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
-
     const sessionId = params.sessionId
-    console.assert(sessionId, 'sessionId is required')
     const userId = params.userId
+    console.debug('Session ID:', sessionId)
+    console.debug('User ID:', userId)
+
+    console.assert(sessionId, 'sessionId is required')
     console.assert(userId, 'userId is required')
 
-    console.log('Session ID:', sessionId)
-    console.log('User ID:', userId)
+    const [generalError, setGeneralError] = useState<string | null>(null)
+    const [user, setUser] = useState<IUserState>({
+        id: userId,
+        name: '',
+        estimate: NO_ESTIMATE,
+        voted: false,
+        is_observer: false,
+        is_admin: false,
+    })
+    const [session, setSession] = useState<ISessionState>({
+        id: sessionId,
+        status: SessionState.IDLE,
+        tally: {},
+        users: [],
+        observers: [],
+    })
+    const [observerNames, setObserverNames] = useState<string>('')
+
+    // const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
 
     // const connection: MutableRefObject<null> = useRef(null)
 
-    const ws: Websockets = new Websockets()
-
     useEffect(() => {
+        console.log('!!!!!!!!!!! Use effect')
+        // TODO: see https://stackoverflow.com/questions/60152922/proper-way-of-using-react-hooks-websockets
+        // https://ably.com/blog/websockets-react-tutorial
+        const ws: Websockets = new Websockets()
+
         const fetchUser = async (): Promise<void> => {
             const response: AxiosResponse = await axios.get(`/api/user/${userId}`)
+            console.debug('User:', response.data)
 
-            setUser(User.fromJson(response.data))
-            console.log('User:', response.data)
+            const thisUser = User.fromJson(response.data)
+
+            setUser({
+                ...user,
+                name: thisUser.name,
+                is_admin: thisUser.is_admin,
+                is_observer: thisUser.is_observer,
+                voted: thisUser.voted,
+                estimate: thisUser.estimate,
+            })
 
             const watchCmd = {
                 action: 'WATCH',
@@ -45,6 +91,30 @@ function Vote(): React.JSX.Element {
                 is_admin: true,
             }
             ws.send(JSON.stringify(watchCmd))
+        }
+
+        function watchingSessionWsHandler(json: { [key: string]: never }): void {
+            session.status = json['session_state']
+            session.tally = json['tally']
+
+            const sessionUsers: User[] = []
+            const usersJson: { [key: string]: never }[] = json['users'] || []
+            for (const userJson of usersJson) {
+                const aUser = User.fromJson(userJson)
+                sessionUsers.push(aUser)
+            }
+
+            session.users = sessionUsers
+            setSession({ ...session, users: sessionUsers })
+
+            const sessionObservers: User[] = []
+            const observersJson: { [key: string]: never }[] = json['observers'] || []
+            for (const observerJson of observersJson) {
+                const observer = User.fromJson(observerJson)
+                sessionObservers.push(observer)
+            }
+
+            setObserverNames(sessionObservers.map((observer: User) => observer.name).join(', '))
         }
 
         ws.socket.onMessage((data: string) => {
@@ -65,7 +135,7 @@ function Vote(): React.JSX.Element {
                 }
                 case 'WATCHING': {
                     console.log('Watching session:', json)
-                    // this.watchingSessionWsHandler(json)
+                    watchingSessionWsHandler(json)
                     break
                 }
                 case 'VOTING': {
@@ -99,13 +169,31 @@ function Vote(): React.JSX.Element {
         fetchUser().catch((error: unknown) => {
             setGeneralError(`An error occurred (${error}). See server logs.`)
         })
-    }, [userId])
+    }, [sessionId, userId])
+
+    const votersJsx = session.users.map((voter: User) => {
+        return (
+            <div key={voter.id} className="voter">
+                {voter.name}
+            </div>
+        )
+    })
+
+    console.log('Users JSX', session.users.length)
 
     return (
-        <div id="Vote">
+        <div id="Vote" className="view">
             <Brand />
             <GeneralError error={generalError} />
-            <div id="voteContainer"></div>
+            <div id="voteContainer">
+                <div id="voteHeader">
+                    <StartStop session={session} user={user} />
+                    <div id="copySessionUrl">
+                        <button>Copy session URL</button>
+                    </div>
+                </div>
+                <div id="voters">{votersJsx}</div>
+            </div>
             <Footer />
         </div>
     )

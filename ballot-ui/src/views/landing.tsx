@@ -83,7 +83,7 @@ function Landing(): React.JSX.Element {
     }
 
     return (
-        <div id="Landing">
+        <div id="Landing" className="view">
             <Brand />
             <GeneralError error={generalError} />
 

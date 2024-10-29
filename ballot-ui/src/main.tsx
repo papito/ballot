@@ -1,4 +1,3 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import Landing from './views/landing.tsx'
 import Vote from './views/vote.tsx'
@@ -24,7 +23,5 @@ const router = createBrowserRouter([
 ])
 
 createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-        <RouterProvider router={router} />
-    </StrictMode>
+    <RouterProvider router={router} />
 )
