@@ -1,4 +1,3 @@
-import './join.css'
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Brand from '../components/brand.tsx'
@@ -58,7 +57,7 @@ function Join(): React.JSX.Element {
     }
 
     return (
-        <div id="Landing" className="view">
+        <div id="Join" className="view">
             <Brand />
             <GeneralError error={generalError} />
 
@@ -75,10 +74,10 @@ function Join(): React.JSX.Element {
                         placeholder="Your name/alias"
                         onChange={(e) => setName(e.target.value)}
                     />
-                    <button type="button" onClick={() => join({ isObserver: 0 })}>
+                    <button className="success" type="button" onClick={() => join({ isObserver: 0 })}>
                         Join as a voter
                     </button>
-                    <button type="button" onClick={() => join({ isObserver: 1 })}>
+                    <button className="warn" type="button" onClick={() => join({ isObserver: 1 })}>
                         Join as an innocent bystander
                     </button>
                 </form>

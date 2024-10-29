@@ -1,4 +1,3 @@
-import './landing.css'
 import React, { useState } from 'react'
 import Brand from '../components/brand.tsx'
 import Footer from '../components/footer.tsx'
@@ -100,7 +99,7 @@ function Landing(): React.JSX.Element {
                         placeholder="Your name/alias"
                         onChange={(e) => setName(e.target.value)}
                     />
-                    <button type="button" onClick={createNewSession}>
+                    <button type="button" className="success" onClick={createNewSession}>
                         New Voting Space
                     </button>
                 </form>
