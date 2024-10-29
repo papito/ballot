@@ -63,8 +63,8 @@ function Vote(): React.JSX.Element {
     // const connection: MutableRefObject<null> = useRef(null)
 
     useEffect(() => {
-        console.log('!!!!!!!!!!! Use effect')
-        // TODO: see https://stackoverflow.com/questions/60152922/proper-way-of-using-react-hooks-websockets
+        console.debug('!!!!!!!!!!! Use effect')
+        // see https://stackoverflow.com/questions/60152922/proper-way-of-using-react-hooks-websockets
         // https://ably.com/blog/websockets-react-tutorial
         const ws: Websockets = new Websockets()
 
@@ -117,49 +117,64 @@ function Vote(): React.JSX.Element {
             setObserverNames(sessionObservers.map((observer: User) => observer.name).join(', '))
         }
 
+        function userLeftWsHandler(json: { [key: string]: never }): void {
+            const voterId = json['user_id']
+            const userIndex = session.users.findIndex((voter: User) => voter.id === voterId)
+            if (userIndex !== -1) {
+                session.users.splice(userIndex, 1)
+                setSession({ ...session, users: session.users })
+            }
+        }
+
+        function userAddedWsHandler(json: { [key: string]: never }): void {
+            const newUser = User.fromJson(json)
+
+            const isExisting = session.users.findIndex((voter: User) => voter.id === newUser.id)
+            if (isExisting >= 0) {
+                return
+            }
+
+            session.users.push(newUser)
+            setSession({ ...session, users: session.users })
+        }
+
         ws.socket.onMessage((data: string) => {
-            console.log('onMessage: ' + data)
+            console.log('Received:', data)
             const json = JSON.parse(data)
             const event: string = json['event']
+            console.log(event, json)
 
             switch (event) {
                 case 'USER_ADDED': {
-                    console.log('User added:', json)
-                    // this.userAddedWsHandler(json)
+                    console.log(json)
+                    userAddedWsHandler(json)
                     break
                 }
                 case 'OBSERVER_ADDED': {
-                    console.log('Observer added:', json)
                     // this.observerAddedWsHandler(json)
                     break
                 }
                 case 'WATCHING': {
-                    console.log('Watching session:', json)
                     watchingSessionWsHandler(json)
                     break
                 }
                 case 'VOTING': {
-                    console.log('Voting started:', json)
                     // this.votingStartedWsHandler()
                     break
                 }
                 case 'USER_VOTED': {
-                    console.log('User voted:', json)
                     // this.userVotedHandler(json)
                     break
                 }
                 case 'VOTE_FINISHED': {
-                    console.log('Voting finished:', json)
                     // this.votingFinishedWsHandler(json)
                     break
                 }
                 case 'USER_LEFT': {
-                    console.log('User left:', json)
-                    // this.userLeftWsHandler(json)
+                    userLeftWsHandler(json)
                     break
                 }
                 case 'OBSERVER_LEFT': {
-                    console.log('Observer left:', json)
                     // this.observerLeftWsHandler(json)
                     break
                 }
@@ -179,8 +194,6 @@ function Vote(): React.JSX.Element {
         )
     })
 
-    console.log('Users JSX', session.users.length)
-
     return (
         <div id="Vote" className="view">
             <Brand />
@@ -192,6 +205,7 @@ function Vote(): React.JSX.Element {
                         <button>Copy session URL</button>
                     </div>
                 </div>
+                <div id="observerNames">{observerNames}</div>
                 <div id="voters">{votersJsx}</div>
             </div>
             <Footer />

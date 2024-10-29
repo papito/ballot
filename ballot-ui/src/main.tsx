@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client'
+import Join from './views/join.tsx'
 import Landing from './views/landing.tsx'
 import Vote from './views/vote.tsx'
 
@@ -20,8 +21,10 @@ const router = createBrowserRouter([
         path: '/p/vote/s/:sessionId/u/:userId',
         element: <Vote />,
     },
+    {
+        path: '/p/vote/s/:sessionId',
+        element: <Join />,
+    },
 ])
 
-createRoot(document.getElementById('root')!).render(
-    <RouterProvider router={router} />
-)
+createRoot(document.getElementById('root')!).render(<RouterProvider router={router} />)

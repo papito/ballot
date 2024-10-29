@@ -1,3 +1,8 @@
+#voteContainer {
+    display: grid;
+    grid-auto-rows: max-content;
+    row-gap: var(--control-vertical-space);
+}
 #voteHeader {
     display: grid;
     grid-template-columns: 1fr 1fr;
