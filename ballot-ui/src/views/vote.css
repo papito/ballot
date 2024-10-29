@@ -1,10 +1,45 @@
 #voteContainer {
+    padding-top: var(--section-vertical-space);
     display: grid;
     grid-auto-rows: max-content;
-    row-gap: var(--control-vertical-space);
+    row-gap: var(--section-vertical-space);
 }
 #voteHeader {
     display: grid;
     grid-template-columns: 1fr 1fr;
     place-items: center;
+}
+
+#estimates {
+    padding-left: var(--control-horizontal-space);
+    padding-right: var(--control-horizontal-space);
+    display: grid;
+    grid-template-columns: repeat(11, auto);
+    column-gap: var(--control-horizontal-space)
+}
+
+.btn.estimate {
+    display: grid;
+    place-items: center;
+    height: 120px;
+    background-color: transparent;
+    color: #ffc107;
+    border: 2px solid #ffc107;
+}
+
+#startMessage {
+    width: 100%;
+    line-height: 2.2em;
+    text-align: center;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.30);
+    border: 1px dotted grey;
+    padding: .5em;
+}
+
+#voters {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
 }

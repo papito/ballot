@@ -26,8 +26,6 @@ function Join(): React.JSX.Element {
         setFormError(null)
         setGeneralError(null)
 
-        let userId: string | null = null
-
         try {
             const response: AxiosResponse = await axios.post('/api/user', {
                 name: name,
@@ -35,7 +33,9 @@ function Join(): React.JSX.Element {
                 is_observer: isObserver,
             })
             console.debug(response.data)
-            userId = response.data.id
+            const userId: string | null = response.data.id
+            console.assert(userId, 'userId is required')
+            window.location.assign(`/p/vote/s/${sessionId}/u/${userId}`)
         } catch (error) {
             if (isAxiosError(error)) {
                 const axiosError = error as AxiosError
@@ -53,7 +53,6 @@ function Join(): React.JSX.Element {
             return
         }
 
-        window.location.assign(`/p/vote/s/${sessionId}/u/${userId}`)
     }
 
     return (

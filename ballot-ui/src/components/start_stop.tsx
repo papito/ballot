@@ -17,7 +17,7 @@ function StartStop({ session, user }: StartStopProps): React.JSX.Element {
     if (session.status == SessionState.VOTING) {
         return (
             <div id="startStop">
-                <button>See vote results</button>
+                <button className="btn stop">Finish the vote</button>
             </div>
         )
     }
@@ -25,7 +25,7 @@ function StartStop({ session, user }: StartStopProps): React.JSX.Element {
     if (session.status == SessionState.IDLE) {
         return (
             <div id="startStop">
-                <button>Start</button>
+                <button className="btn start">Start</button>
             </div>
         )
     }

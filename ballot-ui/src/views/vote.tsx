@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import Brand from '../components/brand.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
+import Voter from '../components/voter.tsx'
 import { NO_ESTIMATE, SessionState } from '../constants.ts'
 
 // https://github.com/axios/axios/discussions/5859
@@ -58,7 +59,7 @@ function Vote(): React.JSX.Element {
     })
     const [observerNames, setObserverNames] = useState<string>('')
 
-    // const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
+    const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
 
     // const connection: MutableRefObject<null> = useRef(null)
 
@@ -187,12 +188,37 @@ function Vote(): React.JSX.Element {
     }, [sessionId, userId])
 
     const votersJsx = session.users.map((voter: User) => {
+        return <Voter voter={voter} key={voter.id} />
+    })
+
+    const possibleEstimatesJsx = possibleEstimates.map((estimate: string) => {
         return (
-            <div key={voter.id} className="voter">
-                {voter.name}
+            <div key={estimate}>
+                <button className="btn estimate">{estimate}</button>
             </div>
         )
     })
+
+    const observerNamesJsx: React.JSX.Element = observerNames ? (
+        <div id="observerNames">
+            <span>Observers: {observerNames}</span>
+        </div>
+    ) : (
+        <></>
+    )
+
+    const startMessageJsx: React.JSX.Element =
+        session.users.length == 1 ? (
+            <div id="startMessage">
+                Looks like you are the only one here!{' '}
+                <a href="" target="_blank">
+                    Join this session
+                </a>{' '}
+                in a different tab to test with more than one user.
+            </div>
+        ) : (
+            <></>
+        )
 
     return (
         <div id="Vote" className="view">
@@ -202,10 +228,12 @@ function Vote(): React.JSX.Element {
                 <div id="voteHeader">
                     <StartStop session={session} user={user} />
                     <div id="copySessionUrl">
-                        <button>Copy session URL</button>
+                        <button className="btn copy-url">Copy session URL</button>
                     </div>
                 </div>
-                <div id="observerNames">{observerNames}</div>
+                {observerNamesJsx}
+                {startMessageJsx}
+                <div id="estimates">{possibleEstimatesJsx}</div>
                 <div id="voters">{votersJsx}</div>
             </div>
             <Footer />

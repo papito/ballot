@@ -78,13 +78,18 @@ button:hover {
 
 button.success {
     background-color: var(--success-background-color);
-    border: 1px solid var(--success-background-color);
+    border: 0;
 }
 
 button.warn {
     background-color: #ffc107;
-    border: 1px solid #ffc107;
     color: #000;
+    border: 0;
+}
+
+button.error {
+    background-color: #000;
+    border: 1px solid var(--error-background-color);
 }
 
 .form, form {

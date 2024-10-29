@@ -1,0 +1,15 @@
+.voter {
+    margin: var(--control-vertical-space);
+    display: grid;
+    border-radius: 5px;
+    border: 2px solid #676767;
+    background-color: #424242;
+    width: 200px;
+    height: 200px;
+    grid-template-rows: repeat(3, 1fr);
+}
+
+.voter > div {
+    display: grid;
+    place-items: center;
+}

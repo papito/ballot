@@ -1,0 +1,10 @@
+.btn.stop {
+    background-color: #5d5c5c;
+    border: 2px solid var(--error-background-color);
+}
+
+.btn.copy-url {
+    background-color: #5d5c5c;
+    color: white;
+    border: 1px solid #ffc107;
+}
