@@ -7,10 +7,9 @@ import { ISessionState, IUserState } from '../views/vote.tsx'
 interface StartStopProps {
     session: ISessionState
     user: IUserState
-    funcClearState: () => void
 }
 
-function StartStop({ session, user, funcClearState }: StartStopProps): React.JSX.Element {
+function StartStop({ session, user }: StartStopProps): React.JSX.Element {
     if (!user.is_admin) {
         return <div> </div>
     }
@@ -25,8 +24,6 @@ function StartStop({ session, user, funcClearState }: StartStopProps): React.JSX
         await axios.put('/api/vote/start', {
             session_id: session.id,
         })
-
-        funcClearState()
     }
 
     if (session.status == SessionState.VOTING) {

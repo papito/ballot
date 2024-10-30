@@ -6,20 +6,19 @@ import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
 import Voter from '../components/voter.tsx'
 import { NO_ESTIMATE, SessionState } from '../constants.ts'
+import { useImmer } from 'use-immer'
+import { produce } from 'immer'
 
 // https://github.com/axios/axios/discussions/5859
 // eslint-disable-next-line import/named
 import axios, { AxiosResponse } from 'axios'
 import StartStop from '../components/start_stop.tsx'
-import { User } from '../models.ts'
 import Websockets from '../websockets.ts'
 
 export interface ISessionState {
     id: string | undefined
     status: SessionState
     tally: string
-    users: User[]
-    observers: User[]
 }
 
 export interface IUserState {
@@ -55,21 +54,11 @@ function Vote(): React.JSX.Element {
         id: sessionId,
         status: SessionState.IDLE,
         tally: NO_ESTIMATE,
-        users: [],
-        observers: [],
     })
     const [observerNames, setObserverNames] = useState<string>('')
+    const [voters, setVoters] = useImmer<IUserState[]>([])
 
     const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
-
-    const clearState = (): void => {
-        setSession({
-            ...session,
-            tally: NO_ESTIMATE,
-        })
-
-        setUser({ ...user, estimate: NO_ESTIMATE })
-    }
 
     const castVote = async (estimate: string): Promise<void> => {
         try {
@@ -99,15 +88,15 @@ function Vote(): React.JSX.Element {
             const response: AxiosResponse = await axios.get(`/api/user/${userId}`)
             console.debug('User:', response.data)
 
-            const thisUser = User.fromJson(response.data)
+            const userJson = response.data
 
             setUser({
-                ...user,
-                name: thisUser.name,
-                is_admin: thisUser.is_admin,
-                is_observer: thisUser.is_observer,
-                voted: thisUser.voted,
-                estimate: thisUser.estimate,
+                id: userJson['id'],
+                name: userJson['name'],
+                estimate: userJson['estimate'],
+                voted: userJson['voted'],
+                is_observer: userJson['is_observer'],
+                is_admin: userJson['is_admin'],
             })
 
             const watchCmd = {
@@ -124,84 +113,100 @@ function Vote(): React.JSX.Element {
             session.status = json['session_state']
             session.tally = json['tally']
 
-            const sessionUsers: User[] = []
             const usersJson: { [key: string]: never }[] = json['users'] || []
+            const sessionVoters: IUserState[] = []
+
             for (const userJson of usersJson) {
-                const aUser = User.fromJson(userJson)
-                sessionUsers.push(aUser)
+                sessionVoters.push({
+                    id: userJson['id'],
+                    name: userJson['name'],
+                    estimate: userJson['estimate'],
+                    voted: userJson['voted'],
+                    is_observer: userJson['is_observer'],
+                    is_admin: userJson['is_admin'],
+                })
             }
 
-            session.users = sessionUsers
-            setSession({ ...session, users: sessionUsers })
+            setVoters(sessionVoters)
 
-            const sessionObservers: User[] = []
             const observersJson: { [key: string]: never }[] = json['observers'] || []
-            for (const observerJson of observersJson) {
-                const observer = User.fromJson(observerJson)
-                sessionObservers.push(observer)
-            }
+            const names: string = observersJson
+                .map((observerJson: { [key: string]: never }) => observerJson['name'])
+                .join(', ')
 
-            setObserverNames(sessionObservers.map((observer: User) => observer.name).join(', '))
+            setObserverNames(names)
         }
 
         function userLeftWsHandler(json: { [key: string]: never }): void {
             const voterId = json['user_id']
-            const userIndex = session.users.findIndex((voter: User) => voter.id === voterId)
-            if (userIndex !== -1) {
-                session.users.splice(userIndex, 1)
-                setSession({ ...session, users: session.users })
-            }
+
+            produce(voters, (draft) => {
+                const index = draft.findIndex((voter) => voter.id === voterId)
+                if (index !== -1) draft.splice(index, 1)
+            })
         }
 
-        function userAddedWsHandler(json: { [key: string]: never }): void {
-            const newUser = User.fromJson(json)
+        function userAddedWsHandler(userJson: { [key: string]: never }): void {
+            const newUserId = userJson['id']
 
-            const isExisting = session.users.findIndex((voter: User) => voter.id === newUser.id)
+            const isExisting = voters.findIndex((voter: IUserState) => voter.id === newUserId)
             if (isExisting >= 0) {
                 return
             }
 
-            session.users.push(newUser)
-            setSession({ ...session, users: session.users })
+            produce(voters, (draft) => {
+                draft.push({
+                    id: userJson['id'],
+                    name: userJson['name'],
+                    estimate: userJson['estimate'],
+                    voted: userJson['voted'],
+                    is_observer: userJson['is_observer'],
+                    is_admin: userJson['is_admin'],
+                })
+            })
         }
 
         function userVotedWsHandler(json: { [key: string]: string }): void {
             const voterId = json['user_id']
-            console.log('USER VOTED ' + voterId)
 
-            // find and update the user
-            const voter = session.users.find((_: User) => _.id === voterId)
-
-            if (!voter) {
-                throw new Error(`Could not find user by ID ${voterId}`)
-            }
-
-            voter.voted = true
+            setVoters((draft) => {
+                const voter = draft.find((v) => v.id === voterId)
+                if (voter) {
+                    voter.voted = true
+                }
+            })
         }
 
         function votingStartedWsHandler(): void {
             setSession({ ...session, status: SessionState.VOTING })
-            clearState()
 
-            for (const voter of session.users) {
-                voter.estimate = NO_ESTIMATE
-                voter.voted = false
-            }
+            setVoters((draft) => {
+                draft.forEach((voter) => {
+                    voter.voted = false
+                    voter.estimate = NO_ESTIMATE
+                })
+            })
         }
 
         function votingFinishedWsHandler(json: { [key: string]: never }): void {
             const tally: string = json['tally']
+            setSession({ ...session, status: SessionState.IDLE, tally: tally })
 
-            const sessionUsers: User[] = []
             const usersJson: { [key: string]: never }[] = json['users'] || []
+            const sessionVoters: IUserState[] = []
+
             for (const userJson of usersJson) {
-                const aUser = User.fromJson(userJson)
-                sessionUsers.push(aUser)
+                sessionVoters.push({
+                    id: userJson['id'],
+                    name: userJson['name'],
+                    estimate: userJson['estimate'],
+                    voted: userJson['voted'],
+                    is_observer: userJson['is_observer'],
+                    is_admin: userJson['is_admin'],
+                })
             }
 
-            session.users = sessionUsers
-
-            setSession({ ...session, status: SessionState.IDLE, tally: tally, users: sessionUsers })
+            setVoters(sessionVoters)
         }
 
         ws.socket.onMessage((data: string) => {
@@ -251,8 +256,8 @@ function Vote(): React.JSX.Element {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sessionId, userId])
 
-    const votersJsx = session.users.map((voter: User) => {
-        return <Voter voter={voter} key={voter.id} />
+    const votersJsx = voters.map((voter: IUserState) => {
+        return <Voter {...voter} key={voter.id} />
     })
 
     const possibleEstimatesJsx = possibleEstimates.map((estimate: string) => {
@@ -274,7 +279,7 @@ function Vote(): React.JSX.Element {
     )
 
     const startMessageJsx: React.JSX.Element =
-        session.users.length == 1 ? (
+        voters.length == 1 ? (
             <div id="startMessage">
                 Looks like you are the only one here!{' '}
                 <a href="" target="_blank">
@@ -292,7 +297,7 @@ function Vote(): React.JSX.Element {
             <GeneralError error={generalError} />
             <div id="voteContainer">
                 <div id="voteHeader">
-                    <StartStop session={session} user={user} funcClearState={clearState} />
+                    <StartStop session={session} user={user} />
                     <div id="copySessionUrl">
                         <button className="btn copy-url">Copy session URL</button>
                     </div>
