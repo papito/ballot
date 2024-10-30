@@ -62,6 +62,21 @@ function Vote(): React.JSX.Element {
 
     const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
 
+    const castVote = async (estimate: string): Promise<void> => {
+        try {
+            await axios.put('/api/vote/cast', {
+                session_id: sessionId,
+                user_id: userId,
+                estimate: estimate,
+            })
+        } catch (error) {
+            setGeneralError(`${error}`)
+            return
+        }
+
+        setUser({ ...user, estimate: estimate })
+    }
+
     /**
      * This runs once when the component is mounted.
      */
@@ -141,15 +156,27 @@ function Vote(): React.JSX.Element {
             setSession({ ...session, users: session.users })
         }
 
+        function userVotedWsHandler(json: { [key: string]: string }): void {
+            const voterId = json['user_id']
+            console.log('USER VOTED ' + voterId)
+
+            // find and update the user
+            const voter = session.users.find((_: User) => _.id === voterId)
+
+            if (!voter) {
+                throw new Error(`Could not find user by ID ${voterId}`)
+            }
+
+            voter.voted = true
+        }
+
         ws.socket.onMessage((data: string) => {
-            console.log('Received:', data)
             const json = JSON.parse(data)
             const event: string = json['event']
             console.log(event, json)
 
             switch (event) {
                 case 'USER_ADDED': {
-                    console.log(json)
                     userAddedWsHandler(json)
                     break
                 }
@@ -166,7 +193,7 @@ function Vote(): React.JSX.Element {
                     break
                 }
                 case 'USER_VOTED': {
-                    // this.userVotedHandler(json)
+                    userVotedWsHandler(json)
                     break
                 }
                 case 'VOTE_FINISHED': {
@@ -196,7 +223,9 @@ function Vote(): React.JSX.Element {
     const possibleEstimatesJsx = possibleEstimates.map((estimate: string) => {
         return (
             <div key={estimate}>
-                <button className="btn estimate">{estimate}</button>
+                <button className="btn estimate" onClick={() => castVote(estimate)}>
+                    {estimate}
+                </button>
             </div>
         )
     })
