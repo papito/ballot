@@ -1,9 +1,9 @@
 import './voter.css'
 import React from 'react'
-import { IUserState } from '../views/vote.tsx'
+import { User } from '../models.ts';
 
 interface VoterProps {
-    voter: IUserState
+    voter: User
 }
 
 function Voter({ voter }: VoterProps): React.JSX.Element {

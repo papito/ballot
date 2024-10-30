@@ -34,12 +34,12 @@ export interface IUserState {
 function Vote(): React.JSX.Element {
     const params = useParams()
     const sessionId = params.sessionId
+    console.assert(sessionId, 'sessionId is required')
     const userId = params.userId
+    console.assert(userId, 'userId is required')
+
     console.debug('Session ID:', sessionId)
     console.debug('User ID:', userId)
-
-    console.assert(sessionId, 'sessionId is required')
-    console.assert(userId, 'userId is required')
 
     const [generalError, setGeneralError] = useState<string | null>(null)
     const [user, setUser] = useState<IUserState>({
@@ -50,6 +50,7 @@ function Vote(): React.JSX.Element {
         is_observer: false,
         is_admin: false,
     })
+
     const [session, setSession] = useState<ISessionState>({
         id: sessionId,
         status: SessionState.IDLE,
@@ -61,8 +62,9 @@ function Vote(): React.JSX.Element {
 
     const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
 
-    // const connection: MutableRefObject<null> = useRef(null)
-
+    /**
+     * This runs once when the component is mounted.
+     */
     useEffect(() => {
         console.debug('!!!!!!!!!!! Use effect')
         // see https://stackoverflow.com/questions/60152922/proper-way-of-using-react-hooks-websockets
