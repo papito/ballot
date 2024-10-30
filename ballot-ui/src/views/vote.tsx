@@ -17,7 +17,7 @@ import Websockets from '../websockets.ts'
 export interface ISessionState {
     id: string | undefined
     status: SessionState
-    tally: { [key: string]: number }
+    tally: string
     users: User[]
     observers: User[]
 }
@@ -54,13 +54,22 @@ function Vote(): React.JSX.Element {
     const [session, setSession] = useState<ISessionState>({
         id: sessionId,
         status: SessionState.IDLE,
-        tally: {},
+        tally: NO_ESTIMATE,
         users: [],
         observers: [],
     })
     const [observerNames, setObserverNames] = useState<string>('')
 
     const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
+
+    const clearState = (): void => {
+        setSession({
+            ...session,
+            tally: NO_ESTIMATE,
+        })
+
+        setUser({ ...user, estimate: NO_ESTIMATE })
+    }
 
     const castVote = async (estimate: string): Promise<void> => {
         try {
@@ -170,6 +179,31 @@ function Vote(): React.JSX.Element {
             voter.voted = true
         }
 
+        function votingStartedWsHandler(): void {
+            setSession({ ...session, status: SessionState.VOTING })
+            clearState()
+
+            for (const voter of session.users) {
+                voter.estimate = NO_ESTIMATE
+                voter.voted = false
+            }
+        }
+
+        function votingFinishedWsHandler(json: { [key: string]: never }): void {
+            const tally: string = json['tally']
+
+            const sessionUsers: User[] = []
+            const usersJson: { [key: string]: never }[] = json['users'] || []
+            for (const userJson of usersJson) {
+                const aUser = User.fromJson(userJson)
+                sessionUsers.push(aUser)
+            }
+
+            session.users = sessionUsers
+
+            setSession({ ...session, status: SessionState.IDLE, tally: tally, users: sessionUsers })
+        }
+
         ws.socket.onMessage((data: string) => {
             const json = JSON.parse(data)
             const event: string = json['event']
@@ -189,7 +223,7 @@ function Vote(): React.JSX.Element {
                     break
                 }
                 case 'VOTING': {
-                    // this.votingStartedWsHandler()
+                    votingStartedWsHandler()
                     break
                 }
                 case 'USER_VOTED': {
@@ -197,7 +231,7 @@ function Vote(): React.JSX.Element {
                     break
                 }
                 case 'VOTE_FINISHED': {
-                    // this.votingFinishedWsHandler(json)
+                    votingFinishedWsHandler(json)
                     break
                 }
                 case 'USER_LEFT': {
@@ -214,6 +248,7 @@ function Vote(): React.JSX.Element {
         fetchUser().catch((error: unknown) => {
             setGeneralError(`An error occurred (${error}). See server logs.`)
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sessionId, userId])
 
     const votersJsx = session.users.map((voter: User) => {
@@ -257,7 +292,7 @@ function Vote(): React.JSX.Element {
             <GeneralError error={generalError} />
             <div id="voteContainer">
                 <div id="voteHeader">
-                    <StartStop session={session} user={user} />
+                    <StartStop session={session} user={user} funcClearState={clearState} />
                     <div id="copySessionUrl">
                         <button className="btn copy-url">Copy session URL</button>
                     </div>
