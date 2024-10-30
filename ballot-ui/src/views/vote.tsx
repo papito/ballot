@@ -1,18 +1,18 @@
 import './vote.css'
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import Brand from '../components/brand.tsx'
-import Footer from '../components/footer.tsx'
-import GeneralError from '../components/general_error.tsx'
-import Voter from '../components/voter.tsx'
-import { NO_ESTIMATE, SessionState } from '../constants.ts'
-import { useImmer } from 'use-immer'
-import { produce } from 'immer'
 
 // https://github.com/axios/axios/discussions/5859
 // eslint-disable-next-line import/named
 import axios, { AxiosResponse } from 'axios'
+import { produce } from 'immer'
+import React, { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { useImmer } from 'use-immer'
+import Brand from '../components/brand.tsx'
+import Footer from '../components/footer.tsx'
+import GeneralError from '../components/general_error.tsx'
 import StartStop from '../components/start_stop.tsx'
+import Voter from '../components/voter.tsx'
+import { NO_ESTIMATE, SessionState } from '../constants.ts'
 import Websockets from '../websockets.ts'
 
 export interface ISessionState {
@@ -263,7 +263,13 @@ function Vote(): React.JSX.Element {
     const possibleEstimatesJsx = possibleEstimates.map((estimate: string) => {
         return (
             <div key={estimate}>
-                <button className="btn estimate" onClick={() => castVote(estimate)}>
+                <button
+                    className={
+                        'btn estimate ' +
+                        (session.status === SessionState.VOTING && user.estimate === estimate ? 'selected' : '')
+                    }
+                    onClick={() => castVote(estimate)}
+                >
                     {estimate}
                 </button>
             </div>

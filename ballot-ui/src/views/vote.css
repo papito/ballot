@@ -27,6 +27,12 @@
     border: 2px solid #ffc107;
 }
 
+.btn.estimate.selected {
+    background-color: #ffc107;
+    color: black;
+    border: 1px solid white;
+}
+
 #startMessage {
     width: 100%;
     line-height: 2.2em;
