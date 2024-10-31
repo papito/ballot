@@ -1,5 +1,4 @@
 #voteContainer {
-    padding-top: var(--section-vertical-space);
     display: grid;
     grid-auto-rows: max-content;
     row-gap: var(--section-vertical-space);
@@ -8,14 +7,32 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     place-items: center;
+    background-color: #2e3238;
+    height: 100px;
+    border-bottom: 2px solid #4a4f56;
 }
 
-#estimates {
+#cards {
     padding-left: var(--control-horizontal-space);
     padding-right: var(--control-horizontal-space);
     display: grid;
     grid-template-columns: repeat(11, auto);
     column-gap: var(--control-horizontal-space)
+}
+
+#tally {
+    display: grid;
+    place-items: center;
+    grid-template-columns: 1fr max-content 1fr;
+}
+
+#tally span {
+    border: 2px solid white;
+    grid-column: 2;
+    padding: 20px;
+    border-radius: 7px;
+    font-size: 2em;
+    font-weight: bold;
 }
 
 .btn.estimate {

@@ -53,7 +53,7 @@ function Vote(): React.JSX.Element {
 
     const [observerNames, setObserverNames] = useState<string>('')
 
-    const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
+    const cardValues: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
 
     const castVote = async (estimate: string): Promise<void> => {
         try {
@@ -241,7 +241,7 @@ function Vote(): React.JSX.Element {
         return <Voter voter={voter} session={session} key={voter.id} />
     })
 
-    const possibleEstimatesJsx = possibleEstimates.map((estimate: string) => {
+    const cardValuesJsx = cardValues.map((estimate: string) => {
         return (
             <div key={estimate}>
                 <button
@@ -253,6 +253,7 @@ function Vote(): React.JSX.Element {
             </div>
         )
     })
+    const cardsJsx = session.status === SessionState.VOTING ? <div id="cards">{cardValuesJsx}</div> : <></>
 
     const observerNamesJsx: React.JSX.Element = observerNames ? (
         <div id="observerNames">
@@ -275,6 +276,15 @@ function Vote(): React.JSX.Element {
             <></>
         )
 
+    const tallyJsx: React.JSX.Element =
+        session.status == SessionState.IDLE ? (
+            <div id="tally">
+                <span>Estimate: {session.tally}</span>
+            </div>
+        ) : (
+            <></>
+        )
+
     return (
         <div id="Vote" className="view">
             <Brand />
@@ -290,7 +300,8 @@ function Vote(): React.JSX.Element {
                 </div>
                 {observerNamesJsx}
                 {startMessageJsx}
-                <div id="estimates">{possibleEstimatesJsx}</div>
+                {cardsJsx}
+                {tallyJsx}
                 <div id="voters">{votersJsx}</div>
             </div>
             <Footer />
