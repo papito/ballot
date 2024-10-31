@@ -189,6 +189,8 @@ function Vote(): React.JSX.Element {
             const event: string = json['event']
             console.log(event, json)
 
+            setGeneralError('')
+
             switch (event) {
                 case 'USER_ADDED': {
                     userAddedWsHandler(json as never)
