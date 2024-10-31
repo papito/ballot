@@ -133,7 +133,6 @@ function Vote(): React.JSX.Element {
         function userAddedWsHandler(userJson: never): void {
             const newUserId = userJson['id']
 
-
             setVoters((v) => {
                 const isExisting = v.findIndex((voter: User) => voter.id === newUserId)
                 if (isExisting >= 0) {
@@ -284,7 +283,9 @@ function Vote(): React.JSX.Element {
                 <div id="voteHeader">
                     <StartStop session={session} user={user} />
                     <div id="copySessionUrl">
-                        <button className="btn copy-url">Copy session URL</button>
+                        <button className="btn copy-url">
+                            <i className="fas fa-clipboard"></i>Copy session URL
+                        </button>
                     </div>
                 </div>
                 {observerNamesJsx}

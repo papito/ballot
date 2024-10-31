@@ -30,7 +30,7 @@ function StartStop({ session, user }: StartStopProps): React.JSX.Element {
         return (
             <div id="startStop">
                 <button className="btn stop" onClick={finishVote}>
-                    Finish the vote
+                    <i className="fas fa-stop"></i>Finish the vote
                 </button>
             </div>
         )
@@ -40,7 +40,7 @@ function StartStop({ session, user }: StartStopProps): React.JSX.Element {
         return (
             <div id="startStop">
                 <button className="btn start" onClick={startVote}>
-                    Start
+                    <i className="fas fa-play"></i>Start
                 </button>
             </div>
         )

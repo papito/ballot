@@ -92,6 +92,10 @@ button.error {
     border: 1px solid var(--error-background-color);
 }
 
+i.fas {
+    margin-right: 10px;
+}
+
 .form, form {
     display: grid;
     place-items: center;
