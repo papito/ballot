@@ -285,8 +285,7 @@ function Vote(): React.JSX.Element {
             <></>
         )
 
-    const promptJsx: React.JSX.Element =
-        session.status == SessionState.VOTING ? <span>Pick a card!</span> : <></>
+    const promptJsx: React.JSX.Element = session.status == SessionState.VOTING ? <span>Pick a card!</span> : <></>
 
     return (
         <div id="Vote" className="view">
@@ -295,9 +294,7 @@ function Vote(): React.JSX.Element {
             <div id="voteContainer">
                 <div id="voteHeader">
                     <StartStop session={session} user={user} />
-                    <div id="prompt">
-                        {promptJsx}
-                    </div>
+                    <div id="prompt">{promptJsx}</div>
                     <div id="copySessionUrl">
                         <button className="btn copy-url">
                             <i className="fas fa-clipboard"></i>Copy session URL
