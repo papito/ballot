@@ -41,7 +41,7 @@ function Vote(): React.JSX.Element {
     console.debug('User ID:', userId)
 
     const [generalError, setGeneralError] = useState<string | null>(null)
-    const [user, setUser] = useState<IUserState>({
+    const [user, setUser] = useImmer<IUserState>({
         id: userId,
         name: '',
         estimate: NO_ESTIMATE,
@@ -72,7 +72,9 @@ function Vote(): React.JSX.Element {
             return
         }
 
-        setUser({ ...user, estimate: estimate })
+        setUser((draft) => {
+            draft.estimate = estimate
+        })
     }
 
     /**
@@ -186,6 +188,10 @@ function Vote(): React.JSX.Element {
                     voter.estimate = NO_ESTIMATE
                 })
             })
+
+            setUser((draft) => {
+                draft.estimate = NO_ESTIMATE
+            })
         }
 
         function votingFinishedWsHandler(json: { [key: string]: never }): void {
@@ -264,10 +270,7 @@ function Vote(): React.JSX.Element {
         return (
             <div key={estimate}>
                 <button
-                    className={
-                        'btn estimate ' +
-                        (session.status === SessionState.VOTING && user.estimate === estimate ? 'selected' : '')
-                    }
+                    className={'btn estimate ' + (user.estimate === estimate ? 'selected' : '')}
                     onClick={() => castVote(estimate)}
                 >
                     {estimate}
