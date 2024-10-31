@@ -2,11 +2,11 @@ import './start_stop.css'
 import axios from 'axios'
 import React from 'react'
 import { SessionState } from '../constants.ts'
-import { ISessionState, IUserState } from '../views/vote.tsx'
+import { Session, User } from '../views/vote.tsx'
 
 interface StartStopProps {
-    session: ISessionState
-    user: IUserState
+    session: Session
+    user: User
 }
 
 function StartStop({ session, user }: StartStopProps): React.JSX.Element {

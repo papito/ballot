@@ -1,8 +1,8 @@
 import './voter.css'
 import React from 'react'
-import { IUserState } from '../views/vote.tsx'
+import { User } from '../views/vote.tsx'
 
-function Voter({ name, estimate, voted }: IUserState): React.JSX.Element {
+function Voter({ name, estimate, voted }: User): React.JSX.Element {
     return (
         <div className="voter">
             <div className="name">{name}</div>

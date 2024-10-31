@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import Join from './views/join.tsx'
 import Landing from './views/landing.tsx'
@@ -27,4 +28,8 @@ const router = createBrowserRouter([
     },
 ])
 
-createRoot(document.getElementById('root')!).render(<RouterProvider router={router} />)
+createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+        <RouterProvider router={router} />
+    </StrictMode>
+)
