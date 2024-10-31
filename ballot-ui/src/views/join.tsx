@@ -52,7 +52,6 @@ function Join(): React.JSX.Element {
 
             return
         }
-
     }
 
     return (
