@@ -4,12 +4,10 @@
     row-gap: var(--section-vertical-space);
 }
 #voteHeader {
+    margin-top: var(--section-vertical-space);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     place-items: center;
-    background-color: #2e3238;
-    height: 100px;
-    border-bottom: 2px solid #4a4f56;
 }
 
 #cards {
@@ -27,7 +25,7 @@
 }
 
 #tally span {
-    border: 2px solid white;
+    border: 2px solid #ffc107;
     grid-column: 2;
     padding: 20px;
     border-radius: 7px;
@@ -50,7 +48,7 @@
     border: 1px solid white;
 }
 
-#startMessage {
+#startMessage, #observerMessage {
     width: 100%;
     line-height: 2.2em;
     text-align: center;

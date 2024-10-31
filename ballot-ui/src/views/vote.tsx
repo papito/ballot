@@ -50,8 +50,9 @@ function Vote(): React.JSX.Element {
         tally: NO_ESTIMATE,
     })
     const [voters, setVoters] = useImmer<User[]>([])
+    const [observers, setObservers] = useImmer<User[]>([])
 
-    const [observerNames, setObserverNames] = useState<string>('')
+    const observerNames = observers.map((observer) => observer.name).join(', ')
 
     const cardValues: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
 
@@ -116,18 +117,26 @@ function Vote(): React.JSX.Element {
 
             setVoters(sessionVoters)
 
-            const observersJson: { [key: string]: never }[] = json['observers'] || []
-            const names: string = observersJson
-                .map((observerJson: { [key: string]: never }) => observerJson['name'])
-                .join(', ')
+            const observersJson: never[] = json['observers'] || []
+            const sessionObservers: User[] = []
 
-            setObserverNames(names)
+            for (const observerJson of observersJson) {
+                sessionObservers.push(observerJson)
+            }
+
+            setObservers(sessionObservers)
         }
 
         function userLeftWsHandler(json: { [key: string]: never }): void {
             const voterId = json['user_id']
 
             setVoters((v) => v.filter((voter) => voter.id !== voterId))
+        }
+
+        function observerLeftWsHandler(observerJson: { [key: string]: never }): void {
+            const observerId = observerJson['user_id']
+
+            setObservers((v) => v.filter((u) => u.id !== observerId))
         }
 
         function userAddedWsHandler(userJson: never): void {
@@ -139,6 +148,18 @@ function Vote(): React.JSX.Element {
                     return
                 }
                 return [...v, userJson]
+            })
+        }
+
+        function observerAddedWsHandler(observerJson: never): void {
+            const newObserverId = observerJson['id']
+
+            setObservers((v) => {
+                const isExisting = v.findIndex((u: User) => u.id === newObserverId)
+                if (isExisting >= 0) {
+                    return
+                }
+                return [...v, observerJson]
             })
         }
 
@@ -201,7 +222,7 @@ function Vote(): React.JSX.Element {
                     break
                 }
                 case 'OBSERVER_ADDED': {
-                    // this.observerAddedWsHandler(json)
+                    observerAddedWsHandler(json as never)
                     break
                 }
                 case 'WATCHING': {
@@ -225,7 +246,7 @@ function Vote(): React.JSX.Element {
                     break
                 }
                 case 'OBSERVER_LEFT': {
-                    // this.observerLeftWsHandler(json)
+                    observerLeftWsHandler(json)
                     break
                 }
             }
@@ -253,11 +274,14 @@ function Vote(): React.JSX.Element {
             </div>
         )
     })
-    const cardsJsx = session.status === SessionState.VOTING ? <div id="cards">{cardValuesJsx}</div> : <></>
+    const cardsJsx =
+        session.status === SessionState.VOTING && !user.is_observer ? <div id="cards">{cardValuesJsx}</div> : <></>
 
-    const observerNamesJsx: React.JSX.Element = observerNames ? (
-        <div id="observerNames">
-            <span>Observers: {observerNames}</span>
+    const observerNamesJsx: React.JSX.Element = observers.length ? (
+        <div id="observerMessage">
+            <span>
+                <strong>Watching this session</strong>: {observerNames}
+            </span>
         </div>
     ) : (
         <></>
@@ -285,7 +309,11 @@ function Vote(): React.JSX.Element {
             <></>
         )
 
-    const promptJsx: React.JSX.Element = session.status == SessionState.VOTING ? <span>Pick a card!</span> : <></>
+    const voterPromptJsx: React.JSX.Element =
+        session.status == SessionState.VOTING && !user.is_observer ? <span>Pick a card!</span> : <></>
+
+    const observerPromptJsx: React.JSX.Element =
+        session.status == SessionState.VOTING && user.is_observer ? <span>Voting in progress...</span> : <></>
 
     return (
         <div id="Vote" className="view">
@@ -294,7 +322,10 @@ function Vote(): React.JSX.Element {
             <div id="voteContainer">
                 <div id="voteHeader">
                     <StartStop session={session} user={user} />
-                    <div id="prompt">{promptJsx}</div>
+                    <div id="prompt">
+                        {voterPromptJsx}
+                        {observerPromptJsx}
+                    </div>
                     <div id="copySessionUrl">
                         <button className="btn copy-url">
                             <i className="fas fa-clipboard"></i>Copy session URL
