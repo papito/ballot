@@ -48,13 +48,14 @@ function Vote(): React.JSX.Element {
         is_admin: false,
     })
 
-    const [session, setSession] = useState<Session>({
+    const [session, setSession] = useImmer<Session>({
         id: sessionId,
         status: SessionState.IDLE,
         tally: NO_ESTIMATE,
     })
-    const [observerNames, setObserverNames] = useState<string>('')
     const [voters, setVoters] = useImmer<User[]>([])
+
+    const [observerNames, setObserverNames] = useState<string>('')
 
     const possibleEstimates: Readonly<string[]> = ['?', '0', '1', '2', '3', '5', '8', '13', '20', '40', '100']
 
@@ -94,16 +95,18 @@ function Vote(): React.JSX.Element {
             const watchCmd = {
                 action: 'WATCH',
                 session_id: sessionId,
-                user_id: userId,
-                is_observer: false,
-                is_admin: true,
+                user_id: data.id,
+                is_observer: data.is_observer,
+                is_admin: data.is_admin,
             }
             ws.send(JSON.stringify(watchCmd))
         }
 
         function watchingSessionWsHandler(json: { [key: string]: never }): void {
-            session.status = json['session_state']
-            session.tally = json['tally']
+            setSession((draft) => {
+                draft.status = json['session_state']
+                draft.tally = json['tally']
+            })
 
             const usersJson: never[] = json['users'] || []
             const sessionVoters: User[] = []
@@ -156,7 +159,9 @@ function Vote(): React.JSX.Element {
         }
 
         function votingStartedWsHandler(): void {
-            setSession({ ...session, status: SessionState.VOTING })
+            setSession((draft) => {
+                draft.status = SessionState.VOTING
+            })
 
             setVoters((draft) => {
                 draft.forEach((voter) => {
@@ -172,7 +177,11 @@ function Vote(): React.JSX.Element {
 
         function votingFinishedWsHandler(json: { [key: string]: never }): void {
             const tally: string = json['tally']
-            setSession({ ...session, status: SessionState.IDLE, tally: tally })
+
+            setSession((draft) => {
+                draft.status = SessionState.IDLE
+                draft.tally = tally
+            })
 
             const usersJson: never[] = json['users'] || []
             const sessionVoters: User[] = []
