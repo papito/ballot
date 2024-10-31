@@ -6,9 +6,9 @@
 
 .btn.start {
     background-color: #2d2d2d;
-    border: 2px solid #54bd2a;
+    border: 2px solid var(--success-font-color);
     text-transform: uppercase;
-    color: #54bd2a;
+    color: var(--success-font-color);
 }
 
 .btn.copy-url {

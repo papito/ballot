@@ -1,3 +1,10 @@
+/**
+ * This is using a specific Go/JS library for websockets:
+ * https://github.com/desertbit/glue
+ *
+ * Typing here is meaningless.
+ */
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare let glue: any
 

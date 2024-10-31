@@ -1,13 +1,28 @@
 import './voter.css'
 import React from 'react'
-import { User } from '../views/vote.tsx'
+import { SessionState } from '../constants.ts'
+import { Session, User } from '../views/vote.tsx'
 
-function Voter({ name, estimate, voted }: User): React.JSX.Element {
+interface VoterProps {
+    voter: User
+    session: Session
+}
+
+function Voter({ voter, session }: VoterProps): React.JSX.Element {
+    const estimateJsx =
+        session.status == SessionState.VOTING && !voter.voted ? (
+            <div className="waiting"></div>
+        ) : (
+            <span className="done">{voter.estimate}</span>
+        )
+
     return (
         <div className="voter">
-            <div className="name">{name}</div>
-            <div className="voteStatus">{voted ? 'V' : 'X'}</div>
-            <div className="estimate">{estimate ? estimate : '[still voting...]'}</div>
+            <div className="name">{voter.name}</div>
+            <div className="voteStatus">
+                <img src={voter.voted ? '/v.png' : '/x.png'} alt={voter.voted ? 'Voted' : 'Not voted'} />
+            </div>
+            <div className="estimate">{estimateJsx}</div>
         </div>
     )
 }

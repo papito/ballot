@@ -80,11 +80,10 @@ function Vote(): React.JSX.Element {
         if (mounted.current) {
             return
         }
+        mounted.current = true
 
         console.debug('Session ID:', sessionId)
         console.debug('User ID:', userId)
-
-        mounted.current = true
 
         const ws: Websockets = new Websockets()
 
@@ -134,12 +133,14 @@ function Vote(): React.JSX.Element {
         function userAddedWsHandler(userJson: never): void {
             const newUserId = userJson['id']
 
-            const isExisting = voters.findIndex((voter: User) => voter.id === newUserId)
-            if (isExisting >= 0) {
-                return
-            }
 
-            setVoters((v) => [...v, userJson])
+            setVoters((v) => {
+                const isExisting = v.findIndex((voter: User) => voter.id === newUserId)
+                if (isExisting >= 0) {
+                    return
+                }
+                return [...v, userJson]
+            })
         }
 
         function userVotedWsHandler(json: { [key: string]: string }): void {
@@ -238,7 +239,7 @@ function Vote(): React.JSX.Element {
     }, [sessionId, userId])
 
     const votersJsx = voters.map((voter: User) => {
-        return <Voter {...voter} key={voter.id} />
+        return <Voter voter={voter} session={session} key={voter.id} />
     })
 
     const possibleEstimatesJsx = possibleEstimates.map((estimate: string) => {
