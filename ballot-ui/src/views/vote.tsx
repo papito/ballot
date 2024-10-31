@@ -1,7 +1,6 @@
 import './vote.css'
 
 import axios from 'axios'
-import { produce } from 'immer'
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useImmer } from 'use-immer'
@@ -34,9 +33,6 @@ function Vote(): React.JSX.Element {
     console.assert(sessionId, 'sessionId is required')
     const userId = params.userId
     console.assert(userId, 'userId is required')
-
-    console.debug('Session ID:', sessionId)
-    console.debug('User ID:', userId)
 
     const [generalError, setGeneralError] = useState<string | null>(null)
     const [user, setUser] = useImmer<User>({
@@ -84,6 +80,10 @@ function Vote(): React.JSX.Element {
         if (mounted.current) {
             return
         }
+
+        console.debug('Session ID:', sessionId)
+        console.debug('User ID:', userId)
+
         mounted.current = true
 
         const ws: Websockets = new Websockets()
@@ -128,10 +128,7 @@ function Vote(): React.JSX.Element {
         function userLeftWsHandler(json: { [key: string]: never }): void {
             const voterId = json['user_id']
 
-            produce(voters, (draft) => {
-                const index = draft.findIndex((voter) => voter.id === voterId)
-                if (index !== -1) draft.splice(index, 1)
-            })
+            setVoters((v) => v.filter((voter) => voter.id !== voterId))
         }
 
         function userAddedWsHandler(userJson: never): void {
@@ -142,9 +139,7 @@ function Vote(): React.JSX.Element {
                 return
             }
 
-            produce(voters, (draft) => {
-                draft.push(userJson)
-            })
+            setVoters((v) => [...v, userJson])
         }
 
         function userVotedWsHandler(json: { [key: string]: string }): void {
