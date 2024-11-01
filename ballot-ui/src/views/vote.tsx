@@ -71,6 +71,7 @@ function Vote(): React.JSX.Element {
 
         setUser((draft) => {
             draft.estimate = estimate
+            draft.voted = true
         })
     }
 
@@ -189,6 +190,7 @@ function Vote(): React.JSX.Element {
 
             setUser((draft) => {
                 draft.estimate = NO_ESTIMATE
+                draft.voted = false
             })
         }
 
@@ -311,10 +313,21 @@ function Vote(): React.JSX.Element {
         )
 
     const voterPromptJsx: React.JSX.Element =
-        session.status == SessionState.VOTING && !user.is_observer ? <span>Pick a card!</span> : <></>
+        session.status == SessionState.VOTING && !user.voted && !user.is_observer ? (
+            <span className="pick-a-card">Pick a card!</span>
+        ) : (
+            <></>
+        )
 
     const observerPromptJsx: React.JSX.Element =
         session.status == SessionState.VOTING && user.is_observer ? <span>Voting in progress...</span> : <></>
+
+    const waitingPromptJsx: React.JSX.Element =
+        !user.is_admin && session.status == SessionState.IDLE ? (
+            <span className="waiting">Waiting for admin to start next vote...</span>
+        ) : (
+            <></>
+        )
 
     return (
         <div id="Vote" className="view">
@@ -326,6 +339,7 @@ function Vote(): React.JSX.Element {
                     <div id="prompt">
                         {voterPromptJsx}
                         {observerPromptJsx}
+                        {waitingPromptJsx}
                     </div>
                     <CopySessionUrl session={session} />
                 </div>
