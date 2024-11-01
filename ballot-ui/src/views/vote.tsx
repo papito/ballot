@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useImmer } from 'use-immer'
 import Brand from '../components/brand.tsx'
+import CopySessionUrl from '../components/copy_session_url.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
 import StartStop from '../components/start_stop.tsx'
@@ -326,11 +327,7 @@ function Vote(): React.JSX.Element {
                         {voterPromptJsx}
                         {observerPromptJsx}
                     </div>
-                    <div id="copySessionUrl">
-                        <button className="btn copy-url">
-                            <i className="fas fa-clipboard"></i>Copy session URL
-                        </button>
-                    </div>
+                    <CopySessionUrl session={session} />
                 </div>
                 {observerNamesJsx}
                 {startMessageJsx}

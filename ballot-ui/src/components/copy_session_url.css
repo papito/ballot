@@ -1,0 +1,29 @@
+.btn.copy-url {
+    background-color: #2d2d2d;
+    color: white;
+    border: 1px solid white;
+    transition: background-color 1s ease-in;
+}
+
+@keyframes flash {
+    0%,
+    100% {
+        background-color: transparent;
+        color: #2d2d2d;
+    }
+    50% {
+        background-color: var(--warning-background-color);
+        color: white;
+    }
+    100% {
+        background-color: transparent;
+        color: white;
+    }
+}
+
+.btn.copy-url.clicked {
+    animation: flash 1.5s 1;
+    transition:
+        background-color 0.75s,
+        color 0.75s;
+}

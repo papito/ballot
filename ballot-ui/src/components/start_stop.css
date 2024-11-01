@@ -10,9 +10,3 @@
     text-transform: uppercase;
     color: var(--success-font-color);
 }
-
-.btn.copy-url {
-    background-color: #2d2d2d;
-    color: white;
-    border: 1px solid white;
-}
