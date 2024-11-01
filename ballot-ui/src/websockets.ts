@@ -16,11 +16,8 @@ export default class Websockets {
         this.socket = glue()
 
         // this.socket.on('connecting', function () {
-        //     console.debug('Glue client connecting...')
         // })
         // this.socket.on('connected', () => {
-        //     console.debug(`Glue client state: ${this.socket.state()}`)
-        //     console.debug(`Glue client type: ${this.socket.type()}`)
         // })
     }
 
