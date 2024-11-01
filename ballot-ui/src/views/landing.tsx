@@ -31,7 +31,8 @@ function Landing(): React.JSX.Element {
         setGeneralError(msg)
     }
 
-    async function createNewSession(): Promise<void> {
+    async function createNewSession(event: React.FormEvent<HTMLFormElement>): Promise<void> {
+        event.preventDefault()
         setFormError(null)
         setGeneralError(null)
 
@@ -71,13 +72,6 @@ function Landing(): React.JSX.Element {
             return
         }
 
-        try {
-            await axios.put(`/api/vote/start`, { session_id: sessionId })
-        } catch (error) {
-            setError(error)
-            return
-        }
-
         window.location.assign(`/p/vote/s/${sessionId}/u/${userId}`)
     }
 
@@ -87,7 +81,7 @@ function Landing(): React.JSX.Element {
             <GeneralError error={generalError} />
 
             <div className="form">
-                <form>
+                <form onSubmit={createNewSession}>
                     <label htmlFor=""></label>
                     <div data-testid="formError" id="formError" className={formError ? 'error' : 'hidden'}>
                         {formError}
@@ -99,7 +93,7 @@ function Landing(): React.JSX.Element {
                         placeholder="Your name/alias"
                         onChange={(e) => setName(e.target.value)}
                     />
-                    <button type="button" className="success" onClick={createNewSession}>
+                    <button type="submit" className="success">
                         New Voting Space
                     </button>
                 </form>

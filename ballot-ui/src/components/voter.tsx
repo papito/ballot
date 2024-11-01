@@ -12,6 +12,8 @@ function Voter({ voter, session }: VoterProps): React.JSX.Element {
     const estimateJsx =
         session.status == SessionState.VOTING && !voter.voted ? (
             <div className="waiting"></div>
+        ) : session.status == SessionState.IDLE && !voter.voted ? (
+            <div className="idle">[not voted yet]</div>
         ) : (
             <span className="done">{voter.estimate}</span>
         )

@@ -292,7 +292,7 @@ function Vote(): React.JSX.Element {
         voters.length == 1 ? (
             <div id="startMessage">
                 Looks like you are the only one here!{' '}
-                <a href="" target="_blank">
+                <a href={'/p/vote/s/' + session.id} target="_blank" rel="noreferrer">
                     Join this session
                 </a>{' '}
                 in a different tab to test with more than one user.
@@ -302,7 +302,7 @@ function Vote(): React.JSX.Element {
         )
 
     const tallyJsx: React.JSX.Element =
-        session.status == SessionState.IDLE ? (
+        session.status == SessionState.IDLE && session.tally ? (
             <div id="tally">
                 <span>Estimate: {session.tally}</span>
             </div>

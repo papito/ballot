@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 // @ts-ignore
 import Landing from '../src/views/landing.tsx'
 // @ts-ignore
-import { getUrlParams, mockServer } from './utils.ts'
+import { mockServer } from './utils.ts'
 
 mockServer.listen()
 
@@ -37,10 +37,6 @@ describe('Landing page tests', () => {
                 return HttpResponse.json({
                     id: userId,
                 })
-            }),
-
-            http.put('/api/vote/start', () => {
-                return HttpResponse.json({})
             }),
         ]
 

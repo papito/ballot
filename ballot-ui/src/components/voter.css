@@ -24,6 +24,11 @@
     color: var(--success-font-color);
 }
 
+.voter .estimate .idle {
+    letter-spacing: 1px;
+    color: var(--warning-font-color);
+}
+
 .voter .estimate .waiting {
     width: 60px;
     aspect-ratio: 2;
