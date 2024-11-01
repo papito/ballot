@@ -320,7 +320,11 @@ function Vote(): React.JSX.Element {
         )
 
     const observerPromptJsx: React.JSX.Element =
-        session.status == SessionState.VOTING && user.is_observer ? <span>Voting in progress...</span> : <></>
+        session.status == SessionState.VOTING && user.is_observer ? (
+            <span className="voting">Voting in progress...</span>
+        ) : (
+            <></>
+        )
 
     const waitingPromptJsx: React.JSX.Element =
         !user.is_admin && session.status == SessionState.IDLE ? (

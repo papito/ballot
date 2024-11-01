@@ -95,6 +95,13 @@
 #prompt span.waiting {
     padding: 5px 5px 5px 5px;
     border-radius: 5px;
+    letter-spacing: 1px;
+    background-color: rgb(52, 52, 199);
+}
+
+#prompt span.voting {
+    padding: 5px 5px 5px 5px;
+    border-radius: 5px;
     -moz-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;

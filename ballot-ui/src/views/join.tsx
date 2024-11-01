@@ -26,6 +26,8 @@ function Join(): React.JSX.Element {
         setFormError(null)
         setGeneralError(null)
 
+        console.log('here')
+
         try {
             const response: AxiosResponse = await axios.post('/api/user', {
                 name: name,
@@ -60,7 +62,7 @@ function Join(): React.JSX.Element {
             <GeneralError error={generalError} />
 
             <div className="form">
-                <form>
+                <form onSubmit={(e) => e.preventDefault()}>
                     <label htmlFor=""></label>
                     <div data-testid="formError" id="formError" className={formError ? 'error' : 'hidden'}>
                         {formError}
