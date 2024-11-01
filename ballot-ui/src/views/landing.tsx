@@ -77,7 +77,7 @@ function Landing(): React.JSX.Element {
 
     return (
         <div id="Landing" className="view">
-            <Brand />
+            <Brand session={null} />
             <GeneralError error={generalError} />
 
             <div className="form">

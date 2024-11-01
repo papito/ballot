@@ -4,7 +4,6 @@
     row-gap: var(--section-vertical-space);
 }
 
-
 #voteHeader {
     margin-top: var(--section-vertical-space);
     display: grid;
@@ -13,9 +12,9 @@
 }
 
 #cards {
+    display: grid;
     padding-left: var(--control-horizontal-space);
     padding-right: var(--control-horizontal-space);
-    display: grid;
     grid-template-columns: repeat(11, auto);
     column-gap: var(--control-horizontal-space);
 }
@@ -121,7 +120,7 @@
     }
 
     #voteHeader {
-        margin-top: var(--control-vertical-space-mobile);
+        margin-top: var(--section-vertical-space-mobile);
         grid-template-columns: 1fr;
         grid-auto-rows: auto;
         row-gap: var(--control-vertical-space-mobile);
@@ -129,12 +128,11 @@
 
     #startMessage,
     #observerMessage {
-        font-size: .9em;
+        font-size: 0.9em;
     }
 
     #prompt span.pick-a-card {
         padding: 5px 5px 5px 5px;
-
     }
 
     #cards {

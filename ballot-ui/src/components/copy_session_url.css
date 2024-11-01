@@ -27,3 +27,9 @@
         background-color 0.75s,
         color 0.75s;
 }
+
+@media (max-width: 700px) {
+    .btn.copy-url {
+        font-size: 0.6em;
+    }
+}

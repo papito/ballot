@@ -5,7 +5,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useImmer } from 'use-immer'
 import Brand from '../components/brand.tsx'
-import CopySessionUrl from '../components/copy_session_url.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
 import StartStop from '../components/start_stop.tsx'
@@ -314,38 +313,41 @@ function Vote(): React.JSX.Element {
 
     const voterPromptJsx: React.JSX.Element =
         session.status == SessionState.VOTING && !user.voted && !user.is_observer ? (
-            <span className="pick-a-card">Pick a card!</span>
+            <div id="prompt">
+                <span className="pick-a-card">Pick a card!</span>
+            </div>
         ) : (
             <></>
         )
 
     const observerPromptJsx: React.JSX.Element =
         session.status == SessionState.VOTING && user.is_observer ? (
-            <span className="voting">Voting in progress...</span>
+            <div id="prompt">
+                <span className="voting">Voting in progress...</span>
+            </div>
         ) : (
             <></>
         )
 
     const waitingPromptJsx: React.JSX.Element =
         !user.is_admin && session.status == SessionState.IDLE ? (
-            <span className="waiting">Waiting for admin to start next vote...</span>
+            <div id="prompt">
+                <span className="waiting">Waiting for admin to start next vote...</span>
+            </div>
         ) : (
             <></>
         )
 
     return (
         <div id="Vote" className="view">
-            <Brand />
+            <Brand session={session} />
             <GeneralError error={generalError} />
             <div id="voteContainer">
                 <div id="voteHeader">
                     <StartStop session={session} user={user} />
-                    <div id="prompt">
-                        {voterPromptJsx}
-                        {observerPromptJsx}
-                        {waitingPromptJsx}
-                    </div>
-                    <CopySessionUrl session={session} />
+                    {voterPromptJsx}
+                    {observerPromptJsx}
+                    {waitingPromptJsx}
                 </div>
                 {observerNamesJsx}
                 {startMessageJsx}

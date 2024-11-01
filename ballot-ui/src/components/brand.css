@@ -1,7 +1,7 @@
 #Brand {
     display: grid;
     background-color: #343a40;
-    grid-auto-columns: max-content auto;
+    grid-template-columns: max-content 1fr max-content;
 }
 
 #Brand span {
@@ -16,4 +16,16 @@
 #Brand a {
     text-decoration: none;
     color: var(--text-color);
+}
+
+#copySessionUrl {
+    display: grid;
+    grid-column: 3;
+    margin-right: var(--control-horizontal-space);
+}
+
+@media (max-width: 700px) {
+    #copySessionUrl {
+        margin-right: var(--control-horizontal-space-mobile);
+    }
 }

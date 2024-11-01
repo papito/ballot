@@ -58,7 +58,7 @@ function Join(): React.JSX.Element {
 
     return (
         <div id="Join" className="view">
-            <Brand />
+            <Brand session={null} />
             <GeneralError error={generalError} />
 
             <div className="form">
