@@ -1,7 +1,7 @@
 .btn.copy-url {
     background-color: #2d2d2d;
     color: white;
-    border: 1px solid white;
+    border: 1px solid #938e8e;
     transition: background-color 1s ease-in;
 }
 

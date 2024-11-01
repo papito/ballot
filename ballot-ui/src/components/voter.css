@@ -14,6 +14,12 @@
     place-items: center;
 }
 
+.voter .name {
+    display: grid;
+    text-align: center;
+    padding: 0 10px 0 10px;
+}
+
 .voter .voteStatus img {
     height: 40px;
 }
@@ -65,5 +71,23 @@
             0 50%,
             50% 50%,
             100% 100%;
+    }
+}
+
+@media (max-width: 700px) {
+    .voter {
+        display: grid;
+        margin: var(--control-vertical-space-mobile);
+        border-radius: 5px;
+        border: 2px solid #676767;
+        background-color: #424242;
+        width: 100%;
+        height: auto;
+        grid-template-rows: max-content 50px 50px;
+    }
+
+    .voter .name {
+        padding-top: var(--control-vertical-space-mobile);
+        padding-bottom: var(--control-vertical-space-mobile);
     }
 }
