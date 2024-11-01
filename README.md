@@ -23,13 +23,13 @@ To just get it working out of the box:
 With more options:
 
     docker pull papito/ballot:latest
-    docker run -td -p8080:8080 --name ballot -e"REDIS_URL=..." -e"HTTP_HOST=http://your.optional.domain" papito/ballot:latest
+    docker run -td -p8080:8080 --name ballot -e"REDIS_URL=..." papito/ballot:latest
 
 ## Development setup
 
 ### Prerequisites
   * Docker Compose
-  * Node
+  * Node 18
   * Go 1.21
 
 ### Starting up development
@@ -51,7 +51,7 @@ make start
 ```
 
 `NOTE`: The React app will connect to the dev server (so both must be running, but going to the dev
-Go server will run the **build** version of the React app, not the development one.
+Go server (on :8080) will run the **build** version of the React app, not the development code.
 
 ### Running server tests
 
@@ -84,7 +84,6 @@ Note that this will install local Redis in the container, but that instance can 
 ### Environment variables
 
   * HTTP_PORT - dictates which port the application will run on.
-  * HTTP_HOST - used to correctly display the session URL (does not affect the behavior).
   * REDIS_URL - Redis URL. If not provided, will connect to Docker Redis on the port 6380.
   * ENV - context environment. `test`, `development`, or `production`. You can ignore this.
 

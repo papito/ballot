@@ -132,15 +132,7 @@ func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p server) gotoVoteHandler(w http.ResponseWriter, r *http.Request) {
-	type TemplateParams struct {
-		Domain string
-	}
-
-	templateParams := TemplateParams{
-		Domain: p.service.Config().HttpHost,
-	}
-
-	err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
+	err := p.templates.ExecuteTemplate(w, "index.html", nil)
 	if err != nil {
 		log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
 	}
