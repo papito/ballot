@@ -24,7 +24,7 @@ function CopySessionUrl({ session }: CopyUrlProps): React.JSX.Element {
     }
 
     return (
-        <CopyToClipboard text={window.location.origin + '/p/vote/s/' + session.id} onCopy={onCopyText}>
+        <CopyToClipboard text={window.location.origin + '/vote/s/' + session.id} onCopy={onCopyText}>
             <button className={'btn copy-url ' + (clicked ? 'clicked' : '')}>
                 <i className="fas fa-clipboard"></i>Copy session URL
             </button>

@@ -6,24 +6,19 @@ import Vote from './views/vote.tsx'
 
 import './core.css'
 
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 const router = createBrowserRouter([
     {
-        // This is only needed for the React dev server as the Go server will go directly to /p
         path: '/',
-        element: <Navigate to="/p" replace />,
-    },
-    {
-        path: '/p',
         element: <Landing />,
     },
     {
-        path: '/p/vote/s/:sessionId/u/:userId',
+        path: '/vote/s/:sessionId/u/:userId',
         element: <Vote />,
     },
     {
-        path: '/p/vote/s/:sessionId',
+        path: '/vote/s/:sessionId',
         element: <Join />,
     },
 ])

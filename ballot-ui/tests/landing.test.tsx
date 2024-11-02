@@ -51,7 +51,7 @@ describe('Landing page tests', () => {
 
         await waitFor(() => {
             // check that the redirect fired properly
-            expect(window.location.href).toContain(`/p/vote/s/${sessionId}/u/${userId}`)
+            expect(window.location.href).toContain(`/vote/s/${sessionId}/u/${userId}`)
         })
     })
 

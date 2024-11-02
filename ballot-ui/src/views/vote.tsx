@@ -293,7 +293,7 @@ function Vote(): React.JSX.Element {
         voters.length == 1 ? (
             <div id="startMessage">
                 Looks like you are the only one here!{' '}
-                <a href={'/p/vote/s/' + session.id} target="_blank" rel="noreferrer">
+                <a href={'/vote/s/' + session.id} target="_blank" rel="noreferrer">
                     Join this session
                 </a>{' '}
                 in a different tab to test with more than one user.

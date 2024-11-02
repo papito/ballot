@@ -72,7 +72,7 @@ function Landing(): React.JSX.Element {
             return
         }
 
-        window.location.assign(`/p/vote/s/${sessionId}/u/${userId}`)
+        window.location.assign(`/vote/s/${sessionId}/u/${userId}`)
     }
 
     return (

@@ -37,7 +37,7 @@ function Join(): React.JSX.Element {
             console.debug(response.data)
             const userId: string | null = response.data.id
             console.assert(userId, 'userId is required')
-            window.location.assign(`/p/vote/s/${sessionId}/u/${userId}`)
+            window.location.assign(`/vote/s/${sessionId}/u/${userId}`)
         } catch (error) {
             if (isAxiosError(error)) {
                 const axiosError = error as AxiosError
