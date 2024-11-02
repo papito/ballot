@@ -78,7 +78,7 @@ function Join(): React.JSX.Element {
                         Join as a voter
                     </button>
                     <button className="warn" type="button" onClick={() => join({ isObserver: 1 })}>
-                        Join as an innocent bystander
+                        Join as an observer
                     </button>
                 </form>
             </div>
