@@ -1,0 +1,12 @@
+.btn.stop {
+    background-color: #2d2d2d;
+    border: 2px solid var(--error-background-color);
+    text-transform: uppercase;
+}
+
+.btn.start {
+    background-color: #2d2d2d;
+    border: 2px solid var(--success-font-color);
+    text-transform: uppercase;
+    color: var(--success-font-color);
+}

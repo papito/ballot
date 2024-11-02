@@ -11,7 +11,7 @@ A web-based replacement for physical Scrum estimation cards, most useful for dis
 
 - A vote will end automatically when all votes are in
 - A vote can be finalized even if someone doesn't vote, because they are raiding the company fridge
-- Observers can join a vote
+- If you are not a pig, you can join and observe an estimation session as a chicken
 
 ## Installing and running
 
@@ -23,46 +23,68 @@ To just get it working out of the box:
 With more options:
 
     docker pull papito/ballot:latest
-    docker run -td -p8080:8080 --name ballot -e"REDIS_URL=..." -e"HTTP_HOST=http://your.optional.domain"  papito/ballot:latest
+    docker run -td -p8080:8080 --name ballot -e"REDIS_URL=..." papito/ballot:latest
 
 ## Development setup
 
 ### Prerequisites
-  * Computer technology
   * Docker Compose
-  * Node
+  * Node 18
   * Go 1.21
 
-### Build for development
+### Starting up development
 
-To invoke NPM and transpile Typescript:
-```bash
-make build
-```
-
-To run the app on port `8080`:
+#### Server
 
 ```bash
-make run
+# Start database (in a different window)
+make db
+# Compile & run the Go server
+make start
 ```
 
-Dev and test Redis containers will be brought up when running `make run` or `make up`. Run `make down` to stop the containers. You do NOT need to have local Redis running - the `run` command will bring up a Redis container.
+#### Client
+```bash
+cd ballot-ui
+make install
+make start
+```
 
-### IntelliJ IDEA
+`NOTE`: The React app will connect to the dev server (so both must be running, but going to the dev
+Go server (on :8080) will run the **build** version of the React app, not the development code.
 
-Checked in at the top level is `watchers.xml`. The config can be imported into your IDEA file watcher settings to detect Typescript file changes and automatically transpile to Javascript.
+### Running server tests
+
+    make test
+
+### Running UI test`
+
+    cd ballot-ui
+    make test
+    # run a specific test
+    npx jest -t '<partial test name to match>'
 
 
-### Build with Docker
+### PRE-COMMIT HOOK
 
-`docker build .`
+In `.git/hooks/pre-commit `:
+
+    #!/bin/sh
+    cd ballot-ui
+    make format
+    make lint
+
+
+### Build & run with Docker
+
+`docker build . -t ballot`
+`docker run -td -p8080:8080 --name ballot ballot`
 
 Note that this will install local Redis in the container, but that instance can be ignored if you configure Redis with environment variables (see below).
 
 ### Environment variables
 
   * HTTP_PORT - dictates which port the application will run on.
-  * HTTP_HOST - used to correctly display the session URL (does not affect the behavior).
   * REDIS_URL - Redis URL. If not provided, will connect to Docker Redis on the port 6380.
   * ENV - context environment. `test`, `development`, or `production`. You can ignore this.
 
@@ -71,11 +93,6 @@ Note that this will install local Redis in the container, but that instance can 
 
 By default, the Docker container will have its own Redis instance, but you can have a persistent Redis running on Docker
 host, by using the `--network="host"` flag of Docker `run` command.
-
-
-### Running tests
-
-    make test
 
 ## Redis schema
 

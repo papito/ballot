@@ -1,0 +1,93 @@
+.voter {
+    margin: var(--control-vertical-space);
+    display: grid;
+    border-radius: 5px;
+    border: 2px solid #676767;
+    background-color: #424242;
+    width: 200px;
+    height: 200px;
+    grid-template-rows: repeat(3, 1fr);
+}
+
+.voter > div {
+    display: grid;
+    place-items: center;
+}
+
+.voter .name {
+    display: grid;
+    text-align: center;
+    padding: 0 10px 0 10px;
+}
+
+.voter .voteStatus img {
+    height: 40px;
+}
+
+.voter .estimate .done {
+    font-size: 2em;
+    font-weight: bold;
+    color: var(--success-font-color);
+}
+
+.voter .estimate .idle {
+    letter-spacing: 1px;
+    color: var(--warning-font-color);
+}
+
+.voter .estimate .waiting {
+    width: 60px;
+    aspect-ratio: 2;
+    --_g: no-repeat radial-gradient(circle closest-side, #818080 90%, #0000);
+    background:
+        var(--_g) 0 50%,
+        var(--_g) 50% 50%,
+        var(--_g) 100% 50%;
+    background-size: calc(100% / 3) 50%;
+    animation: l3 1s infinite linear;
+}
+
+@keyframes l3 {
+    20% {
+        background-position:
+            0 0,
+            50% 50%,
+            100% 50%;
+    }
+    40% {
+        background-position:
+            0 100%,
+            50% 0,
+            100% 50%;
+    }
+    60% {
+        background-position:
+            0 50%,
+            50% 100%,
+            100% 0;
+    }
+    80% {
+        background-position:
+            0 50%,
+            50% 50%,
+            100% 100%;
+    }
+}
+
+@media (max-width: 700px) {
+    .voter {
+        display: grid;
+        margin: var(--control-vertical-space-mobile);
+        border-radius: 5px;
+        border: 2px solid #676767;
+        background-color: #424242;
+        width: 100%;
+        height: auto;
+        grid-template-rows: max-content 50px 50px;
+    }
+
+    .voter .name {
+        padding-top: var(--control-vertical-space-mobile);
+        padding-bottom: var(--control-vertical-space-mobile);
+    }
+}

@@ -1,0 +1,170 @@
+#voteContainer {
+    display: grid;
+    grid-auto-rows: max-content;
+    row-gap: var(--section-vertical-space);
+}
+
+#voteHeader {
+    margin-top: var(--section-vertical-space);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    place-items: center;
+}
+
+#cards {
+    display: grid;
+    padding-left: var(--control-horizontal-space);
+    padding-right: var(--control-horizontal-space);
+    grid-template-columns: repeat(11, auto);
+    column-gap: var(--control-horizontal-space);
+}
+
+#tally {
+    display: grid;
+    place-items: center;
+    grid-template-columns: 1fr max-content 1fr;
+}
+
+#tally span {
+    border: 2px solid #ffc107;
+    grid-column: 2;
+    padding: 20px;
+    border-radius: 7px;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.btn.estimate {
+    display: grid;
+    place-items: center;
+    height: 120px;
+    background-color: transparent;
+    color: #ffc107;
+    border: 2px solid #ffc107;
+}
+
+.btn.estimate.selected {
+    background-color: #ffc107;
+    color: black;
+    border: 1px solid white;
+}
+
+#startMessage,
+#observerMessage {
+    width: 100%;
+    line-height: 1.6em;
+    text-align: center;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px dotted grey;
+    padding: 0.5em;
+}
+
+#voters {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+}
+
+/**
+ * The blinking business was shamelessly stolen from https://stackoverflow.com/a/27038946/53687
+ */
+@keyframes blink {
+    0% {
+        background-color: rgb(73, 63, 29);
+    }
+    50% {
+        background-color: rgba(238, 193, 46, 0.64);
+    }
+    100% {
+        background-color: rgb(73, 63, 29);
+    }
+}
+#prompt span.pick-a-card {
+    padding: 15px 15px 15px 15px;
+    font-size: 20px;
+    border-radius: 5px;
+    -moz-transition: all 0.5s ease-in-out;
+    -webkit-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+    animation: blink normal 3s infinite ease-in-out;
+}
+
+#prompt span.waiting {
+    padding: 5px 5px 5px 5px;
+    border-radius: 5px;
+    letter-spacing: 1px;
+    background-color: rgb(52, 52, 199);
+}
+
+#prompt span.voting {
+    padding: 5px 5px 5px 5px;
+    border-radius: 5px;
+    -moz-transition: all 0.5s ease-in-out;
+    -webkit-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+    animation: blink normal 3s infinite ease-in-out;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 700px) {
+    #voteContainer {
+        display: grid;
+        grid-auto-rows: max-content;
+        row-gap: var(--section-vertical-space-mobile);
+    }
+
+    #voteHeader {
+        margin-top: var(--section-vertical-space-mobile);
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+        row-gap: var(--control-vertical-space-mobile);
+    }
+
+    #startMessage,
+    #observerMessage {
+        font-size: 0.9em;
+    }
+
+    #prompt span.pick-a-card {
+        padding: 5px 5px 5px 5px;
+    }
+
+    #cards {
+        padding-left: var(--control-horizontal-space-mobile);
+        padding-right: var(--control-horizontal-space-mobile);
+        row-gap: var(--control-vertical-space-mobile);
+        column-gap: var(--control-horizontal-space-mobile);
+        display: grid;
+        grid-template-columns: repeat(3, auto);
+        grid-auto-rows: auto;
+    }
+
+    .btn.estimate {
+        height: 70px;
+    }
+
+    #tally {
+        display: grid;
+        grid-template-columns: 1fr;
+        margin-right: var(--control-horizontal-space-mobile);
+        margin-left: var(--control-horizontal-space-mobile);
+    }
+
+    #tally span {
+        display: grid;
+        border: 2px solid #ffc107;
+        place-items: center;
+        grid-column: 1;
+        width: 100%;
+        padding: 20px;
+        border-radius: 7px;
+        font-size: 2em;
+        font-weight: bold;
+    }
+}

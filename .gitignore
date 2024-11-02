@@ -13,9 +13,8 @@
 *.test
 
 bin/ballot
+coverage/
 
 # Frontend build artifacts
-ui/src/gen/js/**/*.js
-ui/src/gen/js/**/*.map
-ui/dist/js/app.js
+ballot-ui/dist
 node_modules/

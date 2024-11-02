@@ -37,10 +37,10 @@ import (
 	"github.com/papito/ballot/ballot/model/request"
 	"github.com/papito/ballot/ballot/model/response"
 	"github.com/papito/ballot/ballot/service"
-	"github.com/shurcooL/httpgzip"
-	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 type Server interface {
@@ -56,8 +56,41 @@ type Server interface {
 }
 
 type server struct {
-	service   *service.Service
-	templates *template.Template
+	service *service.Service
+}
+
+// Lifted straight from Gorilla Mux documentation
+// https://github.com/gorilla/mux?tab=readme-ov-file#serving-single-page-applications
+type spaHandler struct {
+	staticPath string
+	indexPath  string
+}
+
+// ServeHTTP inspects the URL path to locate a file within the static dir
+// on the SPA handler. If a file is found, it will be served. If not, the
+// file located at the index path on the SPA handler will be served. This
+// is suitable behavior for serving an SPA (single page application).
+func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Join internally call path.Clean to prevent directory traversal
+	path := filepath.Join(h.staticPath, r.URL.Path)
+
+	// check whether a file exists or is a directory at the given path
+	fi, err := os.Stat(path)
+	if os.IsNotExist(err) || fi.IsDir() {
+		// file does not exist or path is a directory, serve index.html
+		http.ServeFile(w, r, filepath.Join(h.staticPath, h.indexPath))
+		return
+	}
+
+	if err != nil {
+		// if we got an error (that wasn't that the file doesn't exist) stating the
+		// file, return a 500 internal server error and stop
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// otherwise, use http.FileServer to serve the static file
+	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
 }
 
 func NewServer(config config.Config) Server {
@@ -65,22 +98,11 @@ func NewServer(config config.Config) Server {
 	ballotService := service.NewService(config)
 
 	server := server{
-		service:   &ballotService,
-		templates: template.Must(template.ParseGlob("../ui/templates/*")),
+		service: &ballotService,
 	}
-
-	// Serve static files
-	http.Handle("/ui/", http.StripPrefix("/ui/", httpgzip.FileServer(
-		http.Dir("../ui/dist/"),
-		httpgzip.FileServerOptions{
-			IndexHTML: true,
-		},
-	)))
 
 	// Handlers
 	r := mux.NewRouter()
-	r.HandleFunc("/", server.indexHttpHandler).Methods("GET")
-	r.HandleFunc("/vote/{sessionId}", server.gotoVoteHandler).Methods("GET")
 	r.HandleFunc("/health", server.HealthHttpHandler).Methods("GET")
 	r.HandleFunc("/api/session", server.CreateSessionHttpHandler).Methods("POST")
 	r.HandleFunc("/api/user/{id}", server.GetUserHttpHandler).Methods("GET")
@@ -88,6 +110,10 @@ func NewServer(config config.Config) Server {
 	r.HandleFunc("/api/vote/start", server.StartVoteHttpHandler).Methods("PUT")
 	r.HandleFunc("/api/vote/finish", server.FinishVoteHttpHandler).Methods("PUT")
 	r.HandleFunc("/api/vote/cast", server.CastVoteHttpHandler).Methods("PUT")
+
+	spa := spaHandler{staticPath: "../ballot-ui/dist", indexPath: "index.html"}
+	r.PathPrefix("/").Handler(spa)
+
 	http.Handle("/", r)
 
 	server.service.Hub().HandleWebSockets("/glue/ws")
@@ -105,7 +131,7 @@ func (p server) Release() {
 	log.Print("Server done")
 }
 
-func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (p server) HealthHttpHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var health = response.HealthResponse{Status: "OK"}
@@ -114,37 +140,7 @@ func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
-func (p server) indexHttpHandler(w http.ResponseWriter, r *http.Request) {
-	type TemplateParams struct {
-		Domain string
-	}
-
-	templateParams := TemplateParams{
-		Domain: p.service.Config().HttpHost,
-	}
-
-	err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
-	if err != nil {
-		log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
-	}
-}
-
-func (p server) gotoVoteHandler(w http.ResponseWriter, r *http.Request) {
-	type TemplateParams struct {
-		Domain string
-	}
-
-	templateParams := TemplateParams{
-		Domain: p.service.Config().HttpHost,
-	}
-
-	err := p.templates.ExecuteTemplate(w, "index.html", templateParams)
-	if err != nil {
-		log.Fatalf("Error getting index view %+v", errorx.EnsureStackTrace(err))
-	}
-}
-
-func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (p server) CreateSessionHttpHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	session, err := p.service.CreateSession()

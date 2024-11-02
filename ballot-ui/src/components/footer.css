@@ -1,0 +1,18 @@
+.footer {
+    display: grid;
+    background-color: #343a40;
+    grid-template-columns: max-content 1fr max-content;
+}
+
+.footer .renegade {
+    display: grid;
+    padding-left: var(--control-horizontal-space);
+    align-items: center;
+}
+
+.footer .sauce {
+    display: grid;
+    align-items: center;
+    grid-column: 3;
+    padding-right: var(--control-horizontal-space);
+}

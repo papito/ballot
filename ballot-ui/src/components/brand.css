@@ -1,0 +1,31 @@
+#Brand {
+    display: grid;
+    background-color: #343a40;
+    grid-template-columns: max-content 1fr max-content;
+}
+
+#Brand span {
+    display: grid;
+    place-items: center;
+    font-size: 1.5em;
+    padding-left: var(--control-horizontal-space);
+    letter-spacing: 0.2em;
+    font-weight: bold;
+}
+
+#Brand a {
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+#copySessionUrl {
+    display: grid;
+    grid-column: 3;
+    margin-right: var(--control-horizontal-space);
+}
+
+@media (max-width: 700px) {
+    #copySessionUrl {
+        margin-right: var(--control-horizontal-space-mobile);
+    }
+}
