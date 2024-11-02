@@ -131,7 +131,7 @@ func (p server) Release() {
 	log.Print("Server done")
 }
 
-func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (p server) HealthHttpHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var health = response.HealthResponse{Status: "OK"}
@@ -140,7 +140,7 @@ func (p server) HealthHttpHandler(w http.ResponseWriter, r *http.Request) {
 	logutil.Logger(fmt.Fprintf(w, "%s", data))
 }
 
-func (p server) CreateSessionHttpHandler(w http.ResponseWriter, r *http.Request) {
+func (p server) CreateSessionHttpHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	session, err := p.service.CreateSession()

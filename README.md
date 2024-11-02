@@ -11,7 +11,7 @@ A web-based replacement for physical Scrum estimation cards, most useful for dis
 
 - A vote will end automatically when all votes are in
 - A vote can be finalized even if someone doesn't vote, because they are raiding the company fridge
-- Observers can join a vote
+- If you are not a pig, you can join and observe an estimation session as a chicken
 
 ## Installing and running
 
@@ -75,9 +75,10 @@ In `.git/hooks/pre-commit `:
     make lint
 
 
-### Build with Docker
+### Build & run with Docker
 
-`docker build .`
+`docker build . -t ballot`
+`docker run -td -p8080:8080 --name ballot ballot`
 
 Note that this will install local Redis in the container, but that instance can be ignored if you configure Redis with environment variables (see below).
 
