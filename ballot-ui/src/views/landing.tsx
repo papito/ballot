@@ -81,6 +81,7 @@ function Landing(): React.JSX.Element {
             <GeneralError error={generalError} />
 
             <div className="form">
+                <div id="tagline">Distributed scrum estimation poker</div>
                 <form onSubmit={createNewSession}>
                     <label htmlFor=""></label>
                     <div data-testid="formError" id="formError" className={formError ? 'error' : 'hidden'}>
@@ -97,6 +98,21 @@ function Landing(): React.JSX.Element {
                         New Voting Space
                     </button>
                 </form>
+                <div id="byline">
+                    <div className="link">
+                        <div>
+                            By{' '}
+                            <a href="https://renegadeotter.com" target="_blank" rel="noreferrer">
+                                Renegade Otter
+                            </a>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="https://renegadeotter.com" target="_blank" rel="noreferrer">
+                            <img src="/renegade.png" alt="Renegade Otter" />
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <Footer />

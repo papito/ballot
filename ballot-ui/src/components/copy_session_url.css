@@ -1,8 +1,14 @@
 .btn.copy-url {
-    background-color: #2d2d2d;
+    background-color: transparent;
     color: white;
     border: 1px solid #938e8e;
     transition: background-color 1s ease-in;
+    box-shadow: none;
+    font-size: 12px;
+    padding: 5px 15px;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 @keyframes flash {
@@ -26,10 +32,4 @@
     transition:
         background-color 0.75s,
         color 0.75s;
-}
-
-@media (max-width: 700px) {
-    .btn.copy-url {
-        font-size: 0.6em;
-    }
 }

@@ -4,8 +4,12 @@ import React from 'react'
 function Footer(): React.JSX.Element {
     return (
         <div className="footer">
-            <div className="renegade">Renegade Otter</div>
-            <div className="sauce">Open Sauce</div>
+            <div className="renegade"></div>
+            <div className="sauce">
+                <a href="https://github.com/papito/ballot" target="_blank" rel="noreferrer">
+                    <img src="/gh.png" alt="GitHub"/>
+                </a>
+            </div>
         </div>
     )
 }
