@@ -12,12 +12,15 @@
 }
 
 #cards {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
     padding-left: var(--control-horizontal-space);
     padding-right: var(--control-horizontal-space);
-    grid-template-columns: repeat(11, auto);
-    column-gap: var(--control-horizontal-space);
+    gap: var(--control-horizontal-space);
 }
+
 
 #tally {
     display: grid;

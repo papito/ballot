@@ -109,7 +109,7 @@ function Landing(): React.JSX.Element {
                     </div>
                     <div>
                         <a href="https://renegadeotter.com" target="_blank" rel="noreferrer">
-                            <img src="/renegade.png" alt="Renegade Otter" />
+                            <img src="/renegade.png" alt="Renegade Otters" />
                         </a>
                     </div>
                 </div>
