@@ -52,6 +52,16 @@
     border: 1px solid white;
 }
 
+.btn.estimate:hover {
+    background: repeating-linear-gradient(
+            45deg,
+            #343434,
+            #343434 10px,
+            #444 10px,
+            #444 11px
+    );
+}
+
 #startMessage,
 #observerMessage {
     width: 100%;
