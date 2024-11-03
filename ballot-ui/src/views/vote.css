@@ -58,9 +58,9 @@
 #startMessage,
 #observerMessage {
     width: 100%;
-    line-height: 1.6em;
-    text-align: center;
+    line-height: 1.4em;
     color: white;
+    text-align: center;
     background-color: rgba(0, 0, 0, 0.3);
     border: 1px dotted grey;
     padding: 0.5em;
@@ -77,6 +77,7 @@
 #startMessage .hey {
     font-size: 1.5em;
     font-weight: bold;
+    text-align: center;
     /*color: var(--warning-font-color);*/
 }
 
@@ -160,6 +161,12 @@
     #startMessage,
     #observerMessage {
         font-size: 0.9em;
+    }
+
+    #startMessage {
+        padding-left: var(--control-horizontal-space-mobile);
+        padding-right: var(--control-horizontal-space-mobile);
+        text-align: left;
     }
 
     #prompt span.pick-a-card {
