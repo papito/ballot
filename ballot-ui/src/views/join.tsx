@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Brand from '../components/brand.tsx'
+import Byline from '../components/byline.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
 
 // https://github.com/axios/axios/discussions/5859
 // eslint-disable-next-line import/named
 import axios, { AxiosError, AxiosResponse, isAxiosError } from 'axios'
+import Tagline from '../components/tagline.tsx'
 
 function Join(): React.JSX.Element {
     const params = useParams()
@@ -62,6 +64,7 @@ function Join(): React.JSX.Element {
             <GeneralError error={generalError} />
 
             <div className="form">
+                <Tagline />
                 <form onSubmit={(e) => e.preventDefault()}>
                     <label htmlFor=""></label>
                     <div data-testid="formError" id="formError" className={formError ? 'error' : 'hidden'}>
@@ -81,6 +84,7 @@ function Join(): React.JSX.Element {
                         Join as an observer
                     </button>
                 </form>
+                <Byline />
             </div>
 
             <Footer />

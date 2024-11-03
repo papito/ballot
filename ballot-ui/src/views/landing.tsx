@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import Brand from '../components/brand.tsx'
+import Byline from '../components/byline.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
 
 // https://github.com/axios/axios/discussions/5859
 // eslint-disable-next-line import/named
 import axios, { AxiosError, AxiosResponse, isAxiosError } from 'axios'
+import Tagline from '../components/tagline.tsx'
 
 function Landing(): React.JSX.Element {
     let sessionId: string | null = null
@@ -81,7 +83,7 @@ function Landing(): React.JSX.Element {
             <GeneralError error={generalError} />
 
             <div className="form">
-                <div id="tagline">Distributed scrum estimation poker</div>
+                <Tagline />
                 <form onSubmit={createNewSession}>
                     <label htmlFor=""></label>
                     <div data-testid="formError" id="formError" className={formError ? 'error' : 'hidden'}>
@@ -98,21 +100,7 @@ function Landing(): React.JSX.Element {
                         New Voting Space
                     </button>
                 </form>
-                <div id="byline">
-                    <div className="link">
-                        <div>
-                            By{' '}
-                            <a href="https://renegadeotter.com" target="_blank" rel="noreferrer">
-                                Renegade Otter
-                            </a>
-                        </div>
-                    </div>
-                    <div>
-                        <a href="https://renegadeotter.com" target="_blank" rel="noreferrer">
-                            <img src="/renegade.png" alt="Renegade Otters" />
-                        </a>
-                    </div>
-                </div>
+                <Byline />
             </div>
 
             <Footer />

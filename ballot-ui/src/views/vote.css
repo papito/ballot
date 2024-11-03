@@ -21,7 +21,6 @@
     gap: var(--control-horizontal-space);
 }
 
-
 #tally {
     display: grid;
     place-items: center;
@@ -53,13 +52,7 @@
 }
 
 .btn.estimate:hover {
-    background: repeating-linear-gradient(
-            45deg,
-            #343434,
-            #343434 10px,
-            #444 10px,
-            #444 11px
-    );
+    background: repeating-linear-gradient(45deg, #343434, #343434 10px, #444 10px, #444 11px);
 }
 
 #startMessage,
