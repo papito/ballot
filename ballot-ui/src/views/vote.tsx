@@ -258,7 +258,7 @@ function Vote(): React.JSX.Element {
             setGeneralError(`An error occurred (${error}). See server logs.`)
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sessionId, userId])
+    }, [])
 
     const votersJsx = voters.map((voter: User) => {
         return <Voter voter={voter} session={session} key={voter.id} />
