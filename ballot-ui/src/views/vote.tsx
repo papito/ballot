@@ -257,6 +257,7 @@ function Vote(): React.JSX.Element {
         fetchUser().catch((error: unknown) => {
             setGeneralError(`An error occurred (${error}). See server logs.`)
         })
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -292,11 +293,15 @@ function Vote(): React.JSX.Element {
     const startMessageJsx: React.JSX.Element =
         voters.length == 1 ? (
             <div id="startMessage">
-                Looks like you are the only one here!{' '}
-                <a href={'/vote/s/' + session.id} target="_blank" rel="noreferrer">
-                    Join this session
-                </a>{' '}
-                in a different tab to test with more than one user.
+                <div className="hey">Hey...</div>
+                <div>
+                    Looks like you are the only one here!{' '}
+                    <a href={'/vote/s/' + session.id} target="_blank" rel="noreferrer">
+                        Join this session
+                    </a>{' '}
+                    in a different tab to test with more than one user.
+                </div>
+                <div>To invite others, copy the link to this session (top right corner) and share it with them.</div>
             </div>
         ) : (
             <></>

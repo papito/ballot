@@ -19,7 +19,9 @@ function Voter({ voter, session }: VoterProps): React.JSX.Element {
 
     return (
         <div className="voter">
-            <div className="name">{voter.name}</div>
+            <div className={'name' + (voter.is_admin ? ' admin' : '')}>
+                {voter.name} {voter.is_admin && '[admin]'}
+            </div>
             <div className="voteStatus">
                 <img src={voter.voted ? '/v.png' : '/x.png'} alt={voter.voted ? 'Voted' : 'Not voted'} />
             </div>

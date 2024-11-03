@@ -15,6 +15,7 @@
     --control-horizontal-space: 20px;
     --control-horizontal-space-mobile: var(--control-vertical-space-mobile);
 
+    --info-background-color: rgb(52, 52, 199);
     --success-font-color: #82da5f;
     --success-background-color: #377a1c;
     --warning-font-color: #dca051;
@@ -108,7 +109,8 @@ i.fas {
     margin-right: 10px;
 }
 
-.entry-point, form {
+.entry-point,
+form {
     display: grid;
     place-items: center;
     grid-template-rows: auto;

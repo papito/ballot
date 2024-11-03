@@ -33,3 +33,27 @@
         background-color 0.75s,
         color 0.75s;
 }
+
+#copySessionUrl div {
+    display: grid;
+    place-items: center;
+    grid-template-columns: 1fr max-content;
+}
+
+#copySessionUrl .text {
+    font-size: 13px;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+}
+
+#copySessionUrl .text i {
+    color: var(--success-font-color);
+}
+
+@media (max-width: 700px) {
+    #copySessionUrl .text {
+        display: none;
+    }
+}

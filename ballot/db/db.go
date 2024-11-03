@@ -290,6 +290,7 @@ func (p *Store) GetUsers(sessionId string, isObserver bool) ([]model.User, error
 
 			estimate := m["estimate"]
 			isObserver, _ := strconv.Atoi(m["is_observer"])
+			isAdmin, _ := strconv.Atoi(m["is_admin"])
 
 			user := model.User{
 				UserId:     m["id"],
@@ -298,6 +299,7 @@ func (p *Store) GetUsers(sessionId string, isObserver bool) ([]model.User, error
 				Voted:      estimate != model.NoEstimate,
 				Joined:     m["joined"],
 				IsObserver: isObserver == 1,
+				IsAdmin:    isAdmin == 1,
 			}
 			users = append(users, user)
 		default:

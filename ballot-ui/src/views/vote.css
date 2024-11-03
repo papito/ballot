@@ -66,6 +66,20 @@
     padding: 0.5em;
 }
 
+#startMessage {
+    display: grid;
+    grid-auto-rows: auto;
+    row-gap: var(--control-vertical-space);
+    padding-top: var(--control-vertical-space);
+    padding-bottom: var(--control-vertical-space);
+}
+
+#startMessage .hey {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--warning-font-color);
+}
+
 #voters {
     display: flex;
     flex-wrap: wrap;
@@ -105,14 +119,15 @@
 }
 
 #prompt span.waiting {
-    padding: 5px 5px 5px 5px;
+    padding: 7px 7px 7px 7px;
     border-radius: 5px;
     letter-spacing: 1px;
-    background-color: rgb(52, 52, 199);
+    background-color: transparent;
+    border-color: var(--info-background-color);
 }
 
 #prompt span.voting {
-    padding: 5px 5px 5px 5px;
+    padding: 7px 7px 7px 7px;
     border-radius: 5px;
     -moz-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
