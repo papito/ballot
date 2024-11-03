@@ -63,7 +63,7 @@ function Join(): React.JSX.Element {
             <Brand session={null} />
             <GeneralError error={generalError} />
 
-            <div className="form">
+            <div className="entry-point">
                 <Tagline />
                 <form onSubmit={(e) => e.preventDefault()}>
                     <label htmlFor=""></label>

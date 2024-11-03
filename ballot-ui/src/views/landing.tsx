@@ -82,7 +82,7 @@ function Landing(): React.JSX.Element {
             <Brand session={null} />
             <GeneralError error={generalError} />
 
-            <div className="form">
+            <div className="entry-point">
                 <Tagline />
                 <form onSubmit={createNewSession}>
                     <label htmlFor=""></label>
