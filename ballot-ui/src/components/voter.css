@@ -37,7 +37,7 @@
 
 .voter .estimate .idle {
     letter-spacing: 1px;
-    color: var(--warning-font-color);
+    /*color: var(--warning-font-color);*/
 }
 
 .voter .estimate .waiting {

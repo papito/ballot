@@ -77,7 +77,7 @@
 #startMessage .hey {
     font-size: 1.5em;
     font-weight: bold;
-    color: var(--warning-font-color);
+    /*color: var(--warning-font-color);*/
 }
 
 #voters {
@@ -100,6 +100,11 @@
     75% {
         background-color: rgb(73, 63, 29);
     }
+}
+
+#prompt {
+    display: grid;
+    grid-template-columns: max-content;
 }
 
 #prompt span {
