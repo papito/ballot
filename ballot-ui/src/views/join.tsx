@@ -71,6 +71,7 @@ function Join(): React.JSX.Element {
                         {formError}
                     </div>
                     <input
+                        autoFocus={true}
                         className={formError ? 'error' : ''}
                         type="text"
                         maxLength={64}
