@@ -78,6 +78,7 @@ function Vote(): React.JSX.Element {
      * This runs once when the component is mounted.
      */
     const mounted = useRef(false)
+
     useEffect(() => {
         if (mounted.current) {
             return
@@ -88,6 +89,14 @@ function Vote(): React.JSX.Element {
         console.debug('User ID:', userId)
 
         const ws: Websockets = new Websockets()
+
+        function visibilityChangedHandler(): void {
+            if (!document.hidden) {
+                // A mobile device may have lost connection on sleep or locked screen.
+                ws.reconnect()
+            }
+        }
+        document.addEventListener('visibilitychange', visibilityChangedHandler)
 
         const fetchUser = async (): Promise<void> => {
             const { data } = await axios.get<User>(`/api/user/${userId}`)

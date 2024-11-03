@@ -28,4 +28,8 @@ export default class Websockets {
     close(): void {
         this.socket.close()
     }
+
+    reconnect(): void {
+        this.socket.reconnect()
+    }
 }
