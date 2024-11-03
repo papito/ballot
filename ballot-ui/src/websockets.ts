@@ -24,4 +24,8 @@ export default class Websockets {
     send(data: string): void {
         this.socket.send(data)
     }
+
+    close(): void {
+        this.socket.close()
+    }
 }

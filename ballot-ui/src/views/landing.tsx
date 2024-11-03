@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import Brand from '../components/brand.tsx'
+import Byline from '../components/byline.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
 
 // https://github.com/axios/axios/discussions/5859
 // eslint-disable-next-line import/named
 import axios, { AxiosError, AxiosResponse, isAxiosError } from 'axios'
+import Tagline from '../components/tagline.tsx'
 
 function Landing(): React.JSX.Element {
     let sessionId: string | null = null
@@ -80,13 +82,15 @@ function Landing(): React.JSX.Element {
             <Brand session={null} />
             <GeneralError error={generalError} />
 
-            <div className="form">
+            <div className="entry-point">
+                <Tagline />
                 <form onSubmit={createNewSession}>
                     <label htmlFor=""></label>
                     <div data-testid="formError" id="formError" className={formError ? 'error' : 'hidden'}>
                         {formError}
                     </div>
                     <input
+                        autoFocus={true}
                         className={formError ? 'error' : ''}
                         type="text"
                         maxLength={64}
@@ -97,6 +101,7 @@ function Landing(): React.JSX.Element {
                         New Voting Space
                     </button>
                 </form>
+                <Byline />
             </div>
 
             <Footer />

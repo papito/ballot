@@ -5,14 +5,16 @@
 }
 
 .footer .renegade {
-    display: grid;
-    padding-left: var(--control-horizontal-space);
-    align-items: center;
 }
 
 .footer .sauce {
+    height: 100%;
     display: grid;
-    align-items: center;
+    place-items: center;
     grid-column: 3;
     padding-right: var(--control-horizontal-space);
+}
+
+.footer .sauce a {
+    display: grid;
 }

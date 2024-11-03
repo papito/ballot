@@ -1,27 +1,3 @@
-/*
- * The MIT License
- *
- * Copyright (c) 2020,  Andrei Taranchenko
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 package hub
 
 import (
@@ -429,33 +405,27 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 	})
 }
 
-/*
-A hub implementation used for testing. Poor man's mockery.
+// A hub implementation used for testing.
 
-	Feel free to mock this.
-	Or fake outrage.
-
-	I can do this all day.
-*/
 type VoidHub struct {
 	Emitted      []string
 	LocalEmitted []string
 }
 
-func (p *VoidHub) Emit(session string, data string) error {
+func (p *VoidHub) Emit(_ string, data string) error {
 	p.Emitted = append(p.Emitted, data)
 	return nil
 }
 
-func (p *VoidHub) EmitLocal(session string, data string) {
+func (p *VoidHub) EmitLocal(_ string, data string) {
 	p.LocalEmitted = append(p.LocalEmitted, data)
 }
 
-/* This VOID version resets the state */
-func (p *VoidHub) Connect(db *db.Store) {
+// Connect This VOID version resets the state
+func (p *VoidHub) Connect(_ *db.Store) {
 	p.Emitted = p.Emitted[:0]
 	p.LocalEmitted = p.LocalEmitted[:0]
 }
 
-func (p *VoidHub) HandleWebSockets(url string) { return }
-func (p *VoidHub) Release()                    { return }
+func (p *VoidHub) HandleWebSockets(_ string) { return }
+func (p *VoidHub) Release()                  { return }

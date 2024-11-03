@@ -1,8 +1,14 @@
 .btn.copy-url {
-    background-color: #2d2d2d;
+    background-color: transparent;
     color: white;
     border: 1px solid #938e8e;
     transition: background-color 1s ease-in;
+    box-shadow: none;
+    font-size: 12px;
+    padding: 5px 15px;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 @keyframes flash {
@@ -28,8 +34,26 @@
         color 0.75s;
 }
 
+#copySessionUrl div {
+    display: grid;
+    place-items: center;
+    grid-template-columns: 1fr max-content;
+}
+
+#copySessionUrl .text {
+    font-size: 13px;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+}
+
+#copySessionUrl .text i {
+    color: var(--success-font-color);
+}
+
 @media (max-width: 700px) {
-    .btn.copy-url {
-        font-size: 0.6em;
+    #copySessionUrl .text {
+        display: none;
     }
 }

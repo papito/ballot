@@ -1,0 +1,17 @@
+#byline {
+    display: grid;
+    justify-content: center;
+    place-items: center;
+    column-gap: 10px;
+    grid-template-columns: repeat(2, minmax(auto, max-content));
+    letter-spacing: 1px;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: rgba(79, 79, 76, 0.3) 2px 1px;
+    color: white;
+    font-size: 1.3em;
+}
+
+#byline .link a {
+    text-decoration: none;
+}

@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Brand from '../components/brand.tsx'
+import Byline from '../components/byline.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
 
 // https://github.com/axios/axios/discussions/5859
 // eslint-disable-next-line import/named
 import axios, { AxiosError, AxiosResponse, isAxiosError } from 'axios'
+import Tagline from '../components/tagline.tsx'
 
 function Join(): React.JSX.Element {
     const params = useParams()
@@ -61,13 +63,15 @@ function Join(): React.JSX.Element {
             <Brand session={null} />
             <GeneralError error={generalError} />
 
-            <div className="form">
+            <div className="entry-point">
+                <Tagline />
                 <form onSubmit={(e) => e.preventDefault()}>
                     <label htmlFor=""></label>
                     <div data-testid="formError" id="formError" className={formError ? 'error' : 'hidden'}>
                         {formError}
                     </div>
                     <input
+                        autoFocus={true}
                         className={formError ? 'error' : ''}
                         type="text"
                         maxLength={64}
@@ -78,9 +82,10 @@ function Join(): React.JSX.Element {
                         Join as a voter
                     </button>
                     <button className="warn" type="button" onClick={() => join({ isObserver: 1 })}>
-                        Join as an innocent bystander
+                        Join as an observer
                     </button>
                 </form>
+                <Byline />
             </div>
 
             <Footer />

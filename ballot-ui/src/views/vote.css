@@ -12,11 +12,13 @@
 }
 
 #cards {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
     padding-left: var(--control-horizontal-space);
     padding-right: var(--control-horizontal-space);
-    grid-template-columns: repeat(11, auto);
-    column-gap: var(--control-horizontal-space);
+    gap: var(--control-horizontal-space);
 }
 
 #tally {
@@ -26,7 +28,7 @@
 }
 
 #tally span {
-    border: 2px solid #ffc107;
+    border: 2px solid var(--theme-yellow-color);
     grid-column: 2;
     padding: 20px;
     border-radius: 7px;
@@ -39,14 +41,18 @@
     place-items: center;
     height: 120px;
     background-color: transparent;
-    color: #ffc107;
-    border: 2px solid #ffc107;
+    color: var(--theme-yellow-color);
+    border: 2px solid var(--theme-yellow-color);
 }
 
 .btn.estimate.selected {
-    background-color: #ffc107;
+    background-color: var(--theme-yellow-color);
     color: black;
     border: 1px solid white;
+}
+
+.btn.estimate:not(:focus):hover {
+    background: repeating-linear-gradient(45deg, #343434, #343434 10px, #444 10px, #444 11px);
 }
 
 #startMessage,
@@ -58,6 +64,20 @@
     background-color: rgba(0, 0, 0, 0.3);
     border: 1px dotted grey;
     padding: 0.5em;
+}
+
+#startMessage {
+    display: grid;
+    grid-auto-rows: auto;
+    row-gap: var(--control-vertical-space);
+    padding-top: var(--control-vertical-space);
+    padding-bottom: var(--control-vertical-space);
+}
+
+#startMessage .hey {
+    font-size: 1.5em;
+    font-weight: bold;
+    /*color: var(--warning-font-color);*/
 }
 
 #voters {
@@ -77,10 +97,20 @@
     50% {
         background-color: rgba(238, 193, 46, 0.64);
     }
-    100% {
+    75% {
         background-color: rgb(73, 63, 29);
     }
 }
+
+#prompt {
+    display: grid;
+    grid-template-columns: max-content;
+}
+
+#prompt span {
+    border: 2px dotted #797777;
+}
+
 #prompt span.pick-a-card {
     padding: 15px 15px 15px 15px;
     font-size: 20px;
@@ -94,14 +124,15 @@
 }
 
 #prompt span.waiting {
-    padding: 5px 5px 5px 5px;
+    padding: 7px 7px 7px 7px;
     border-radius: 5px;
     letter-spacing: 1px;
-    background-color: rgb(52, 52, 199);
+    background-color: transparent;
+    border-color: var(--info-background-color);
 }
 
 #prompt span.voting {
-    padding: 5px 5px 5px 5px;
+    padding: 7px 7px 7px 7px;
     border-radius: 5px;
     -moz-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;

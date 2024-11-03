@@ -21,7 +21,7 @@
 #copySessionUrl {
     display: grid;
     grid-column: 3;
-    margin-right: var(--control-horizontal-space);
+    padding-right: var(--control-horizontal-space);
 }
 
 @media (max-width: 700px) {

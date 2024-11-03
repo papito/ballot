@@ -7,6 +7,7 @@
     width: 200px;
     height: 200px;
     grid-template-rows: repeat(3, 1fr);
+    box-shadow: var(--box-shadow);
 }
 
 .voter > div {
@@ -18,6 +19,10 @@
     display: grid;
     text-align: center;
     padding: 0 10px 0 10px;
+}
+
+.voter .name.admin {
+    color: var(--warning-font-color);
 }
 
 .voter .voteStatus img {
@@ -32,7 +37,7 @@
 
 .voter .estimate .idle {
     letter-spacing: 1px;
-    color: var(--warning-font-color);
+    /*color: var(--warning-font-color);*/
 }
 
 .voter .estimate .waiting {
