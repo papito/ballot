@@ -28,7 +28,7 @@
 }
 
 #tally span {
-    border: 2px solid #ffc107;
+    border: 2px solid var(--theme-yellow-color);
     grid-column: 2;
     padding: 20px;
     border-radius: 7px;
@@ -41,17 +41,17 @@
     place-items: center;
     height: 120px;
     background-color: transparent;
-    color: #ffc107;
-    border: 2px solid #ffc107;
+    color: var(--theme-yellow-color);
+    border: 2px solid var(--theme-yellow-color);
 }
 
 .btn.estimate.selected {
-    background-color: #ffc107;
+    background-color: var(--theme-yellow-color);
     color: black;
     border: 1px solid white;
 }
 
-.btn.estimate:hover {
+.btn.estimate:not(:focus):hover {
     background: repeating-linear-gradient(45deg, #343434, #343434 10px, #444 10px, #444 11px);
 }
 
@@ -83,10 +83,15 @@
     50% {
         background-color: rgba(238, 193, 46, 0.64);
     }
-    100% {
+    75% {
         background-color: rgb(73, 63, 29);
     }
 }
+
+#prompt span {
+    border: 2px dotted #797777;
+}
+
 #prompt span.pick-a-card {
     padding: 15px 15px 15px 15px;
     font-size: 20px;

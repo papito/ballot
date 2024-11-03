@@ -3,6 +3,8 @@
     --text-color: #f8f9fa;
     --background-color: #272b30;
 
+    --theme-yellow-color: #ffc107;
+
     /* Larger spacing for larger app areas, like panels and page paddings */
     --section-vertical-space: 35px;
     --section-vertical-space-mobile: 15px;
