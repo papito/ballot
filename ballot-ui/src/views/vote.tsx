@@ -44,6 +44,8 @@ function Vote(): React.JSX.Element {
         is_admin: false,
     })
 
+    const [connected, setConnected] = useImmer<boolean>(false)
+
     const [session, setSession] = useImmer<Session>({
         id: sessionId,
         status: SessionState.IDLE,
@@ -90,9 +92,13 @@ function Vote(): React.JSX.Element {
 
         const ws: Websockets = new Websockets()
 
+        ws.socket.on('connected', () => {
+            setConnected(true)
+        })
+
         function visibilityChangedHandler(): void {
             if (!document.hidden) {
-                // A mobile device may have lost connection on sleep or locked screen.
+                // A mobile device may have lost connection on sleep or locked screen
                 ws.reconnect()
             }
         }
@@ -351,6 +357,20 @@ function Vote(): React.JSX.Element {
         ) : (
             <></>
         )
+
+    if (!connected) {
+        return (
+            <div id="Vote" className="view">
+                <Brand session={session} />
+                <div id="connectionLost">
+                    <div>Seems like your connection has been lost.</div>
+                    <div>
+                        <a href={location.href}>Reload the page</a> to reconnect.
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div id="Vote" className="view">
