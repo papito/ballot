@@ -109,11 +109,17 @@ i.fas {
     margin-right: 10px;
 }
 
-.entry-point,
+.entry-point {
+    display: grid;
+    place-items: center;
+    grid-template-rows: 1fr 1fr 3fr;
+    row-gap: var(--control-vertical-space);
+}
+
 form {
     display: grid;
     place-items: center;
-    grid-template-rows: auto;
+    grid-auto-rows: auto;
     row-gap: var(--control-vertical-space);
 }
 
