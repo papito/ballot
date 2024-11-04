@@ -44,8 +44,6 @@ function Vote(): React.JSX.Element {
         is_admin: false,
     })
 
-    const [connected, setConnected] = useImmer<boolean>(false)
-
     const [session, setSession] = useImmer<Session>({
         id: sessionId,
         status: SessionState.IDLE,
@@ -93,16 +91,34 @@ function Vote(): React.JSX.Element {
         const ws: Websockets = new Websockets()
 
         ws.socket.on('connected', () => {
-            setConnected(true)
+            console.log('Connected')
+            isConnected.current = true
         })
 
-        function visibilityChangedHandler(): void {
+        ws.socket.on('timeout', () => {
+            isConnected.current = false
+        })
+
+        ws.socket.on('disconnected', () => {
+            isConnected.current = false
+        })
+
+        ws.socket.on('error', () => {
+            isConnected.current = false
+        })
+
+        // A mobile device may have lost connection on sleep or locked screen,
+        // calling "reconnect" should be harmless.
+        document.addEventListener('visibilitychange', () => {
+            console.debug(`Connected: ${isConnected.current}, Visibility: ${document.visibilityState}`)
             if (!document.hidden) {
-                // A mobile device may have lost connection on sleep or locked screen
                 ws.reconnect()
             }
-        }
-        document.addEventListener('visibilitychange', visibilityChangedHandler)
+        })
+        window.addEventListener('blur', () => {
+            console.debug(`Connected: ${isConnected.current}`)
+            ws.reconnect()
+        })
 
         const fetchUser = async (): Promise<void> => {
             const { data } = await axios.get<User>(`/api/user/${userId}`)
@@ -357,20 +373,6 @@ function Vote(): React.JSX.Element {
         ) : (
             <></>
         )
-
-    if (!connected) {
-        return (
-            <div id="Vote" className="view">
-                <Brand session={session} />
-                <div id="connectionLost">
-                    <div>Seems like your connection has been lost.</div>
-                    <div>
-                        <a href={location.href}>Reload the page</a> to reconnect.
-                    </div>
-                </div>
-            </div>
-        )
-    }
 
     return (
         <div id="Vote" className="view">

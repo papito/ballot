@@ -11,13 +11,6 @@
     place-items: center;
 }
 
-#connectionLost {
-    display: grid;
-    grid-auto-rows: auto;
-    row-gap: var(--control-vertical-space);
-    padding: var(--control-horizontal-space);
-}
-
 #cards {
     display: flex;
     flex-wrap: wrap;

@@ -14,7 +14,7 @@ export default class Websockets {
 
     constructor() {
         this.socket = glue()
-   }
+    }
 
     send(data: string): void {
         this.socket.send(data)
