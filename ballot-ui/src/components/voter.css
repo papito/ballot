@@ -37,7 +37,6 @@
 
 .voter .estimate .idle {
     letter-spacing: 1px;
-    /*color: var(--warning-font-color);*/
 }
 
 .voter .estimate .waiting {
@@ -83,6 +82,7 @@
     .voter {
         display: grid;
         margin: var(--control-vertical-space-mobile);
+        padding: 4px 0 4px 0;
         border-radius: 5px;
         border: 2px solid #676767;
         background-color: #424242;
@@ -104,6 +104,10 @@
 
     .voter .estimate .waiting {
         width: 30px;
+    }
+
+    .voter .estimate .idle {
+        display: none;
     }
 
     .voter .estimate .done {
