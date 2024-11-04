@@ -78,6 +78,7 @@ function Vote(): React.JSX.Element {
      * This runs once when the component is mounted.
      */
     const mounted = useRef(false)
+    const isConnected = useRef(false)
 
     useEffect(() => {
         if (mounted.current) {
