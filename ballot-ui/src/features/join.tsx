@@ -7,8 +7,9 @@ import GeneralError from '../components/general_error.tsx'
 
 // https://github.com/axios/axios/discussions/5859
 // eslint-disable-next-line import/named
-import axios, { AxiosError, AxiosResponse, isAxiosError } from 'axios'
+import axios from 'axios'
 import Tagline from '../components/tagline.tsx'
+import { useErrorContext } from '../contexts/error_context.tsx'
 
 function Join(): React.JSX.Element {
     const params = useParams()
@@ -16,44 +17,19 @@ function Join(): React.JSX.Element {
     console.debug('Session ID:', sessionId)
 
     const [name, setName] = useState<string | null>()
-    const [formError, setFormError] = useState<string | null>()
-    const [generalError, setGeneralError] = useState<string | null>(null)
-
-    function setUnknownError(msg: string): void {
-        console.error(msg)
-        setGeneralError(msg)
-    }
+    const { generalError, formError } = useErrorContext()
 
     async function join({ isObserver }: { isObserver: number }): Promise<void> {
-        setFormError(null)
-        setGeneralError(null)
-
-        console.log('here')
-
         try {
-            const response: AxiosResponse = await axios.post('/api/user', {
+            const response = await axios.post('/api/user', {
                 name: name,
                 session_id: sessionId,
                 is_observer: isObserver,
             })
-            console.debug(response.data)
             const userId: string | null = response.data.id
             console.assert(userId, 'userId is required')
             window.location.assign(`/vote/s/${sessionId}/u/${userId}`)
-        } catch (error) {
-            if (isAxiosError(error)) {
-                const axiosError = error as AxiosError
-                switch (axiosError.response?.status) {
-                    case 400:
-                        setFormError(error.response?.data.error)
-                        break
-                    default:
-                        setFormError(error.response?.statusText)
-                }
-            } else {
-                setUnknownError(`An error occurred: ${error}`)
-            }
-
+        } catch {
             return
         }
     }

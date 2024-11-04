@@ -14,3 +14,9 @@ export interface User {
     is_observer: boolean
     is_admin: boolean
 }
+
+export type TError = string | null
+
+export type TValidationError = {
+    error: string
+}

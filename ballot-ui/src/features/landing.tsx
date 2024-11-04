@@ -4,73 +4,36 @@ import Byline from '../components/byline.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
 
-// https://github.com/axios/axios/discussions/5859
-// eslint-disable-next-line import/named
-import axios, { AxiosError, AxiosResponse, isAxiosError } from 'axios'
+import axios from 'axios'
 import Tagline from '../components/tagline.tsx'
+import { useErrorContext } from '../contexts/error_context.tsx'
 
 function Landing(): React.JSX.Element {
     let sessionId: string | null = null
     let userId: string | null = null
     const [name, setName] = useState<string | null>()
-    const [formError, setFormError] = useState<string | null>()
-    const [generalError, setGeneralError] = useState<string | null>(null)
-
-    function setError(error: unknown): void {
-        if (isAxiosError(error)) {
-            const axiosError = error as AxiosError
-            const msg = `An error occurred: <b>${axiosError.response?.statusText}</b>. See server logs.`
-            console.error(error)
-            setGeneralError(msg)
-        } else {
-            console.error(error)
-            setGeneralError(`${error}`)
-        }
-    }
-
-    function setUnknownError(msg: string): void {
-        console.error(msg)
-        setGeneralError(msg)
-    }
+    const { generalError, formError } = useErrorContext()
 
     async function createNewSession(event: React.FormEvent<HTMLFormElement>): Promise<void> {
         event.preventDefault()
-        setFormError(null)
-        setGeneralError(null)
 
-        // get new session id
         try {
-            const response: AxiosResponse = await axios.post('/api/session')
-
-            // console.log(response.data)
-            sessionId = response.data.id
-        } catch (error) {
-            setError(error)
+            const createSessionResponse = await axios.post('/api/session')
+            sessionId = createSessionResponse.data.id
+            console.assert(sessionId, 'sessionId is required')
+        } catch {
             return
         }
 
         try {
-            const response: AxiosResponse = await axios.post('/api/user', {
+            const createUserResponse = await axios.post('/api/user', {
                 name: name,
                 session_id: sessionId,
                 is_admin: 1,
             })
-            // console.log(response.data)
-            userId = response.data.id
-        } catch (error) {
-            if (isAxiosError(error)) {
-                const axiosError = error as AxiosError
-                switch (axiosError.response?.status) {
-                    case 400:
-                        setFormError(error.response?.data.error)
-                        break
-                    default:
-                        setFormError(error.response?.statusText)
-                }
-            } else {
-                setUnknownError(`An error occurred: ${error}`)
-            }
-
+            userId = createUserResponse.data.id
+            console.assert(userId, 'userId is required')
+        } catch {
             return
         }
 
@@ -81,7 +44,6 @@ function Landing(): React.JSX.Element {
         <div id="Landing" className="view">
             <Brand session={null} />
             <GeneralError error={generalError} />
-
             <div className="entry-point">
                 <Tagline />
                 <form onSubmit={createNewSession}>
@@ -103,7 +65,7 @@ function Landing(): React.JSX.Element {
                 </form>
                 <Byline />
             </div>
-
+            s
             <Footer />
         </div>
     )

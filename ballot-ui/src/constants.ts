@@ -4,3 +4,8 @@ export enum SessionState {
 }
 
 export const NO_ESTIMATE: string = ''
+
+export enum Events {
+    generalError = 'generalError',
+    formError = 'formError',
+}

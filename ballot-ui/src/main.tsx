@@ -1,8 +1,9 @@
-import { StrictMode } from 'react'
+import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import Join from './features/join.tsx'
 import Landing from './features/landing.tsx'
 import Vote from './features/vote.tsx'
+import { ErrorContextProvider } from './contexts/error_context.tsx'
 
 import './core.css'
 
@@ -23,8 +24,19 @@ const router = createBrowserRouter([
     },
 ])
 
-createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-        <RouterProvider router={router} />
-    </StrictMode>
-)
+function App(): React.JSX.Element {
+    return (
+        <StrictMode>
+            <ErrorContextProvider>
+                <RouterProvider router={router} />
+            </ErrorContextProvider>
+        </StrictMode>
+    )
+}
+
+const container = document.getElementById('root')
+
+if (container) {
+    const root = createRoot(container)
+    root.render(<App />)
+}

@@ -1,7 +1,7 @@
 import './vote.css'
 
 import axios from 'axios'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useImmer } from 'use-immer'
 import Brand from '../components/brand.tsx'
@@ -10,6 +10,7 @@ import GeneralError from '../components/general_error.tsx'
 import StartStop from '../components/start_stop.tsx'
 import Voter from '../components/voter.tsx'
 import { NO_ESTIMATE, SessionState } from '../constants.ts'
+import { useErrorContext } from '../contexts/error_context.tsx'
 import { Session, User } from '../types/types.tsx'
 import Websockets from '../websockets.ts'
 
@@ -20,7 +21,8 @@ function Vote(): React.JSX.Element {
     const userId = params.userId
     console.assert(userId, 'userId is required')
 
-    const [generalError, setGeneralError] = useState<string | null>(null)
+    const { generalError, setGeneralError } = useErrorContext()
+
     const [user, setUser] = useImmer<User>({
         id: userId,
         name: '',
