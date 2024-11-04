@@ -10,22 +10,8 @@ import GeneralError from '../components/general_error.tsx'
 import StartStop from '../components/start_stop.tsx'
 import Voter from '../components/voter.tsx'
 import { NO_ESTIMATE, SessionState } from '../constants.ts'
+import { Session, User } from '../types/types.tsx'
 import Websockets from '../websockets.ts'
-
-export interface Session {
-    id: string | undefined
-    status: SessionState
-    tally: string
-}
-
-export interface User {
-    id: string | undefined
-    name: string
-    estimate: string
-    voted: boolean
-    is_observer: boolean
-    is_admin: boolean
-}
 
 function Vote(): React.JSX.Element {
     const params = useParams()

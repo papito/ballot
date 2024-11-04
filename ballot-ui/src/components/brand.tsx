@@ -1,6 +1,6 @@
 import './brand.css'
 import React from 'react'
-import { Session } from '../features/vote.tsx'
+import { Session } from '../types/types.tsx'
 import CopySessionUrl from './copy_session_url.tsx'
 
 interface BrandProps {
