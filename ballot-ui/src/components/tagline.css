@@ -8,3 +8,11 @@
     font-size: 30px;
     text-shadow: 0.03em 0.03em 0 hsla(230, 40%, 50%, 1);
 }
+
+@media (max-width: 700px) {
+    #tagline {
+        padding-left: var(--control-horizontal-space-mobile);
+        padding-right: var(--control-horizontal-space-mobile);
+        font-size: 21px;
+    }
+}
