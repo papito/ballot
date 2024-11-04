@@ -1,7 +1,7 @@
 import './copy_session_url.css'
 import React from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { Session } from '../views/vote.tsx'
+import { Session } from '../features/vote.tsx'
 
 interface CopyUrlProps {
     session: Session | null

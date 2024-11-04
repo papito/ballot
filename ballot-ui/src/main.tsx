@@ -1,8 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import Join from './views/join.tsx'
-import Landing from './views/landing.tsx'
-import Vote from './views/vote.tsx'
+import Join from './features/join.tsx'
+import Landing from './features/landing.tsx'
+import Vote from './features/vote.tsx'
 
 import './core.css'
 

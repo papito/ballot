@@ -5,7 +5,7 @@ import { http, HttpResponse } from 'msw'
 import { v4 as uuidv4 } from 'uuid'
 
 // @ts-ignore
-import Landing from '../src/views/landing.tsx'
+import Landing from '../src/features/landing.tsx'
 // @ts-ignore
 import { mockServer } from './utils.ts'
 

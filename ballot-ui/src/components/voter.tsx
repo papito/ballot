@@ -1,7 +1,7 @@
 import './voter.css'
 import React from 'react'
 import { SessionState } from '../constants.ts'
-import { Session, User } from '../views/vote.tsx'
+import { Session, User } from '../features/vote.tsx'
 
 interface VoterProps {
     voter: User

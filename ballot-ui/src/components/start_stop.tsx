@@ -2,7 +2,7 @@ import './start_stop.css'
 import axios from 'axios'
 import React from 'react'
 import { SessionState } from '../constants.ts'
-import { Session, User } from '../views/vote.tsx'
+import { Session, User } from '../features/vote.tsx'
 
 interface StartStopProps {
     session: Session
