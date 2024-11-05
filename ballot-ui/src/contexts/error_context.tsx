@@ -45,10 +45,11 @@ const ErrorContextProvider = ({ children }: { children: ReactNode }): React.JSX.
         return response
     }
 
-    const onResponseError = (axiosError: AxiosError<TValidationError>): Promise<AxiosError> => {
+    const onResponseError = (axiosError: AxiosError): Promise<AxiosError> => {
         switch (axiosError.response?.status) {
             case 400:
-                setFormError(axiosError.response?.data.error)
+                const validationError = axiosError as AxiosError<TValidationError>
+                setFormError(validationError.response?.data.error || axiosError.response?.statusText)
                 break
             default:
                 setGeneralError(axiosError.response?.statusText || 'Error: HTTP' + axiosError.response?.status)
