@@ -17,6 +17,7 @@ function CopySessionUrl({ session }: CopyUrlProps): React.JSX.Element {
     function timeout(delay: number): Promise<unknown> {
         return new Promise((res) => setTimeout(res, delay))
     }
+
     async function onCopyText(): Promise<void> {
         setClicked(true)
         await timeout(2000)

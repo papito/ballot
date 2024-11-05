@@ -5,8 +5,6 @@ import Byline from '../components/byline.tsx'
 import Footer from '../components/footer.tsx'
 import GeneralError from '../components/general_error.tsx'
 
-// https://github.com/axios/axios/discussions/5859
-// eslint-disable-next-line import/named
 import axios from 'axios'
 import Tagline from '../components/tagline.tsx'
 import { useErrorContext } from '../contexts/error_context.tsx'

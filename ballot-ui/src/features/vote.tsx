@@ -66,7 +66,6 @@ function Vote(): React.JSX.Element {
      * This runs once when the component is mounted.
      */
     const mounted = useRef(false)
-    const isConnected = useRef(false)
 
     useEffect(() => {
         if (mounted.current) {
@@ -79,24 +78,10 @@ function Vote(): React.JSX.Element {
 
         const ws: Websockets = new Websockets()
 
-        ws.socket.on('connected', () => {
-            isConnected.current = true
-        })
-
-        ws.socket.on('timeout', () => {
-            isConnected.current = false
-        })
-
-        ws.socket.on('disconnected', () => {
-            isConnected.current = false
-        })
-
-        ws.socket.on('error', () => {
-            isConnected.current = false
-        })
-
-        // A mobile device may have lost connection on sleep or locked screen,
-        // calling "reconnect" should be harmless.
+        /**
+         * A mobile device may have lost connection on sleep or locked screen.
+         * Calling "reconnect" should be harmless, and not always effective.
+         */
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 ws.reconnect()
@@ -107,17 +92,21 @@ function Vote(): React.JSX.Element {
         })
 
         const fetchUser = async (): Promise<void> => {
-            const { data } = await axios.get<User>(`/api/user/${userId}`)
-            setUser(data)
+            try {
+                const { data } = await axios.get<User>(`/api/user/${userId}`)
+                setUser(data)
 
-            const watchCmd = {
-                action: 'WATCH',
-                session_id: sessionId,
-                user_id: data.id,
-                is_observer: data.is_observer,
-                is_admin: data.is_admin,
+                const watchCmd = {
+                    action: 'WATCH',
+                    session_id: sessionId,
+                    user_id: data.id,
+                    is_observer: data.is_observer,
+                    is_admin: data.is_admin,
+                }
+                ws.send(JSON.stringify(watchCmd))
+            } catch {
+                return
             }
-            ws.send(JSON.stringify(watchCmd))
         }
 
         function watchingSessionWsHandler(json: { [key: string]: never }): void {

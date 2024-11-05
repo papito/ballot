@@ -27,6 +27,7 @@ const router = createBrowserRouter([
 function App(): React.JSX.Element {
     return (
         <StrictMode>
+            {/* Error context intercepts API errors for display to the user */}
             <ErrorContextProvider>
                 <RouterProvider router={router} />
             </ErrorContextProvider>

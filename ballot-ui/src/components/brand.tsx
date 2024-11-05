@@ -9,7 +9,7 @@ interface BrandProps {
 
 function Brand({ session }: BrandProps): React.JSX.Element {
     return (
-        <div id="Brand">
+        <div id="brand">
             <span>
                 <a href="/">Ballot</a>
             </span>

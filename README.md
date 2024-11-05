@@ -14,19 +14,19 @@ A web-based replacement for physical Scrum estimation cards, most useful for dis
 - If you are not a pig, you can join and observe an estimation session as a chicken
 
 ## Stack:
-* Vanilla GO http server
-* React UI
+* Go HTTP server
+* React/Typescript UI
 * Redis for session state
-* Glue.js for WebSocket communication between Go and the front-end
-
+* Glue.js for WebSocket communication
+* 
 ## Installing and running
 
-To just get it working out of the box:
+With DockerHub:
 
     docker pull papito/ballot:latest
     docker run -td -p8080:8080 --name ballot papito/ballot:latest
 
-With more options:
+With external Redis:
 
     docker pull papito/ballot:latest
     docker run -td -p8080:8080 --name ballot -e"REDIS_URL=..." papito/ballot:latest
@@ -40,7 +40,8 @@ With more options:
 
 ### Starting up development
 
-If you are special and don't have Make on your system, just look at the Makefile and run the commands manually.
+If you are special and don't have Make installed on your system, just
+look at the Makefile and run the commands manually.
 
 #### Server
 

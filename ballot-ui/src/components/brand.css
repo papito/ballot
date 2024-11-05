@@ -1,10 +1,10 @@
-#Brand {
+#brand {
     display: grid;
     background-color: #343a40;
     grid-template-columns: max-content 1fr max-content;
 }
 
-#Brand span {
+#brand span {
     display: grid;
     place-items: center;
     font-size: 1.5em;
@@ -13,7 +13,7 @@
     font-weight: bold;
 }
 
-#Brand a {
+#brand a {
     text-decoration: none;
     color: var(--text-color);
 }

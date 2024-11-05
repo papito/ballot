@@ -83,12 +83,6 @@ button:hover {
     transform: translateY(-2px);
 }
 
-@media (min-width: 768px) {
-    .btn {
-        padding: 10px 30px;
-    }
-}
-
 button.success {
     background-color: var(--success-background-color);
     border: 0;
@@ -157,4 +151,10 @@ form .error {
     background-color: black;
     padding: 5px;
     border-radius: 3px;
+}
+
+@media (min-width: 768px) {
+    .btn {
+        padding: 10px 30px;
+    }
 }
