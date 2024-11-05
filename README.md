@@ -13,6 +13,12 @@ A web-based replacement for physical Scrum estimation cards, most useful for dis
 - A vote can be finalized even if someone doesn't vote, because they are raiding the company fridge
 - If you are not a pig, you can join and observe an estimation session as a chicken
 
+## Stack:
+* Vanilla GO http server
+* React UI
+* Redis for session state
+* Glue.js for WebSocket communication between Go and the front-end
+
 ## Installing and running
 
 To just get it working out of the box:
@@ -34,10 +40,12 @@ With more options:
 
 ### Starting up development
 
+If you are special and don't have Make on your system, just look at the Makefile and run the commands manually.
+
 #### Server
 
 ```bash
-# Start database (in a different window)
+# Start the dockerized Redis (in a different window)
 make db
 # Compile & run the Go server
 make start
@@ -50,14 +58,15 @@ make install
 make start
 ```
 
-`NOTE`: The React app will connect to the dev server (so both must be running, but going to the dev
-Go server (on :8080) will run the **build** version of the React app, not the development code.
+`IMPORTANT`: In development, the Go and the React apps run separately. 
+The Go server runs on port 8080 and the React app proxies requests to the Go server. If you access
+the app on port 8080 in development, you will be accessing the **build** (production) version of the React app.
 
 ### Running server tests
 
     make test
 
-### Running UI test`
+### Running UI tests
 
     cd ballot-ui
     make test
