@@ -321,6 +321,7 @@ func (p *Hub) handleSocket(sock *glue.Socket) {
 				wsUser.Joined = user.Joined
 				wsUser.Voted = user.Voted
 				wsUser.IsObserver = user.IsObserver
+				wsUser.IsAdmin = user.IsAdmin
 
 				// only expose votes when not voting
 				if sessionState == model.NotVoting {

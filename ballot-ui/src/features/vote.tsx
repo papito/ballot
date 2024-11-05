@@ -80,7 +80,6 @@ function Vote(): React.JSX.Element {
         const ws: Websockets = new Websockets()
 
         ws.socket.on('connected', () => {
-            console.log('Connected')
             isConnected.current = true
         })
 
@@ -99,13 +98,11 @@ function Vote(): React.JSX.Element {
         // A mobile device may have lost connection on sleep or locked screen,
         // calling "reconnect" should be harmless.
         document.addEventListener('visibilitychange', () => {
-            console.debug(`Connected: ${isConnected.current}, Visibility: ${document.visibilityState}`)
             if (!document.hidden) {
                 ws.reconnect()
             }
         })
         window.addEventListener('blur', () => {
-            console.debug(`Connected: ${isConnected.current}`)
             ws.reconnect()
         })
 
@@ -150,6 +147,12 @@ function Vote(): React.JSX.Element {
 
         function userLeftWsHandler(json: { [key: string]: never }): void {
             const voterId = json['user_id']
+
+            // this can happen if the user opens a second tab by mistake, as the same user
+            if (voterId === user.id) {
+                console.warn('Will not remove current user from voters list')
+                return
+            }
 
             setVoters((v) => v.filter((voter) => voter.id !== voterId))
         }
