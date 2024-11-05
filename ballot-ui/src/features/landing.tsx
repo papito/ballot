@@ -65,7 +65,6 @@ function Landing(): React.JSX.Element {
                 </form>
                 <Byline />
             </div>
-            s
             <Footer />
         </div>
     )
