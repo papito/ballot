@@ -2,8 +2,10 @@ import { SessionState } from '../constants.ts'
 
 export interface Session {
     id: string | undefined
-    status: SessionState
     tally: string
+    status: SessionState
+    users: User[]
+    observers: User[]
 }
 
 export interface User {

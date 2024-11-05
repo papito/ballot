@@ -28,7 +28,7 @@ type WsUserVote struct {
 
 type WsSession struct {
 	Event        string       `json:"event"`
-	SessionState int          `json:"session_state"`
+	SessionState int          `json:"status"`
 	Users        []model.User `json:"users"`
 	Observers    []model.User `json:"observers"`
 	Tally        string       `json:"tally"`

@@ -36,6 +36,8 @@ function Vote(): React.JSX.Element {
         id: sessionId,
         status: SessionState.IDLE,
         tally: NO_ESTIMATE,
+        users: [],
+        observers: [],
     })
     const [voters, setVoters] = useImmer<User[]>([])
     const [observers, setObservers] = useImmer<User[]>([])
@@ -109,31 +111,6 @@ function Vote(): React.JSX.Element {
             }
         }
 
-        function watchingSessionWsHandler(json: { [key: string]: never }): void {
-            setSession((draft) => {
-                draft.status = json['session_state']
-                draft.tally = json['tally']
-            })
-
-            const usersJson: never[] = json['users'] || []
-            const sessionVoters: User[] = []
-
-            for (const userJson of usersJson) {
-                sessionVoters.push(userJson)
-            }
-
-            setVoters(sessionVoters)
-
-            const observersJson: never[] = json['observers'] || []
-            const sessionObservers: User[] = []
-
-            for (const observerJson of observersJson) {
-                sessionObservers.push(observerJson)
-            }
-
-            setObservers(sessionObservers)
-        }
-
         function userLeftWsHandler(json: { [key: string]: never }): void {
             const voterId = json['user_id']
 
@@ -152,7 +129,7 @@ function Vote(): React.JSX.Element {
             setObservers((v) => v.filter((u) => u.id !== observerId))
         }
 
-        function userAddedWsHandler(userJson: never): void {
+        function userAddedWsHandler(userJson: User): void {
             const newUserId = userJson['id']
 
             setVoters((v) => {
@@ -164,7 +141,7 @@ function Vote(): React.JSX.Element {
             })
         }
 
-        function observerAddedWsHandler(observerJson: never): void {
+        function observerAddedWsHandler(observerJson: User): void {
             const newObserverId = observerJson['id']
 
             setObservers((v) => {
@@ -205,22 +182,23 @@ function Vote(): React.JSX.Element {
             })
         }
 
-        function votingFinishedWsHandler(json: { [key: string]: never }): void {
-            const tally: string = json['tally']
-
+        function watchingSessionWsHandler(ses: Session): void {
             setSession((draft) => {
-                draft.status = SessionState.IDLE
-                draft.tally = tally
+                draft.status = ses.status
+                draft.tally = ses.tally
             })
 
-            const usersJson: never[] = json['users'] || []
-            const sessionVoters: User[] = []
+            setVoters(ses.users)
+            setObservers(ses.observers)
+        }
 
-            for (const userJson of usersJson) {
-                sessionVoters.push(userJson)
-            }
+        function votingFinishedWsHandler(ses: Session): void {
+            setSession((draft) => {
+                draft.status = SessionState.IDLE
+                draft.tally = ses.tally
+            })
 
-            setVoters(sessionVoters)
+            setVoters(ses.users)
         }
 
         ws.socket.onMessage((data: string) => {
@@ -232,15 +210,15 @@ function Vote(): React.JSX.Element {
 
             switch (event) {
                 case 'USER_ADDED': {
-                    userAddedWsHandler(json as never)
+                    userAddedWsHandler(json as User)
                     break
                 }
                 case 'OBSERVER_ADDED': {
-                    observerAddedWsHandler(json as never)
+                    observerAddedWsHandler(json as User)
                     break
                 }
                 case 'WATCHING': {
-                    watchingSessionWsHandler(json)
+                    watchingSessionWsHandler(json as Session)
                     break
                 }
                 case 'VOTING': {
@@ -252,7 +230,7 @@ function Vote(): React.JSX.Element {
                     break
                 }
                 case 'VOTE_FINISHED': {
-                    votingFinishedWsHandler(json)
+                    votingFinishedWsHandler(json as Session)
                     break
                 }
                 case 'USER_LEFT': {
