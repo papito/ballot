@@ -11,7 +11,7 @@ import Voter from '../components/voter.tsx'
 import { SessionState } from '../constants.ts'
 import { useErrorContext } from '../contexts/error_context.tsx'
 import { User } from '../types/types.tsx'
-import { useVoteManager } from './state_manager_hook.ts'
+import { useVoteManager } from './vote_manager.ts'
 
 function Vote(): React.JSX.Element {
     const params = useParams()

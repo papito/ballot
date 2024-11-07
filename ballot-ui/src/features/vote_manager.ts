@@ -2,10 +2,21 @@ import axios from 'axios'
 import { useEffect, useRef } from 'react'
 // eslint-disable-next-line import/named
 import { Updater, useImmer } from 'use-immer'
-import { NO_ESTIMATE, SessionState, WebsocketAction } from '../constants.ts'
+import { NO_ESTIMATE, SessionState } from '../constants.ts'
 import { useErrorContext } from '../contexts/error_context.tsx'
 import { Session, User } from '../types/types.tsx'
 import Websockets from '../websockets.ts'
+
+const enum WebsocketAction {
+    USER_ADDED = 'USER_ADDED',
+    USER_LEFT = 'USER_LEFT',
+    OBSERVER_ADDED = 'OBSERVER_ADDED',
+    WATCHING = 'WATCHING',
+    VOTING = 'VOTING',
+    USER_VOTED = 'USER_VOTED',
+    VOTE_FINISHED = 'VOTE_FINISHED',
+    OBSERVER_LEFT = 'OBSERVER_LEFT',
+}
 
 export function useVoteManager({ userId, sessionId }: { userId: string | undefined; sessionId: string | undefined }): {
     user: User
@@ -86,9 +97,7 @@ export function useVoteManager({ userId, sessionId }: { userId: string | undefin
             setGeneralError(`An error occurred (${error}). See server logs.`)
         })
 
-        function userLeftWsHandler(json: { [key: string]: never }): void {
-            const voterId = json['user_id']
-
+        function userLeftWsHandler(voterId: string): void {
             // this can happen if the user opens a second tab by mistake, as the same user
             if (voterId === user.id) {
                 console.warn('Will not remove current user from voters list')
@@ -98,9 +107,7 @@ export function useVoteManager({ userId, sessionId }: { userId: string | undefin
             setVoters((v) => v.filter((voter) => voter.id !== voterId))
         }
 
-        function observerLeftWsHandler(observerJson: { [key: string]: never }): void {
-            const observerId = observerJson['user_id']
-
+        function observerLeftWsHandler(observerId: string): void {
             setObservers((v) => v.filter((u) => u.id !== observerId))
         }
 
@@ -128,9 +135,7 @@ export function useVoteManager({ userId, sessionId }: { userId: string | undefin
             })
         }
 
-        function userVotedWsHandler(json: { [key: string]: string }): void {
-            const voterId = json['user_id']
-
+        function userVotedWsHandler(voterId: string): void {
             setVoters((draft) => {
                 const voter = draft.find((v) => v.id === voterId)
                 if (voter) {
@@ -201,7 +206,7 @@ export function useVoteManager({ userId, sessionId }: { userId: string | undefin
                     break
                 }
                 case WebsocketAction.USER_VOTED: {
-                    userVotedWsHandler(json)
+                    userVotedWsHandler(json['user_id'])
                     break
                 }
                 case WebsocketAction.VOTE_FINISHED: {
@@ -209,11 +214,11 @@ export function useVoteManager({ userId, sessionId }: { userId: string | undefin
                     break
                 }
                 case WebsocketAction.USER_LEFT: {
-                    userLeftWsHandler(json)
+                    userLeftWsHandler(json['user_id'])
                     break
                 }
                 case WebsocketAction.OBSERVER_LEFT: {
-                    observerLeftWsHandler(json)
+                    observerLeftWsHandler(json['user_id'])
                     break
                 }
             }
