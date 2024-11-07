@@ -49,6 +49,7 @@ look at the Makefile and run the commands manually.
 # Start the dockerized Redis (in a different window)
 make db
 # Compile & run the Go server
+make compile
 make start
 ```
 
@@ -60,7 +61,7 @@ make start
 ```
 
 `IMPORTANT`: In development, the Go and the React apps run separately. 
-The Go server runs on port 8080 and the React app proxies requests to the Go server. If you access
+The server runs on port 8080 and the React app proxies requests to it. If you access
 the app on port 8080 in development, you will be accessing the **build** (production) version of the React app.
 
 ### Running server tests
