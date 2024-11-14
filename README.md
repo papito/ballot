@@ -18,7 +18,7 @@ A web-based replacement for physical Scrum estimation cards, most useful for dis
 * React/Typescript UI
 * Redis for session state
 * Glue.js for WebSocket communication
-* 
+  
 ## Installing and running
 
 With DockerHub:
